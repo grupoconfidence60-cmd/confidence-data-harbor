@@ -14,16 +14,303 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      audit_log: {
+        Row: {
+          acao: string
+          antes: Json | null
+          created_at: string
+          depois: Json | null
+          id: number
+          registro_id: string | null
+          tabela: string
+          user_id: string | null
+        }
+        Insert: {
+          acao: string
+          antes?: Json | null
+          created_at?: string
+          depois?: Json | null
+          id?: number
+          registro_id?: string | null
+          tabela: string
+          user_id?: string | null
+        }
+        Update: {
+          acao?: string
+          antes?: Json | null
+          created_at?: string
+          depois?: Json | null
+          id?: number
+          registro_id?: string | null
+          tabela?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      colaborador_historico: {
+        Row: {
+          colaborador_id: string
+          created_at: string
+          dados: Json | null
+          descricao: string
+          id: string
+          tipo: string
+          user_id: string | null
+        }
+        Insert: {
+          colaborador_id: string
+          created_at?: string
+          dados?: Json | null
+          descricao: string
+          id?: string
+          tipo: string
+          user_id?: string | null
+        }
+        Update: {
+          colaborador_id?: string
+          created_at?: string
+          dados?: Json | null
+          descricao?: string
+          id?: string
+          tipo?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "colaborador_historico_colaborador_id_fkey"
+            columns: ["colaborador_id"]
+            isOneToOne: false
+            referencedRelation: "colaboradores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      colaboradores: {
+        Row: {
+          arquivado: boolean
+          cpf: string | null
+          created_at: string
+          data_admissao: string | null
+          email: string | null
+          endereco: string | null
+          funcao_id: string | null
+          id: string
+          jornada: string | null
+          matricula: string
+          nome: string
+          observacoes: string | null
+          posto_id: string | null
+          situacao: Database["public"]["Enums"]["colab_situacao"]
+          supervisor_id: string | null
+          telefone: string | null
+          updated_at: string
+          user_id: string | null
+          vinculo: string | null
+        }
+        Insert: {
+          arquivado?: boolean
+          cpf?: string | null
+          created_at?: string
+          data_admissao?: string | null
+          email?: string | null
+          endereco?: string | null
+          funcao_id?: string | null
+          id?: string
+          jornada?: string | null
+          matricula: string
+          nome: string
+          observacoes?: string | null
+          posto_id?: string | null
+          situacao?: Database["public"]["Enums"]["colab_situacao"]
+          supervisor_id?: string | null
+          telefone?: string | null
+          updated_at?: string
+          user_id?: string | null
+          vinculo?: string | null
+        }
+        Update: {
+          arquivado?: boolean
+          cpf?: string | null
+          created_at?: string
+          data_admissao?: string | null
+          email?: string | null
+          endereco?: string | null
+          funcao_id?: string | null
+          id?: string
+          jornada?: string | null
+          matricula?: string
+          nome?: string
+          observacoes?: string | null
+          posto_id?: string | null
+          situacao?: Database["public"]["Enums"]["colab_situacao"]
+          supervisor_id?: string | null
+          telefone?: string | null
+          updated_at?: string
+          user_id?: string | null
+          vinculo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "colaboradores_funcao_id_fkey"
+            columns: ["funcao_id"]
+            isOneToOne: false
+            referencedRelation: "funcoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "colaboradores_posto_id_fkey"
+            columns: ["posto_id"]
+            isOneToOne: false
+            referencedRelation: "postos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      funcoes: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          descricao: string | null
+          id: string
+          nome: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+        }
+        Relationships: []
+      }
+      postos: {
+        Row: {
+          ativo: boolean
+          cidade: string | null
+          cliente: string | null
+          created_at: string
+          efetivo_previsto: number
+          endereco: string | null
+          id: string
+          nome: string
+          observacoes: string | null
+          supervisor_id: string | null
+          tipo: string | null
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          cidade?: string | null
+          cliente?: string | null
+          created_at?: string
+          efetivo_previsto?: number
+          endereco?: string | null
+          id?: string
+          nome: string
+          observacoes?: string | null
+          supervisor_id?: string | null
+          tipo?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          cidade?: string | null
+          cliente?: string | null
+          created_at?: string
+          efetivo_previsto?: number
+          endereco?: string | null
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          supervisor_id?: string | null
+          tipo?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          cargo: string | null
+          created_at: string
+          email: string
+          id: string
+          last_access: string | null
+          nome: string
+          status: Database["public"]["Enums"]["account_status"]
+          updated_at: string
+        }
+        Insert: {
+          cargo?: string | null
+          created_at?: string
+          email?: string
+          id: string
+          last_access?: string | null
+          nome?: string
+          status?: Database["public"]["Enums"]["account_status"]
+          updated_at?: string
+        }
+        Update: {
+          cargo?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          last_access?: string | null
+          nome?: string
+          status?: Database["public"]["Enums"]["account_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_any_role: {
+        Args: {
+          _roles: Database["public"]["Enums"]["app_role"][]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      system_initialized: { Args: never; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      account_status: "ativo" | "inativo" | "bloqueado"
+      app_role: "admin" | "gestor" | "supervisor" | "rh" | "colaborador"
+      colab_situacao: "ativo" | "ferias" | "afastado" | "desligado"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +437,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      account_status: ["ativo", "inativo", "bloqueado"],
+      app_role: ["admin", "gestor", "supervisor", "rh", "colaborador"],
+      colab_situacao: ["ativo", "ferias", "afastado", "desligado"],
+    },
   },
 } as const

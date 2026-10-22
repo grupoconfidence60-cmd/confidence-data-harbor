@@ -13,7 +13,13 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as AuthenticatedAuditoriaRouteImport } from './routes/_authenticated/auditoria'
+import { Route as AuthenticatedColaboradoresRouteImport } from './routes/_authenticated/colaboradores'
+import { Route as AuthenticatedFuncoesRouteImport } from './routes/_authenticated/funcoes'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
+import { Route as AuthenticatedPostosRouteImport } from './routes/_authenticated/postos'
+import { Route as AuthenticatedUsuariosRouteImport } from './routes/_authenticated/usuarios'
+import { Route as AuthenticatedColaboradorIdRouteImport } from './routes/_authenticated/colaborador.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,23 +40,67 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAuditoriaRoute = AuthenticatedAuditoriaRouteImport.update({
+  id: '/auditoria',
+  path: '/auditoria',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedColaboradoresRoute =
+  AuthenticatedColaboradoresRouteImport.update({
+    id: '/colaboradores',
+    path: '/colaboradores',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedFuncoesRoute = AuthenticatedFuncoesRouteImport.update({
+  id: '/funcoes',
+  path: '/funcoes',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
   id: '/painel',
   path: '/painel',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPostosRoute = AuthenticatedPostosRouteImport.update({
+  id: '/postos',
+  path: '/postos',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedUsuariosRoute = AuthenticatedUsuariosRouteImport.update({
+  id: '/usuarios',
+  path: '/usuarios',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedColaboradorIdRoute =
+  AuthenticatedColaboradorIdRouteImport.update({
+    id: '/colaborador/$id',
+    path: '/colaborador/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/auditoria': typeof AuthenticatedAuditoriaRoute
+  '/colaboradores': typeof AuthenticatedColaboradoresRoute
+  '/funcoes': typeof AuthenticatedFuncoesRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/postos': typeof AuthenticatedPostosRoute
+  '/usuarios': typeof AuthenticatedUsuariosRoute
+  '/colaborador/$id': typeof AuthenticatedColaboradorIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/auditoria': typeof AuthenticatedAuditoriaRoute
+  '/colaboradores': typeof AuthenticatedColaboradoresRoute
+  '/funcoes': typeof AuthenticatedFuncoesRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/postos': typeof AuthenticatedPostosRoute
+  '/usuarios': typeof AuthenticatedUsuariosRoute
+  '/colaborador/$id': typeof AuthenticatedColaboradorIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -58,20 +108,52 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/_authenticated/auditoria': typeof AuthenticatedAuditoriaRoute
+  '/_authenticated/colaboradores': typeof AuthenticatedColaboradoresRoute
+  '/_authenticated/funcoes': typeof AuthenticatedFuncoesRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
+  '/_authenticated/postos': typeof AuthenticatedPostosRoute
+  '/_authenticated/usuarios': typeof AuthenticatedUsuariosRoute
+  '/_authenticated/colaborador/$id': typeof AuthenticatedColaboradorIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/reset-password' | '/painel'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/reset-password'
+    | '/auditoria'
+    | '/colaboradores'
+    | '/funcoes'
+    | '/painel'
+    | '/postos'
+    | '/usuarios'
+    | '/colaborador/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/reset-password' | '/painel'
+  to:
+    | '/'
+    | '/auth'
+    | '/reset-password'
+    | '/auditoria'
+    | '/colaboradores'
+    | '/funcoes'
+    | '/painel'
+    | '/postos'
+    | '/usuarios'
+    | '/colaborador/$id'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
     | '/reset-password'
+    | '/_authenticated/auditoria'
+    | '/_authenticated/colaboradores'
+    | '/_authenticated/funcoes'
     | '/_authenticated/painel'
+    | '/_authenticated/postos'
+    | '/_authenticated/usuarios'
+    | '/_authenticated/colaborador/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -111,6 +193,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/auditoria': {
+      id: '/_authenticated/auditoria'
+      path: '/auditoria'
+      fullPath: '/auditoria'
+      preLoaderRoute: typeof AuthenticatedAuditoriaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/colaboradores': {
+      id: '/_authenticated/colaboradores'
+      path: '/colaboradores'
+      fullPath: '/colaboradores'
+      preLoaderRoute: typeof AuthenticatedColaboradoresRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/funcoes': {
+      id: '/_authenticated/funcoes'
+      path: '/funcoes'
+      fullPath: '/funcoes'
+      preLoaderRoute: typeof AuthenticatedFuncoesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/painel': {
       id: '/_authenticated/painel'
       path: '/painel'
@@ -118,15 +221,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPainelRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/postos': {
+      id: '/_authenticated/postos'
+      path: '/postos'
+      fullPath: '/postos'
+      preLoaderRoute: typeof AuthenticatedPostosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/usuarios': {
+      id: '/_authenticated/usuarios'
+      path: '/usuarios'
+      fullPath: '/usuarios'
+      preLoaderRoute: typeof AuthenticatedUsuariosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/colaborador/$id': {
+      id: '/_authenticated/colaborador/$id'
+      path: '/colaborador/$id'
+      fullPath: '/colaborador/$id'
+      preLoaderRoute: typeof AuthenticatedColaboradorIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAuditoriaRoute: typeof AuthenticatedAuditoriaRoute
+  AuthenticatedColaboradoresRoute: typeof AuthenticatedColaboradoresRoute
+  AuthenticatedFuncoesRoute: typeof AuthenticatedFuncoesRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
+  AuthenticatedPostosRoute: typeof AuthenticatedPostosRoute
+  AuthenticatedUsuariosRoute: typeof AuthenticatedUsuariosRoute
+  AuthenticatedColaboradorIdRoute: typeof AuthenticatedColaboradorIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAuditoriaRoute: AuthenticatedAuditoriaRoute,
+  AuthenticatedColaboradoresRoute: AuthenticatedColaboradoresRoute,
+  AuthenticatedFuncoesRoute: AuthenticatedFuncoesRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
+  AuthenticatedPostosRoute: AuthenticatedPostosRoute,
+  AuthenticatedUsuariosRoute: AuthenticatedUsuariosRoute,
+  AuthenticatedColaboradorIdRoute: AuthenticatedColaboradorIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

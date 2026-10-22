@@ -1,0 +1,97 @@
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ArrowLeft, Pencil, Archive } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { RequireModule } from "@/components/page";
+import { useMe } from "@/lib/use-me";
+import { canEditColaboradores } from "@/lib/labels";
+import { ColabDialog, SituacaoBadge, type ColabForm } from "./colaboradores";
+
+export const Route = createFileRoute("/_authenticated/colaborador/$id")({
+  head: () => ({ meta: [{ title: "Colaborador — Grupo Confidence" }] }),
+  component: () => <RequireModule module="colaboradores"><Detalhe /></RequireModule>,
+});
+
+function Detalhe() {
+  const { id } = Route.useParams();
+  const { data: me } = useMe();
+  const canEdit = canEditColaboradores(me?.roles ?? []);
+  const [editing, setEditing] = useState<ColabForm | null>(null);
+  const qc = useQueryClient();
+  const navigate = useNavigate();
+  const { data } = useQuery({
+    queryKey: ["colaborador", id],
+    queryFn: async () => {
+      const [{ data: c }, { data: h }] = await Promise.all([
+        supabase.from("colaboradores").select("*, funcoes(nome), postos(nome)").eq("id", id).maybeSingle(),
+        supabase.from("colaborador_historico").select("*").eq("colaborador_id", id).order("created_at", { ascending: false }),
+      ]);
+      return { c, h: h ?? [] };
+    },
+  });
+  const c = data?.c;
+  if (!data) return null;
+  if (!c) return <p className="text-muted-foreground">Colaborador não encontrado ou sem permissão.</p>;
+
+  async function arquivar() {
+    if (!confirm("Arquivar este colaborador? Ele deixará de aparecer nas listas.")) return;
+    const { error } = await supabase.from("colaboradores").update({ arquivado: true }).eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success("Colaborador arquivado.");
+    qc.invalidateQueries();
+    navigate({ to: "/colaboradores" });
+  }
+
+  const info: [string, string | null | undefined][] = [
+    ["Matrícula", c.matricula], ["CPF", c.cpf], ["Telefone", c.telefone], ["E-mail", c.email],
+    ["Função", c.funcoes?.nome], ["Posto", c.postos?.nome], ["Admissão", c.data_admissao && new Date(c.data_admissao + "T00:00").toLocaleDateString("pt-BR")],
+    ["Vínculo", c.vinculo], ["Jornada", c.jornada], ["Endereço", c.endereco],
+  ];
+
+  return (
+    <div className="space-y-4">
+      <Link to="/colaboradores" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="h-4 w-4" />Colaboradores</Link>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3"><h1 className="text-2xl font-semibold">{c.nome}</h1><SituacaoBadge s={c.situacao} /></div>
+        {canEdit && (
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={arquivar}><Archive className="mr-1 h-4 w-4" />Arquivar</Button>
+            <Button onClick={() => setEditing({
+              id: c.id, matricula: c.matricula, nome: c.nome, cpf: c.cpf ?? "", telefone: c.telefone ?? "", email: c.email ?? "",
+              endereco: c.endereco ?? "", funcao_id: c.funcao_id ?? "", posto_id: c.posto_id ?? "", data_admissao: c.data_admissao ?? "",
+              vinculo: c.vinculo ?? "", jornada: c.jornada ?? "", situacao: c.situacao, observacoes: c.observacoes ?? "",
+            })}><Pencil className="mr-1 h-4 w-4" />Editar / transferir</Button>
+          </div>
+        )}
+      </div>
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Card className="lg:col-span-2">
+          <CardHeader><CardTitle className="text-base">Dados cadastrais</CardTitle></CardHeader>
+          <CardContent className="grid gap-4 sm:grid-cols-2">
+            {info.map(([k, v]) => <div key={k}><div className="text-xs text-muted-foreground">{k}</div><div className="text-sm">{v || "—"}</div></div>)}
+            {c.observacoes && canEdit && <div className="sm:col-span-2"><div className="text-xs text-muted-foreground">Observações</div><div className="text-sm whitespace-pre-wrap">{c.observacoes}</div></div>}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader><CardTitle className="text-base">Histórico</CardTitle></CardHeader>
+          <CardContent>
+            <ol className="space-y-3 border-l pl-4">
+              {data.h.map((h) => (
+                <li key={h.id} className="relative">
+                  <span className="absolute -left-[21px] top-1.5 h-2 w-2 rounded-full bg-gold" />
+                  <div className="text-sm">{h.descricao}</div>
+                  <div className="text-xs text-muted-foreground">{new Date(h.created_at).toLocaleString("pt-BR")}</div>
+                </li>
+              ))}
+            </ol>
+          </CardContent>
+        </Card>
+      </div>
+      {editing && <ColabDialog value={editing} onClose={() => setEditing(null)} />}
+    </div>
+  );
+}

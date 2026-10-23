@@ -15,9 +15,13 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthenticatedAuditoriaRouteImport } from './routes/_authenticated/auditoria'
 import { Route as AuthenticatedColaboradoresRouteImport } from './routes/_authenticated/colaboradores'
+import { Route as AuthenticatedEscalasRouteImport } from './routes/_authenticated/escalas'
+import { Route as AuthenticatedFeriasRouteImport } from './routes/_authenticated/ferias'
 import { Route as AuthenticatedFuncoesRouteImport } from './routes/_authenticated/funcoes'
+import { Route as AuthenticatedOcorrenciasRouteImport } from './routes/_authenticated/ocorrencias'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 import { Route as AuthenticatedPostosRouteImport } from './routes/_authenticated/postos'
+import { Route as AuthenticatedPresencaRouteImport } from './routes/_authenticated/presenca'
 import { Route as AuthenticatedUsuariosRouteImport } from './routes/_authenticated/usuarios'
 import { Route as AuthenticatedColaboradorIdRouteImport } from './routes/_authenticated/colaborador.$id'
 
@@ -51,11 +55,27 @@ const AuthenticatedColaboradoresRoute =
     path: '/colaboradores',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedEscalasRoute = AuthenticatedEscalasRouteImport.update({
+  id: '/escalas',
+  path: '/escalas',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedFeriasRoute = AuthenticatedFeriasRouteImport.update({
+  id: '/ferias',
+  path: '/ferias',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedFuncoesRoute = AuthenticatedFuncoesRouteImport.update({
   id: '/funcoes',
   path: '/funcoes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedOcorrenciasRoute =
+  AuthenticatedOcorrenciasRouteImport.update({
+    id: '/ocorrencias',
+    path: '/ocorrencias',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
   id: '/painel',
   path: '/painel',
@@ -64,6 +84,11 @@ const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
 const AuthenticatedPostosRoute = AuthenticatedPostosRouteImport.update({
   id: '/postos',
   path: '/postos',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPresencaRoute = AuthenticatedPresencaRouteImport.update({
+  id: '/presenca',
+  path: '/presenca',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedUsuariosRoute = AuthenticatedUsuariosRouteImport.update({
@@ -84,9 +109,13 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/auditoria': typeof AuthenticatedAuditoriaRoute
   '/colaboradores': typeof AuthenticatedColaboradoresRoute
+  '/escalas': typeof AuthenticatedEscalasRoute
+  '/ferias': typeof AuthenticatedFeriasRoute
   '/funcoes': typeof AuthenticatedFuncoesRoute
+  '/ocorrencias': typeof AuthenticatedOcorrenciasRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/postos': typeof AuthenticatedPostosRoute
+  '/presenca': typeof AuthenticatedPresencaRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
   '/colaborador/$id': typeof AuthenticatedColaboradorIdRoute
 }
@@ -96,9 +125,13 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/auditoria': typeof AuthenticatedAuditoriaRoute
   '/colaboradores': typeof AuthenticatedColaboradoresRoute
+  '/escalas': typeof AuthenticatedEscalasRoute
+  '/ferias': typeof AuthenticatedFeriasRoute
   '/funcoes': typeof AuthenticatedFuncoesRoute
+  '/ocorrencias': typeof AuthenticatedOcorrenciasRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/postos': typeof AuthenticatedPostosRoute
+  '/presenca': typeof AuthenticatedPresencaRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
   '/colaborador/$id': typeof AuthenticatedColaboradorIdRoute
 }
@@ -110,9 +143,13 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/auditoria': typeof AuthenticatedAuditoriaRoute
   '/_authenticated/colaboradores': typeof AuthenticatedColaboradoresRoute
+  '/_authenticated/escalas': typeof AuthenticatedEscalasRoute
+  '/_authenticated/ferias': typeof AuthenticatedFeriasRoute
   '/_authenticated/funcoes': typeof AuthenticatedFuncoesRoute
+  '/_authenticated/ocorrencias': typeof AuthenticatedOcorrenciasRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
   '/_authenticated/postos': typeof AuthenticatedPostosRoute
+  '/_authenticated/presenca': typeof AuthenticatedPresencaRoute
   '/_authenticated/usuarios': typeof AuthenticatedUsuariosRoute
   '/_authenticated/colaborador/$id': typeof AuthenticatedColaboradorIdRoute
 }
@@ -124,9 +161,13 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/auditoria'
     | '/colaboradores'
+    | '/escalas'
+    | '/ferias'
     | '/funcoes'
+    | '/ocorrencias'
     | '/painel'
     | '/postos'
+    | '/presenca'
     | '/usuarios'
     | '/colaborador/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -136,9 +177,13 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/auditoria'
     | '/colaboradores'
+    | '/escalas'
+    | '/ferias'
     | '/funcoes'
+    | '/ocorrencias'
     | '/painel'
     | '/postos'
+    | '/presenca'
     | '/usuarios'
     | '/colaborador/$id'
   id:
@@ -149,9 +194,13 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/_authenticated/auditoria'
     | '/_authenticated/colaboradores'
+    | '/_authenticated/escalas'
+    | '/_authenticated/ferias'
     | '/_authenticated/funcoes'
+    | '/_authenticated/ocorrencias'
     | '/_authenticated/painel'
     | '/_authenticated/postos'
+    | '/_authenticated/presenca'
     | '/_authenticated/usuarios'
     | '/_authenticated/colaborador/$id'
   fileRoutesById: FileRoutesById
@@ -207,11 +256,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedColaboradoresRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/escalas': {
+      id: '/_authenticated/escalas'
+      path: '/escalas'
+      fullPath: '/escalas'
+      preLoaderRoute: typeof AuthenticatedEscalasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/ferias': {
+      id: '/_authenticated/ferias'
+      path: '/ferias'
+      fullPath: '/ferias'
+      preLoaderRoute: typeof AuthenticatedFeriasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/funcoes': {
       id: '/_authenticated/funcoes'
       path: '/funcoes'
       fullPath: '/funcoes'
       preLoaderRoute: typeof AuthenticatedFuncoesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/ocorrencias': {
+      id: '/_authenticated/ocorrencias'
+      path: '/ocorrencias'
+      fullPath: '/ocorrencias'
+      preLoaderRoute: typeof AuthenticatedOcorrenciasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/painel': {
@@ -226,6 +296,13 @@ declare module '@tanstack/react-router' {
       path: '/postos'
       fullPath: '/postos'
       preLoaderRoute: typeof AuthenticatedPostosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/presenca': {
+      id: '/_authenticated/presenca'
+      path: '/presenca'
+      fullPath: '/presenca'
+      preLoaderRoute: typeof AuthenticatedPresencaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/usuarios': {
@@ -248,9 +325,13 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAuditoriaRoute: typeof AuthenticatedAuditoriaRoute
   AuthenticatedColaboradoresRoute: typeof AuthenticatedColaboradoresRoute
+  AuthenticatedEscalasRoute: typeof AuthenticatedEscalasRoute
+  AuthenticatedFeriasRoute: typeof AuthenticatedFeriasRoute
   AuthenticatedFuncoesRoute: typeof AuthenticatedFuncoesRoute
+  AuthenticatedOcorrenciasRoute: typeof AuthenticatedOcorrenciasRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
   AuthenticatedPostosRoute: typeof AuthenticatedPostosRoute
+  AuthenticatedPresencaRoute: typeof AuthenticatedPresencaRoute
   AuthenticatedUsuariosRoute: typeof AuthenticatedUsuariosRoute
   AuthenticatedColaboradorIdRoute: typeof AuthenticatedColaboradorIdRoute
 }
@@ -258,9 +339,13 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAuditoriaRoute: AuthenticatedAuditoriaRoute,
   AuthenticatedColaboradoresRoute: AuthenticatedColaboradoresRoute,
+  AuthenticatedEscalasRoute: AuthenticatedEscalasRoute,
+  AuthenticatedFeriasRoute: AuthenticatedFeriasRoute,
   AuthenticatedFuncoesRoute: AuthenticatedFuncoesRoute,
+  AuthenticatedOcorrenciasRoute: AuthenticatedOcorrenciasRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
   AuthenticatedPostosRoute: AuthenticatedPostosRoute,
+  AuthenticatedPresencaRoute: AuthenticatedPresencaRoute,
   AuthenticatedUsuariosRoute: AuthenticatedUsuariosRoute,
   AuthenticatedColaboradorIdRoute: AuthenticatedColaboradorIdRoute,
 }

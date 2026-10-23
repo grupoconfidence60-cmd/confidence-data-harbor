@@ -55,7 +55,7 @@ export const updateUserAccess = createServerFn({ method: "POST" })
     if (data.userId === context.userId && (data.status && data.status !== "ativo" || (data.role && data.role !== "admin")))
       return { ok: false as const, error: "Você não pode remover o próprio acesso de administrador." };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const patch: Record<string, unknown> = {};
+    const patch: { status?: "ativo" | "inativo" | "bloqueado"; cargo?: string | null } = {};
     if (data.status) patch.status = data.status;
     if (data.cargo !== undefined) patch.cargo = data.cargo;
     if (Object.keys(patch).length) await supabaseAdmin.from("profiles").update(patch).eq("id", data.userId);

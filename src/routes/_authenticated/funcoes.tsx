@@ -25,7 +25,7 @@ function Funcoes() {
   async function add(e: React.FormEvent) {
     e.preventDefault();
     const { error } = await supabase.from("funcoes").insert({ nome: nome.trim(), descricao: desc || null });
-    if (error) return toast.error(error.code === "23505" ? "Função já existe." : error.message);
+    if (error) { toast.error(error.code === "23505" ? "Função já existe." : error.message); return; }
     setNome(""); setDesc(""); qc.invalidateQueries();
   }
   async function toggle(id: string, ativo: boolean) {

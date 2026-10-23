@@ -29,7 +29,7 @@ function Auditoria() {
   const nome = (id: string | null) => (id ? data?.profiles.find((p) => p.id === id)?.nome ?? "—" : "Sistema");
   const label = (l: { depois: unknown; antes: unknown }) => {
     const o = (l.depois ?? l.antes) as Record<string, unknown> | null;
-    return (o?.nome as string) ?? (o?.role as string) ?? (o?.matricula as string) ?? "";
+    return (o?.["nome"] as string) ?? (o?.["role"] as string) ?? (o?.["matricula"] as string) ?? "";
   };
   return (
     <div>

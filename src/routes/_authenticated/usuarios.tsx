@@ -39,13 +39,13 @@ function Usuarios() {
 
   async function change(userId: string, patch: { role?: AppRole; status?: "ativo" | "inativo" | "bloqueado" }) {
     const res = await update({ data: { userId, ...patch } });
-    if (!res.ok) return toast.error(res.error);
+    if (!res.ok) { toast.error(res.error); return; }
     toast.success("Acesso atualizado."); qc.invalidateQueries();
   }
   async function resetPw(userId: string) {
     const pw = prompt("Nova senha (mínimo 8 caracteres):");
     if (!pw) return;
-    if (pw.length < 8) return toast.error("Senha muito curta.");
+    if (pw.length < 8) { toast.error("Senha muito curta."); return; }
     const res = await reset({ data: { userId, password: pw } });
     res.ok ? toast.success("Senha redefinida.") : toast.error(res.error);
   }
@@ -96,7 +96,7 @@ function CreateDialog({ onClose }: { onClose: () => void }) {
     setSaving(true);
     try {
       const res = await create({ data: f });
-      if (!res.ok) return toast.error(res.error);
+      if (!res.ok) { toast.error(res.error); return; }
       toast.success("Usuário criado. Informe a senha inicial ao colaborador.");
       qc.invalidateQueries(); onClose();
     } catch (err) { toast.error((err as Error).message); } finally { setSaving(false); }

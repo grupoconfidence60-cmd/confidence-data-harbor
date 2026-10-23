@@ -40,7 +40,7 @@ function Detalhe() {
   async function arquivar() {
     if (!confirm("Arquivar este colaborador? Ele deixará de aparecer nas listas.")) return;
     const { error } = await supabase.from("colaboradores").update({ arquivado: true }).eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Colaborador arquivado.");
     qc.invalidateQueries();
     navigate({ to: "/colaboradores" });

@@ -81,7 +81,7 @@ function PostoDialog({ value, sups, onClose }: { value: P; sups: { user_id: stri
     const payload = { nome: f.nome.trim(), cliente: f.cliente || null, tipo: f.tipo || null, endereco: f.endereco || null, cidade: f.cidade || null,
       efetivo_previsto: Math.max(0, Number(f.efetivo_previsto) || 0), supervisor_id: f.supervisor_id || null, ativo: f.ativo, observacoes: f.observacoes || null };
     const { error } = f.id ? await supabase.from("postos").update(payload).eq("id", f.id) : await supabase.from("postos").insert(payload);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Posto salvo.");
     qc.invalidateQueries();
     onClose();

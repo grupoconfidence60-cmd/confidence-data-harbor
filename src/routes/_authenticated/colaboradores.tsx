@@ -125,12 +125,12 @@ export function ColabDialog({ value, onClose }: { value: ColabForm; onClose: () 
       funcao_id: f.funcao_id || null, posto_id: f.posto_id || null, data_admissao: f.data_admissao || null,
       vinculo: f.vinculo || null, jornada: f.jornada || null, situacao: f.situacao, observacoes: f.observacoes || null,
     };
-    if (payload.cpf && payload.cpf.length !== 11) { setSaving(false); return toast.error("CPF deve ter 11 dígitos."); }
+    if (payload.cpf && payload.cpf.length !== 11) { setSaving(false); { toast.error("CPF deve ter 11 dígitos."); return; } }
     const { error } = f.id
       ? await supabase.from("colaboradores").update(payload).eq("id", f.id)
       : await supabase.from("colaboradores").insert(payload);
     setSaving(false);
-    if (error) return toast.error(error.code === "23505" ? "Matrícula ou CPF já cadastrado." : error.message);
+    if (error) { toast.error(error.code === "23505" ? "Matrícula ou CPF já cadastrado." : error.message); return; }
     toast.success("Colaborador salvo.");
     qc.invalidateQueries();
     onClose();

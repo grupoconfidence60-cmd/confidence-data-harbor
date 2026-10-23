@@ -1,12 +1,13 @@
-import { ShieldCheck } from "lucide-react";
+import logoAsset from "@/assets/logo-confidence.png.asset.json";
 
-/** Temporary brand mark until the official logo is provided. */
 export function BrandMark({ compact = false }: { compact?: boolean }) {
   return (
     <div className="flex items-center gap-2.5">
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-gold text-gold-foreground">
-        <ShieldCheck className="h-5 w-5" />
-      </div>
+      <img
+        src={logoAsset.url}
+        alt="Grupo Confidence"
+        className="h-9 w-9 shrink-0 rounded-md bg-white object-contain p-0.5"
+      />
       {!compact && (
         <div className="leading-tight">
           <div className="font-display text-sm font-semibold tracking-wide">GRUPO CONFIDENCE</div>

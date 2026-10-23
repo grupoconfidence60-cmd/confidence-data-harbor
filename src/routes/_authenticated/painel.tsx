@@ -54,7 +54,7 @@ function Painel() {
                 <div className="text-sm text-muted-foreground">{k.label}</div>
                 <div className="mt-1 font-display text-3xl font-semibold">{k.value}</div>
               </div>
-              <k.icon className={k.alert ? "h-6 w-6 text-warning" : "h-6 w-6 text-gold"} />
+              <k.icon className={k.alert ? "h-6 w-6 text-warning" : "h-6 w-6 text-brand-accent"} />
             </CardContent>
           </Card>
         ))}

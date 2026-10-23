@@ -82,7 +82,7 @@ function Detalhe() {
             <ol className="space-y-3 border-l pl-4">
               {data.h.map((h) => (
                 <li key={h.id} className="relative">
-                  <span className="absolute -left-[21px] top-1.5 h-2 w-2 rounded-full bg-gold" />
+                  <span className="absolute -left-[21px] top-1.5 h-2 w-2 rounded-full bg-brand-accent" />
                   <div className="text-sm">{h.descricao}</div>
                   <div className="text-xs text-muted-foreground">{new Date(h.created_at).toLocaleString("pt-BR")}</div>
                 </li>

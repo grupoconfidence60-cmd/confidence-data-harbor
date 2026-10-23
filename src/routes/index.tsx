@@ -28,24 +28,24 @@ function Index() {
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-8">
         <BrandMark />
         <div className="flex flex-1 flex-col justify-center py-16">
-          <p className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-gold/40 px-3 py-1 text-xs text-gold">
+          <p className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-brand-accent/40 px-3 py-1 text-xs text-brand-accent">
             <ShieldCheck className="h-3.5 w-3.5" /> Acesso restrito a usuários autorizados
           </p>
           <h1 className="max-w-3xl text-4xl font-semibold leading-tight md:text-6xl">
-            Sistema Integrado de <span className="text-gold">Gestão Operacional</span>
+            Sistema Integrado de <span className="text-brand-accent">Gestão Operacional</span>
           </h1>
           <p className="mt-5 max-w-xl text-base opacity-80 md:text-lg">
             Colaboradores, postos de serviço, supervisão e controle em um único ambiente seguro.
           </p>
           <div className="mt-8">
-            <Button asChild size="lg" className="bg-gold text-gold-foreground hover:bg-gold/90">
+            <Button asChild size="lg" className="bg-brand-accent text-brand-accent-foreground hover:bg-brand-accent/90">
               <Link to="/auth">Acessar o sistema</Link>
             </Button>
           </div>
           <div className="mt-16 grid gap-4 sm:grid-cols-3">
             {items.map((i) => (
               <div key={i.t} className="rounded-lg border border-primary-foreground/10 bg-primary-foreground/5 p-5">
-                <i.icon className="h-5 w-5 text-gold" />
+                <i.icon className="h-5 w-5 text-brand-accent" />
                 <div className="mt-3 font-semibold">{i.t}</div>
                 <div className="text-sm opacity-70">{i.d}</div>
               </div>

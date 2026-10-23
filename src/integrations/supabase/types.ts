@@ -166,6 +166,148 @@ export type Database = {
           },
         ]
       }
+      escala_colaboradores: {
+        Row: {
+          colaborador_id: string
+          created_at: string
+          data_fim: string | null
+          data_inicio: string
+          escala_id: string
+          id: string
+        }
+        Insert: {
+          colaborador_id: string
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string
+          escala_id: string
+          id?: string
+        }
+        Update: {
+          colaborador_id?: string
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string
+          escala_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "escala_colaboradores_colaborador_id_fkey"
+            columns: ["colaborador_id"]
+            isOneToOne: false
+            referencedRelation: "colaboradores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "escala_colaboradores_escala_id_fkey"
+            columns: ["escala_id"]
+            isOneToOne: false
+            referencedRelation: "escalas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      escalas: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          hora_fim: string
+          hora_inicio: string
+          id: string
+          nome: string
+          observacoes: string | null
+          posto_id: string
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          hora_fim?: string
+          hora_inicio?: string
+          id?: string
+          nome: string
+          observacoes?: string | null
+          posto_id: string
+          tipo?: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          hora_fim?: string
+          hora_inicio?: string
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          posto_id?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "escalas_posto_id_fkey"
+            columns: ["posto_id"]
+            isOneToOne: false
+            referencedRelation: "postos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ferias: {
+        Row: {
+          aprovado_por: string | null
+          colaborador_id: string
+          created_at: string
+          data_fim: string
+          data_inicio: string
+          dias: number
+          id: string
+          observacoes: string | null
+          periodo_aquisitivo_fim: string | null
+          periodo_aquisitivo_inicio: string | null
+          status: Database["public"]["Enums"]["ferias_status"]
+          updated_at: string
+        }
+        Insert: {
+          aprovado_por?: string | null
+          colaborador_id: string
+          created_at?: string
+          data_fim: string
+          data_inicio: string
+          dias: number
+          id?: string
+          observacoes?: string | null
+          periodo_aquisitivo_fim?: string | null
+          periodo_aquisitivo_inicio?: string | null
+          status?: Database["public"]["Enums"]["ferias_status"]
+          updated_at?: string
+        }
+        Update: {
+          aprovado_por?: string | null
+          colaborador_id?: string
+          created_at?: string
+          data_fim?: string
+          data_inicio?: string
+          dias?: number
+          id?: string
+          observacoes?: string | null
+          periodo_aquisitivo_fim?: string | null
+          periodo_aquisitivo_inicio?: string | null
+          status?: Database["public"]["Enums"]["ferias_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ferias_colaborador_id_fkey"
+            columns: ["colaborador_id"]
+            isOneToOne: false
+            referencedRelation: "colaboradores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       funcoes: {
         Row: {
           ativo: boolean
@@ -189,6 +331,69 @@ export type Database = {
           nome?: string
         }
         Relationships: []
+      }
+      ocorrencias: {
+        Row: {
+          colaborador_id: string | null
+          created_at: string
+          data_ocorrencia: string
+          descricao: string | null
+          gravidade: Database["public"]["Enums"]["ocorrencia_gravidade"]
+          id: string
+          posto_id: string | null
+          registrado_por: string | null
+          resolucao: string | null
+          resolvida: boolean
+          tipo: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          colaborador_id?: string | null
+          created_at?: string
+          data_ocorrencia?: string
+          descricao?: string | null
+          gravidade?: Database["public"]["Enums"]["ocorrencia_gravidade"]
+          id?: string
+          posto_id?: string | null
+          registrado_por?: string | null
+          resolucao?: string | null
+          resolvida?: boolean
+          tipo: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          colaborador_id?: string | null
+          created_at?: string
+          data_ocorrencia?: string
+          descricao?: string | null
+          gravidade?: Database["public"]["Enums"]["ocorrencia_gravidade"]
+          id?: string
+          posto_id?: string | null
+          registrado_por?: string | null
+          resolucao?: string | null
+          resolvida?: boolean
+          tipo?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ocorrencias_colaborador_id_fkey"
+            columns: ["colaborador_id"]
+            isOneToOne: false
+            referencedRelation: "colaboradores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ocorrencias_posto_id_fkey"
+            columns: ["posto_id"]
+            isOneToOne: false
+            referencedRelation: "postos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       postos: {
         Row: {
@@ -234,6 +439,63 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      presencas: {
+        Row: {
+          colaborador_id: string
+          created_at: string
+          data: string
+          hora_entrada: string | null
+          hora_saida: string | null
+          id: string
+          justificativa: string | null
+          posto_id: string | null
+          registrado_por: string | null
+          status: Database["public"]["Enums"]["presenca_status"]
+          updated_at: string
+        }
+        Insert: {
+          colaborador_id: string
+          created_at?: string
+          data: string
+          hora_entrada?: string | null
+          hora_saida?: string | null
+          id?: string
+          justificativa?: string | null
+          posto_id?: string | null
+          registrado_por?: string | null
+          status?: Database["public"]["Enums"]["presenca_status"]
+          updated_at?: string
+        }
+        Update: {
+          colaborador_id?: string
+          created_at?: string
+          data?: string
+          hora_entrada?: string | null
+          hora_saida?: string | null
+          id?: string
+          justificativa?: string | null
+          posto_id?: string | null
+          registrado_por?: string | null
+          status?: Database["public"]["Enums"]["presenca_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "presencas_colaborador_id_fkey"
+            columns: ["colaborador_id"]
+            isOneToOne: false
+            referencedRelation: "colaboradores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "presencas_posto_id_fkey"
+            columns: ["posto_id"]
+            isOneToOne: false
+            referencedRelation: "postos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -311,6 +573,20 @@ export type Database = {
       account_status: "ativo" | "inativo" | "bloqueado"
       app_role: "admin" | "gestor" | "supervisor" | "rh" | "colaborador"
       colab_situacao: "ativo" | "ferias" | "afastado" | "desligado"
+      ferias_status:
+        | "solicitada"
+        | "aprovada"
+        | "em_gozo"
+        | "concluida"
+        | "recusada"
+      ocorrencia_gravidade: "leve" | "moderada" | "grave"
+      presenca_status:
+        | "presente"
+        | "falta"
+        | "falta_justificada"
+        | "atestado"
+        | "folga"
+        | "ferias"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -441,6 +717,22 @@ export const Constants = {
       account_status: ["ativo", "inativo", "bloqueado"],
       app_role: ["admin", "gestor", "supervisor", "rh", "colaborador"],
       colab_situacao: ["ativo", "ferias", "afastado", "desligado"],
+      ferias_status: [
+        "solicitada",
+        "aprovada",
+        "em_gozo",
+        "concluida",
+        "recusada",
+      ],
+      ocorrencia_gravidade: ["leve", "moderada", "grave"],
+      presenca_status: [
+        "presente",
+        "falta",
+        "falta_justificada",
+        "atestado",
+        "folga",
+        "ferias",
+      ],
     },
   },
 } as const

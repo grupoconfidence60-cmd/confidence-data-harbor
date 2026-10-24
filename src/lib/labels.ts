@@ -41,6 +41,7 @@ export const DOCUMENTO_TIPOS = ["Atestado", "Contrato", "Identidade", "Certifica
 /** Which roles can open each module. */
 export const MODULE_ACCESS: Record<string, AppRole[]> = {
   painel: ["admin", "gestor", "rh", "supervisor", "colaborador"],
+  ponto: ["admin", "gestor", "rh", "supervisor", "colaborador"],
   colaboradores: ["admin", "gestor", "rh", "supervisor"],
   postos: ["admin", "gestor", "rh", "supervisor"],
   funcoes: ["admin", "gestor"],

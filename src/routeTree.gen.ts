@@ -21,6 +21,7 @@ import { Route as AuthenticatedFeriasRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedFuncoesRouteImport } from './routes/_authenticated/funcoes'
 import { Route as AuthenticatedOcorrenciasRouteImport } from './routes/_authenticated/ocorrencias'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
+import { Route as AuthenticatedPontoRouteImport } from './routes/_authenticated/ponto'
 import { Route as AuthenticatedPostosRouteImport } from './routes/_authenticated/postos'
 import { Route as AuthenticatedPresencaRouteImport } from './routes/_authenticated/presenca'
 import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
@@ -88,6 +89,11 @@ const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
   path: '/painel',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPontoRoute = AuthenticatedPontoRouteImport.update({
+  id: '/ponto',
+  path: '/ponto',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedPostosRoute = AuthenticatedPostosRouteImport.update({
   id: '/postos',
   path: '/postos',
@@ -127,6 +133,7 @@ export interface FileRoutesByFullPath {
   '/funcoes': typeof AuthenticatedFuncoesRoute
   '/ocorrencias': typeof AuthenticatedOcorrenciasRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/ponto': typeof AuthenticatedPontoRoute
   '/postos': typeof AuthenticatedPostosRoute
   '/presenca': typeof AuthenticatedPresencaRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
@@ -145,6 +152,7 @@ export interface FileRoutesByTo {
   '/funcoes': typeof AuthenticatedFuncoesRoute
   '/ocorrencias': typeof AuthenticatedOcorrenciasRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/ponto': typeof AuthenticatedPontoRoute
   '/postos': typeof AuthenticatedPostosRoute
   '/presenca': typeof AuthenticatedPresencaRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
@@ -165,6 +173,7 @@ export interface FileRoutesById {
   '/_authenticated/funcoes': typeof AuthenticatedFuncoesRoute
   '/_authenticated/ocorrencias': typeof AuthenticatedOcorrenciasRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
+  '/_authenticated/ponto': typeof AuthenticatedPontoRoute
   '/_authenticated/postos': typeof AuthenticatedPostosRoute
   '/_authenticated/presenca': typeof AuthenticatedPresencaRoute
   '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
@@ -185,6 +194,7 @@ export interface FileRouteTypes {
     | '/funcoes'
     | '/ocorrencias'
     | '/painel'
+    | '/ponto'
     | '/postos'
     | '/presenca'
     | '/relatorios'
@@ -203,6 +213,7 @@ export interface FileRouteTypes {
     | '/funcoes'
     | '/ocorrencias'
     | '/painel'
+    | '/ponto'
     | '/postos'
     | '/presenca'
     | '/relatorios'
@@ -222,6 +233,7 @@ export interface FileRouteTypes {
     | '/_authenticated/funcoes'
     | '/_authenticated/ocorrencias'
     | '/_authenticated/painel'
+    | '/_authenticated/ponto'
     | '/_authenticated/postos'
     | '/_authenticated/presenca'
     | '/_authenticated/relatorios'
@@ -322,6 +334,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPainelRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/ponto': {
+      id: '/_authenticated/ponto'
+      path: '/ponto'
+      fullPath: '/ponto'
+      preLoaderRoute: typeof AuthenticatedPontoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/postos': {
       id: '/_authenticated/postos'
       path: '/postos'
@@ -369,6 +388,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedFuncoesRoute: typeof AuthenticatedFuncoesRoute
   AuthenticatedOcorrenciasRoute: typeof AuthenticatedOcorrenciasRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
+  AuthenticatedPontoRoute: typeof AuthenticatedPontoRoute
   AuthenticatedPostosRoute: typeof AuthenticatedPostosRoute
   AuthenticatedPresencaRoute: typeof AuthenticatedPresencaRoute
   AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
@@ -385,6 +405,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedFuncoesRoute: AuthenticatedFuncoesRoute,
   AuthenticatedOcorrenciasRoute: AuthenticatedOcorrenciasRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
+  AuthenticatedPontoRoute: AuthenticatedPontoRoute,
   AuthenticatedPostosRoute: AuthenticatedPostosRoute,
   AuthenticatedPresencaRoute: AuthenticatedPresencaRoute,
   AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,

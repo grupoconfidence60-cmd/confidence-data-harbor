@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Users, MapPin, Plane, AlertTriangle, ClipboardCheck, Palmtree } from "lucide-react";
+import { Users, MapPin, Plane, AlertTriangle, ClipboardCheck, Palmtree, FileText, ClipboardList } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,15 +19,17 @@ function Painel() {
     queryFn: async () => {
       const hoje = new Date().toISOString().slice(0, 10);
       const semanaAtras = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10);
-      const [{ data: colabs }, { data: postos }, { data: presHoje }, { data: ocAbertas }, { data: feriasPend }, { data: presSemana }] = await Promise.all([
+      const [{ data: colabs }, { data: postos }, { data: presHoje }, { data: ocAbertas }, { data: feriasPend }, { data: presSemana }, { data: docs }, { data: visitasMes }] = await Promise.all([
         supabase.from("colaboradores").select("id,situacao,posto_id,arquivado").eq("arquivado", false),
         supabase.from("postos").select("id,nome,efetivo_previsto,ativo,supervisor_id").eq("ativo", true),
         supabase.from("presencas").select("id,status,hora_entrada,hora_saida").eq("data", hoje),
         supabase.from("ocorrencias").select("id,gravidade").eq("resolvida", false),
         supabase.from("ferias").select("id").eq("status", "solicitada"),
         supabase.from("presencas").select("data,status").gte("data", semanaAtras).lte("data", hoje),
+        supabase.from("documentos").select("id,data_vencimento").not("data_vencimento", "is", null),
+        supabase.from("visitas").select("id").gte("data_visita", hoje.slice(0, 8) + "01"),
       ]);
-      return { colabs: colabs ?? [], postos: postos ?? [], presHoje: presHoje ?? [], ocAbertas: ocAbertas ?? [], feriasPend: feriasPend ?? [], presSemana: presSemana ?? [] };
+      return { colabs: colabs ?? [], postos: postos ?? [], presHoje: presHoje ?? [], ocAbertas: ocAbertas ?? [], feriasPend: feriasPend ?? [], presSemana: presSemana ?? [], docs: docs ?? [], visitasMes: visitasMes ?? [] };
     },
   });
 
@@ -46,6 +48,9 @@ function Painel() {
   const ocAbertas = data?.ocAbertas ?? [];
   const feriasPend = data?.feriasPend ?? [];
   const semSaida = (data?.presHoje ?? []).filter((p) => p.hora_entrada && !p.hora_saida).length;
+  const em30 = new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10);
+  const docsVencendo = (data?.docs ?? []).filter((d) => d.data_vencimento && d.data_vencimento <= em30).length;
+  const visitasMes = (data?.visitasMes ?? []).length;
 
   const porDia: { dia: string; presentes: number; faltas: number }[] = [];
   for (let i = 6; i >= 0; i--) {
@@ -68,6 +73,8 @@ function Painel() {
     { label: "Férias pendentes", value: feriasPend.length, icon: Palmtree, alert: feriasPend.length > 0 },
     { label: "Postos com déficit", value: deficit.length, icon: AlertTriangle, alert: deficit.length > 0 },
     { label: "Pontos sem saída hoje", value: semSaida, icon: ClipboardCheck, alert: semSaida > 0 },
+    { label: "Docs vencidos / a vencer", value: docsVencendo, icon: FileText, alert: docsVencendo > 0 },
+    { label: "Visitas no mês", value: visitasMes, icon: ClipboardList },
   ];
 
   return (
@@ -141,6 +148,11 @@ function Painel() {
                 <span>Posto <b>{p.nome}</b> abaixo do efetivo previsto.</span>
               </div>
             ))}
+            {docsVencendo > 0 && (
+              <Link to="/documentos" className="flex items-start gap-2 rounded-md bg-warning/10 p-3">
+                <FileText className="mt-0.5 h-4 w-4 text-warning" /> <span>{docsVencendo} documento(s) vencido(s) ou vencendo em 30 dias.</span>
+              </Link>
+            )}
             {semSaida > 0 && (
               <Link to="/presenca" className="flex items-start gap-2 rounded-md bg-muted p-3">
                 <ClipboardCheck className="mt-0.5 h-4 w-4" /> <span>{semSaida} ponto(s) de hoje sem saída registrada.</span>

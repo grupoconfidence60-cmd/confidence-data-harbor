@@ -172,6 +172,7 @@ export type Database = {
           arquivo_path: string
           colaborador_id: string
           created_at: string
+          data_vencimento: string | null
           enviado_por: string | null
           id: string
           observacao: string | null
@@ -183,6 +184,7 @@ export type Database = {
           arquivo_path: string
           colaborador_id: string
           created_at?: string
+          data_vencimento?: string | null
           enviado_por?: string | null
           id?: string
           observacao?: string | null
@@ -194,6 +196,7 @@ export type Database = {
           arquivo_path?: string
           colaborador_id?: string
           created_at?: string
+          data_vencimento?: string | null
           enviado_por?: string | null
           id?: string
           observacao?: string | null
@@ -639,6 +642,74 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      visitas: {
+        Row: {
+          created_at: string
+          data_visita: string
+          efetivo_encontrado: number | null
+          equipamentos: string | null
+          id: string
+          irregularidades: string | null
+          pendencia_prazo: string | null
+          pendencia_resolvida: boolean
+          pendencia_responsavel: string | null
+          pendencias: string | null
+          posto_id: string
+          procedimentos: string | null
+          providencias: string | null
+          situacao_posto: string | null
+          supervisor_id: string
+          uniformizacao: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data_visita?: string
+          efetivo_encontrado?: number | null
+          equipamentos?: string | null
+          id?: string
+          irregularidades?: string | null
+          pendencia_prazo?: string | null
+          pendencia_resolvida?: boolean
+          pendencia_responsavel?: string | null
+          pendencias?: string | null
+          posto_id: string
+          procedimentos?: string | null
+          providencias?: string | null
+          situacao_posto?: string | null
+          supervisor_id: string
+          uniformizacao?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data_visita?: string
+          efetivo_encontrado?: number | null
+          equipamentos?: string | null
+          id?: string
+          irregularidades?: string | null
+          pendencia_prazo?: string | null
+          pendencia_resolvida?: boolean
+          pendencia_responsavel?: string | null
+          pendencias?: string | null
+          posto_id?: string
+          procedimentos?: string | null
+          providencias?: string | null
+          situacao_posto?: string | null
+          supervisor_id?: string
+          uniformizacao?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visitas_posto_id_fkey"
+            columns: ["posto_id"]
+            isOneToOne: false
+            referencedRelation: "postos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

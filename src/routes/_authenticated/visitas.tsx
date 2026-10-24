@@ -30,11 +30,12 @@ function Visitas() {
   const { data } = useQuery({
     queryKey: ["visitas"],
     queryFn: async () => {
-      const [{ data: vis }, { data: postos }] = await Promise.all([
-        supabase.from("visitas").select("*, profiles:supervisor_id(nome)").order("data_visita", { ascending: false }),
+      const [{ data: vis }, { data: postos }, { data: profs }] = await Promise.all([
+        supabase.from("visitas").select("*").order("data_visita", { ascending: false }),
         supabase.from("postos").select("id, nome").eq("ativo", true).order("nome"),
+        supabase.from("profiles").select("id, nome"),
       ]);
-      return { vis: vis ?? [], postos: postos ?? [] };
+      return { vis: vis ?? [], postos: postos ?? [], profs: profs ?? [] };
     },
   });
   const lista = (data?.vis ?? []).filter((v) =>
@@ -75,7 +76,7 @@ function Visitas() {
                   {v.pendencias && (v.pendencia_resolvida ? <Badge variant="secondary">Pendência resolvida</Badge> : <Badge>Pendência aberta</Badge>)}
                 </div>
                 <div className="mt-1 text-sm text-muted-foreground">
-                  Supervisor: {(v.profiles as { nome: string } | null)?.nome ?? "—"}
+                  Supervisor: {data?.profs.find((p) => p.id === v.supervisor_id)?.nome ?? "—"}
                   {v.efetivo_encontrado != null && ` · Efetivo encontrado: ${v.efetivo_encontrado}`}
                 </div>
                 <div className="mt-2 grid gap-1 text-sm">

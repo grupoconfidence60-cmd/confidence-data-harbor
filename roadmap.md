@@ -4,7 +4,7 @@
 - [x] Comunicados da administração: publicação, consulta, confirmação de leitura, notificações e arquivamento; fluxo verificado com conta conectada.
 
 ## Pedido atual
-- [ ] Aplicar referência enviada: listas Ímpar/Par com matrícula, nome, posição e horário; diurno/noturno, mover colaboradores, edição e Excel correspondente.
+- [x] Aplicar referência enviada: listas Ímpar/Par com matrícula, nome, posição e horário; diurno/noturno, mover colaboradores, edição e Excel correspondente. Inclusão, edição na linha, arrastar para Par/Noturno, persistência, retirada, celular e Excel verificados com conta conectada.
 - [x] Planilha com arrastar e trocar plantões, escalas além de par/ímpar e seleção de escala no cadastro; inclusão, troca por arrastar, persistência após recarga, retirada e Excel verificados com conta conectada.
 - [x] Planilha mensal dentro de cada posto: escalas pares/ímpares, inclusão e retirada de colaboradores, ajustes por dia e download Excel para supervisores, gestores, administração e RH; inclusão, edição, persistência, retirada e arquivo baixado verificados.
 

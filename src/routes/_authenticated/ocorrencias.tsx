@@ -69,11 +69,10 @@ function MinhasOcorrencias() {
     const texto = descricao.trim();
     if (!texto) return;
     setEnviando(true);
-    const { data: u } = await supabase.auth.getUser();
     const { error } = await supabase.from("ocorrencias").insert({
       posto_id: data?.colab?.posto_id ?? null, colaborador_id: data?.colab?.id ?? null,
       tipo: "Relato do colaborador", titulo: texto.slice(0, 60), descricao: texto, gravidade: "leve",
-      data_ocorrencia: new Date(quando).toISOString(), registrado_por: u.user?.id,
+      data_ocorrencia: new Date(quando).toISOString(),
     });
     setEnviando(false);
     if (error) { toast.error("Não foi possível enviar a ocorrência. Tente novamente."); return; }

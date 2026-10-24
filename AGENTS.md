@@ -13,3 +13,4 @@
 - Privileged user management (create user, change role/status, reset password) goes through admin-checked server functions in `src/lib/users.functions.ts`; never from the browser client.
 - Data changes are audited by DB triggers (`audit_log`, `colaborador_historico`); new tables should attach `audit_trigger`.
 - Official announcements use `comunicados` with immutable per-user receipts in `comunicado_leituras`; archive instead of deleting to preserve publication and reading audit history.
+- Keep the shared workspace layout, grouped navigation and searchable module list together; new modules must join both navigation and its group so additions preserve the established workspace.

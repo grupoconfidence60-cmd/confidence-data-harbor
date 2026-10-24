@@ -52,13 +52,13 @@
 
 :root {
   --radius: 0.5rem;
-  --background: oklch(0.975 0.004 250);
-  --foreground: oklch(0.2 0.03 255);
+  --background: oklch(0.978 0.003 250);
+  --foreground: oklch(0.25 0.018 255);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.2 0.03 255);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.2 0.03 255);
-  --primary: oklch(0.5 0.16 255);
+  --primary: oklch(0.51 0.19 259);
   --primary-foreground: oklch(0.98 0.005 250);
   --secondary: oklch(0.94 0.01 250);
   --secondary-foreground: oklch(0.25 0.05 258);
@@ -80,13 +80,13 @@
   --chart-3: oklch(0.6 0.14 155);
   --chart-4: oklch(0.58 0.22 27);
   --chart-5: oklch(0.6 0.05 255);
-  --sidebar: oklch(0.2 0.045 258);
-  --sidebar-foreground: oklch(0.88 0.015 250);
-  --sidebar-primary: oklch(0.55 0.16 255);
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.46 0.02 255);
+  --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: oklch(0.98 0.005 250);
-  --sidebar-accent: oklch(0.27 0.055 258);
-  --sidebar-accent-foreground: oklch(0.98 0.005 250);
-  --sidebar-border: oklch(0.3 0.04 258);
+  --sidebar-accent: oklch(0.95 0.022 255);
+  --sidebar-accent-foreground: var(--primary);
+  --sidebar-border: var(--border);
   --sidebar-ring: oklch(0.55 0.16 255);
   --gradient-brand: linear-gradient(135deg, oklch(0.25 0.09 258), oklch(0.4 0.14 255) 60%, oklch(0.55 0.16 250));
 }
@@ -110,6 +110,10 @@
   --input: oklch(1 0 0 / 14%);
   --ring: oklch(0.68 0.15 255);
   --sidebar: oklch(0.14 0.03 258);
+  --sidebar-foreground: oklch(0.8 0.01 250);
+  --sidebar-accent: oklch(0.26 0.04 258);
+  --sidebar-accent-foreground: oklch(0.82 0.1 255);
+  --sidebar-border: var(--border);
 }
 
 @layer base {
@@ -119,7 +123,30 @@
     color: var(--color-foreground);
     font-family: var(--font-sans);
   }
-  h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.01em; }
+  h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: 0; }
 }
 
 @utility bg-brand { background-image: var(--gradient-brand); }
+
+.workspace { --workspace-shadow: 0 4px 18px color-mix(in oklab, var(--foreground) 4%, transparent); }
+.workspace [data-sidebar="sidebar"] { border-right: 1px solid var(--sidebar-border); }
+.workspace [data-sidebar="menu-button"] { height: 37px; gap: 11px; font-size: 12px; font-weight: 500; transition: background 160ms, color 160ms; }
+.workspace [data-sidebar="menu-button"][data-active="true"] { background: var(--primary); color: var(--primary-foreground); }
+.workspace [data-sidebar="group-label"] { font-size: 10px; font-weight: 600; }
+.workspace main { animation: workspace-enter 250ms ease-out; }
+.workspace main input, .workspace main select, .workspace main textarea { background-color: var(--card); }
+.workspace main thead { background-color: var(--muted); }
+.workspace main th { font-size: 11px; height: 44px; font-weight: 600; }
+.workspace main td { padding-top: 14px; padding-bottom: 14px; }
+.workspace main table { font-size: 12px; }
+.workspace main button { max-width: 100%; }
+.workspace .metric { box-shadow: var(--workspace-shadow); transition: border-color 180ms, transform 180ms; }
+.workspace a.metric:hover { border-color: var(--primary); transform: translateY(-2px); }
+.workspace .metric:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
+.workspace .section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--muted-foreground); }
+.workspace .chart-tooltip { background: var(--popover); border: 1px solid var(--border); border-radius: 6px; font-size: 12px; }
+.workspace .panel-section { background: transparent; border: 0; border-radius: 0; box-shadow: none; }
+.workspace [data-collapsible="icon"] [data-sidebar="header"] { padding: 12px 4px; }
+.workspace [data-collapsible="icon"] [data-sidebar="header"] img { width: 36px; height: 36px; }
+@keyframes workspace-enter { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }

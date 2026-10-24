@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, redirect, Link, useNavigate, useLocation } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { LayoutDashboard, Users, MapPin, Briefcase, UserCog, ScrollText, LogOut, Moon, Sun, CalendarRange, ClipboardCheck, Palmtree, AlertTriangle, FileBarChart, FolderOpen, Clock, ClipboardList, Megaphone } from "lucide-react";
+import { LayoutDashboard, Users, MapPin, Briefcase, UserCog, ScrollText, LogOut, Moon, Sun, CalendarRange, ClipboardCheck, Palmtree, AlertTriangle, FileBarChart, FolderOpen, Clock, ClipboardList, Search, ChevronRight, Megaphone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader,
@@ -12,6 +12,9 @@ import { BrandMark } from "@/components/brand";
 import { NotificacoesBell } from "@/components/notificacoes";
 import { useMe } from "@/lib/use-me";
 import { canAccess, ROLE_LABELS } from "@/lib/labels";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { touchLastAccess } from "@/lib/users.functions";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -47,6 +50,21 @@ function Layout() {
   const navigate = useNavigate();
   const loc = useLocation();
   const roles = me?.roles ?? [];
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [dark, setDark] = useState(false);
+  const visibleNav = NAV.filter((n) => canAccess(roles, n.mod));
+  const currentPage = NAV.find((n) => loc.pathname.startsWith(n.to))?.label ?? "Colaborador";
+  const groups = [
+    { label: "Visão geral", modules: ["painel", "ponto"] },
+    { label: "Operação", modules: ["colaboradores", "postos", "escalas", "presenca", "ocorrencias", "visitas"] },
+    { label: "Gestão", modules: ["ferias", "documentos", "relatorios", "funcoes", "comunicados"] },
+    { label: "Administração", modules: ["usuarios", "auditoria"] },
+  ];
+  useEffect(() => {
+    const saved = localStorage.getItem("confidence-theme") === "dark";
+    setDark(saved);
+    document.documentElement.classList.toggle("dark", saved);
+  }, []);
 
   useEffect(() => { touchLastAccess().catch(() => {}); }, []);
 
@@ -57,51 +75,69 @@ function Layout() {
     navigate({ to: "/auth", replace: true });
   }
 
-  function toggleDark() { document.documentElement.classList.toggle("dark"); }
+  function toggleDark() {
+    const next = !dark;
+    setDark(next);
+    document.documentElement.classList.toggle("dark", next);
+    localStorage.setItem("confidence-theme", next ? "dark" : "light");
+  }
 
   return (
-    <SidebarProvider>
+    <SidebarProvider className="workspace">
       <div className="flex min-h-screen w-full">
         <Sidebar collapsible="icon">
-          <SidebarHeader className="p-4"><BrandMark /></SidebarHeader>
-          <SidebarContent>
-            <SidebarGroup>
-              <SidebarGroupLabel>Módulos</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {NAV.filter((n) => canAccess(roles, n.mod)).map((n) => (
-                    <SidebarMenuItem key={n.to}>
-                      <SidebarMenuButton asChild isActive={loc.pathname.startsWith(n.to)} tooltip={n.label}>
-                        <Link to={n.to}><n.icon /><span>{n.label}</span></Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
+          <SidebarHeader className="border-b border-sidebar-border px-4 py-5"><BrandMark /></SidebarHeader>
+          <SidebarContent className="py-3">
+            {groups.map((group) => {
+              const items = visibleNav.filter((n) => group.modules.includes(n.mod));
+              if (!items.length) return null;
+              return <SidebarGroup key={group.label} className="px-3 py-1">
+                <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+                <SidebarGroupContent><SidebarMenu>
+                  {items.map((n) => <SidebarMenuItem key={n.to}>
+                    <SidebarMenuButton asChild isActive={loc.pathname.startsWith(n.to)} tooltip={n.label}>
+                      <Link to={n.to}><n.icon strokeWidth={1.7} /><span>{n.label}</span></Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>)}
+                </SidebarMenu></SidebarGroupContent>
+              </SidebarGroup>;
+            })}
           </SidebarContent>
-          <SidebarFooter className="p-3">
-            <div className="truncate px-1 text-xs">
-              <div className="font-semibold">{me?.profile?.nome}</div>
-              <div className="opacity-60">{roles.map((r) => ROLE_LABELS[r]).join(", ") || "Sem perfil"}</div>
+          <SidebarFooter className="gap-3 border-t border-sidebar-border p-3">
+            <div className="flex min-w-0 items-center gap-3 px-1 group-data-[collapsible=icon]:hidden">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent text-xs font-semibold text-primary">{me?.profile?.nome?.slice(0, 2).toUpperCase() ?? "GC"}</div>
+              <div className="min-w-0 text-xs">
+                <div className="truncate font-semibold text-foreground">{me?.profile?.nome}</div>
+                <div className="mt-1 truncate text-[10px] text-muted-foreground">{roles.map((r) => ROLE_LABELS[r]).join(", ") || "Sem perfil"}</div>
+              </div>
             </div>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton onClick={signOut} tooltip="Sair"><LogOut /><span>Sair</span></SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
+            <SidebarMenu><SidebarMenuItem>
+              <SidebarMenuButton onClick={signOut} tooltip="Sair"><LogOut /><span>Sair da conta</span></SidebarMenuButton>
+            </SidebarMenuItem></SidebarMenu>
           </SidebarFooter>
         </Sidebar>
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b bg-card/80 px-4 backdrop-blur">
-            <SidebarTrigger />
+          <header className="sticky top-0 z-10 flex h-[72px] items-center gap-3 border-b bg-card/95 px-4 backdrop-blur md:px-7">
+            <SidebarTrigger aria-label="Abrir ou recolher menu" />
+            <div className="hidden items-center gap-2 text-xs text-muted-foreground lg:flex"><span>Confidence</span><ChevronRight className="h-3 w-3" /><span className="font-medium text-foreground">{currentPage}</span></div>
             <div className="flex-1" />
+            <Button variant="outline" className="h-9 gap-2 text-muted-foreground sm:w-48 sm:justify-start" onClick={() => setSearchOpen(true)} aria-label="Buscar módulo"><Search /><span className="hidden sm:inline">Buscar módulo</span></Button>
+            <div className="mx-1 hidden h-5 border-l sm:block" />
             <NotificacoesBell />
-            <Button variant="ghost" size="icon" onClick={toggleDark} aria-label="Alternar tema">
-              <Sun className="hidden h-4 w-4 dark:block" /><Moon className="h-4 w-4 dark:hidden" />
-            </Button>
+            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={toggleDark} aria-label="Alternar tema" aria-pressed={dark}>
+              {dark ? <Sun /> : <Moon />}
+            </Button></TooltipTrigger><TooltipContent>{dark ? "Tema claro" : "Tema escuro"}</TooltipContent></Tooltip>
+            <span className="ml-1 hidden h-8 w-8 items-center justify-center rounded-full border bg-muted text-[10px] font-semibold sm:flex">{me?.profile?.nome?.slice(0, 2).toUpperCase() ?? "GC"}</span>
           </header>
-          <main className="flex-1 p-4 md:p-6">
+          <Dialog open={searchOpen} onOpenChange={setSearchOpen}>
+            <DialogContent className="overflow-hidden p-0">
+              <DialogTitle className="sr-only">Buscar módulo</DialogTitle><DialogDescription className="sr-only">Módulos disponíveis para sua conta.</DialogDescription>
+              <Command><CommandInput placeholder="Buscar módulo..." /><CommandList><CommandEmpty>Nenhum módulo encontrado.</CommandEmpty>
+                <CommandGroup heading="Módulos">{visibleNav.map((n) => <CommandItem key={n.to} value={n.label} onSelect={() => { setSearchOpen(false); navigate({ to: n.to }); }}><n.icon /><span>{n.label}</span><ChevronRight className="ml-auto" /></CommandItem>)}</CommandGroup>
+              </CommandList></Command>
+            </DialogContent>
+          </Dialog>
+          <main className="mx-auto w-full max-w-[1600px] flex-1 p-4 md:p-7 lg:p-8">
             {me && roles.length === 0 ? (
               <div className="mx-auto mt-20 max-w-md text-center">
                 <h1 className="text-xl font-semibold">Acesso pendente</h1>

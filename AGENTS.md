@@ -14,3 +14,4 @@
 - Data changes are audited by DB triggers (`audit_log`, `colaborador_historico`); new tables should attach `audit_trigger`.
 - Official announcements use `comunicados` with immutable per-user receipts in `comunicado_leituras`; archive instead of deleting to preserve publication and reading audit history.
 - Keep the shared workspace layout, grouped navigation and searchable module list together; new modules must join both navigation and its group so additions preserve the established workspace.
+- Monthly per-post rosters use `posto_planilha`, independent of home-post transfers and recurring `escalas` templates; soft-remove assignments and audit edits to retain each month's history without changing GPS attendance or employee records.

@@ -22,6 +22,7 @@ import { Route as AuthenticatedOcorrenciasRouteImport } from './routes/_authenti
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 import { Route as AuthenticatedPostosRouteImport } from './routes/_authenticated/postos'
 import { Route as AuthenticatedPresencaRouteImport } from './routes/_authenticated/presenca'
+import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
 import { Route as AuthenticatedUsuariosRouteImport } from './routes/_authenticated/usuarios'
 import { Route as AuthenticatedColaboradorIdRouteImport } from './routes/_authenticated/colaborador.$id'
 
@@ -91,6 +92,11 @@ const AuthenticatedPresencaRoute = AuthenticatedPresencaRouteImport.update({
   path: '/presenca',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedRelatoriosRoute = AuthenticatedRelatoriosRouteImport.update({
+  id: '/relatorios',
+  path: '/relatorios',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedUsuariosRoute = AuthenticatedUsuariosRouteImport.update({
   id: '/usuarios',
   path: '/usuarios',
@@ -116,6 +122,7 @@ export interface FileRoutesByFullPath {
   '/painel': typeof AuthenticatedPainelRoute
   '/postos': typeof AuthenticatedPostosRoute
   '/presenca': typeof AuthenticatedPresencaRoute
+  '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
   '/colaborador/$id': typeof AuthenticatedColaboradorIdRoute
 }
@@ -132,6 +139,7 @@ export interface FileRoutesByTo {
   '/painel': typeof AuthenticatedPainelRoute
   '/postos': typeof AuthenticatedPostosRoute
   '/presenca': typeof AuthenticatedPresencaRoute
+  '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
   '/colaborador/$id': typeof AuthenticatedColaboradorIdRoute
 }
@@ -150,6 +158,7 @@ export interface FileRoutesById {
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
   '/_authenticated/postos': typeof AuthenticatedPostosRoute
   '/_authenticated/presenca': typeof AuthenticatedPresencaRoute
+  '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
   '/_authenticated/usuarios': typeof AuthenticatedUsuariosRoute
   '/_authenticated/colaborador/$id': typeof AuthenticatedColaboradorIdRoute
 }
@@ -168,6 +177,7 @@ export interface FileRouteTypes {
     | '/painel'
     | '/postos'
     | '/presenca'
+    | '/relatorios'
     | '/usuarios'
     | '/colaborador/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -184,6 +194,7 @@ export interface FileRouteTypes {
     | '/painel'
     | '/postos'
     | '/presenca'
+    | '/relatorios'
     | '/usuarios'
     | '/colaborador/$id'
   id:
@@ -201,6 +212,7 @@ export interface FileRouteTypes {
     | '/_authenticated/painel'
     | '/_authenticated/postos'
     | '/_authenticated/presenca'
+    | '/_authenticated/relatorios'
     | '/_authenticated/usuarios'
     | '/_authenticated/colaborador/$id'
   fileRoutesById: FileRoutesById
@@ -305,6 +317,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPresencaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/relatorios': {
+      id: '/_authenticated/relatorios'
+      path: '/relatorios'
+      fullPath: '/relatorios'
+      preLoaderRoute: typeof AuthenticatedRelatoriosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/usuarios': {
       id: '/_authenticated/usuarios'
       path: '/usuarios'
@@ -332,6 +351,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
   AuthenticatedPostosRoute: typeof AuthenticatedPostosRoute
   AuthenticatedPresencaRoute: typeof AuthenticatedPresencaRoute
+  AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
   AuthenticatedUsuariosRoute: typeof AuthenticatedUsuariosRoute
   AuthenticatedColaboradorIdRoute: typeof AuthenticatedColaboradorIdRoute
 }
@@ -346,6 +366,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
   AuthenticatedPostosRoute: AuthenticatedPostosRoute,
   AuthenticatedPresencaRoute: AuthenticatedPresencaRoute,
+  AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
   AuthenticatedUsuariosRoute: AuthenticatedUsuariosRoute,
   AuthenticatedColaboradorIdRoute: AuthenticatedColaboradorIdRoute,
 }

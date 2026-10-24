@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Users, MapPin, Plane, AlertTriangle } from "lucide-react";
+import { Users, MapPin, Plane, AlertTriangle, ClipboardCheck, Palmtree } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,11 +17,15 @@ function Painel() {
   const { data } = useQuery({
     queryKey: ["painel"],
     queryFn: async () => {
-      const [{ data: colabs }, { data: postos }] = await Promise.all([
+      const hoje = new Date().toISOString().slice(0, 10);
+      const [{ data: colabs }, { data: postos }, { data: presHoje }, { data: ocAbertas }, { data: feriasPend }] = await Promise.all([
         supabase.from("colaboradores").select("id,situacao,posto_id,arquivado").eq("arquivado", false),
         supabase.from("postos").select("id,nome,efetivo_previsto,ativo,supervisor_id").eq("ativo", true),
+        supabase.from("presencas").select("id,status").eq("data", hoje),
+        supabase.from("ocorrencias").select("id,gravidade").eq("resolvida", false),
+        supabase.from("ferias").select("id").eq("status", "solicitada"),
       ]);
-      return { colabs: colabs ?? [], postos: postos ?? [] };
+      return { colabs: colabs ?? [], postos: postos ?? [], presHoje: presHoje ?? [], ocAbertas: ocAbertas ?? [], feriasPend: feriasPend ?? [] };
     },
   });
 
@@ -35,11 +39,19 @@ function Painel() {
   }));
   const deficit = postos.filter((p) => ativos.filter((c) => c.posto_id === p.id).length < p.efetivo_previsto);
   const semPosto = ativos.filter((c) => !c.posto_id).length;
+  const faltasHoje = (data?.presHoje ?? []).filter((p) => p.status === "falta" || p.status === "falta_justificada").length;
+  const presentesHoje = (data?.presHoje ?? []).filter((p) => p.status === "presente").length;
+  const ocAbertas = data?.ocAbertas ?? [];
+  const feriasPend = data?.feriasPend ?? [];
 
   const kpis = [
     { label: "Colaboradores ativos", value: ativos.length, icon: Users },
     { label: "Postos ativos", value: postos.length, icon: MapPin },
+    { label: "Presentes hoje", value: presentesHoje, icon: ClipboardCheck },
+    { label: "Faltas hoje", value: faltasHoje, icon: AlertTriangle, alert: faltasHoje > 0 },
     { label: "Em férias / afastados", value: colabs.filter((c) => c.situacao === "ferias" || c.situacao === "afastado").length, icon: Plane },
+    { label: "Ocorrências abertas", value: ocAbertas.length, icon: AlertTriangle, alert: ocAbertas.some((o) => o.gravidade === "grave") },
+    { label: "Férias pendentes", value: feriasPend.length, icon: Palmtree, alert: feriasPend.length > 0 },
     { label: "Postos com déficit", value: deficit.length, icon: AlertTriangle, alert: deficit.length > 0 },
   ];
 
@@ -83,6 +95,16 @@ function Painel() {
         <Card>
           <CardHeader><CardTitle className="text-base">Pendências</CardTitle></CardHeader>
           <CardContent className="space-y-3 text-sm">
+            {feriasPend.length > 0 && (
+              <Link to="/ferias" className="flex items-start gap-2 rounded-md bg-muted p-3">
+                <Palmtree className="mt-0.5 h-4 w-4" /> <span>{feriasPend.length} solicitação(ões) de férias aguardando aprovação.</span>
+              </Link>
+            )}
+            {ocAbertas.length > 0 && (
+              <Link to="/ocorrencias" className="flex items-start gap-2 rounded-md bg-muted p-3">
+                <AlertTriangle className="mt-0.5 h-4 w-4" /> <span>{ocAbertas.length} ocorrência(s) em aberto{ocAbertas.some((o) => o.gravidade === "grave") ? ", incluindo grave(s)" : ""}.</span>
+              </Link>
+            )}
             {deficit.map((p) => (
               <div key={p.id} className="flex items-start gap-2 rounded-md bg-warning/10 p-3">
                 <AlertTriangle className="mt-0.5 h-4 w-4 text-warning" />
@@ -94,7 +116,7 @@ function Painel() {
                 <Users className="mt-0.5 h-4 w-4" /> <span>{semPosto} colaborador(es) ativo(s) sem posto.</span>
               </Link>
             )}
-            {deficit.length === 0 && semPosto === 0 && <p className="text-muted-foreground">Nenhuma pendência no momento.</p>}
+            {deficit.length === 0 && semPosto === 0 && feriasPend.length === 0 && ocAbertas.length === 0 && <p className="text-muted-foreground">Nenhuma pendência no momento.</p>}
           </CardContent>
         </Card>
       </div>

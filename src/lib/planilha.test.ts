@@ -24,13 +24,14 @@ describe("planilha mensal por posto", () => {
   });
   it("Excel identifica posto, matrícula, colaborador, mês e todos os dias", () => {
     const sheet = scheduleWorkbook("Via Brasil", "2026-02", [{ id: "1", colaborador_id: "c", paridade: "par", turno: "diurno", hora_inicio: "06:00", hora_fim: "18:00", ajustes: {}, observacoes: "" }], [{ id: "c", nome: "Pessoa Teste", matricula: "123", funcoes: { nome: "Vigilante" } }]).Sheets["Escala mensal"];
-    expect(sheet.B2.v).toBe("Via Brasil");
-    expect(sheet.D2.v).toBe("2026-02");
-    expect(sheet.A5.v).toBe("123");
-    expect(sheet.B5.v).toBe("Pessoa Teste");
-    expect(sheet.H5.v).toBe("F");
-    expect(sheet.I5.v).toBe("T");
-    expect(sheet.AI4.v).toBe("28");
-    expect(sheet.AJ5.f).toBe('COUNTIF(H5:AI5,"T")');
+    if (!sheet) throw new Error("Planilha não gerada");
+    expect(sheet["B2"].v).toBe("Via Brasil");
+    expect(sheet["D2"].v).toBe("2026-02");
+    expect(sheet["A5"].v).toBe("123");
+    expect(sheet["B5"].v).toBe("Pessoa Teste");
+    expect(sheet["H5"].v).toBe("F");
+    expect(sheet["I5"].v).toBe("T");
+    expect(sheet["AI4"].v).toBe("28");
+    expect(sheet["AJ5"].f).toBe('COUNTIF(H5:AI5,"T")');
   });
 });

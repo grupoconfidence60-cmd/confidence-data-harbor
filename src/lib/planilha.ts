@@ -9,6 +9,7 @@ export function canManagePlanilha(roles: AppRole[], userId: string | undefined, 
 }
 export function monthDays(month: string) {
   const [year, m] = month.split("-").map(Number);
+  if (!year || !m || m < 1 || m > 12) return 0;
   return new Date(year, m, 0).getDate();
 }
 export function dayStatus(row: Pick<PlanilhaRow, "paridade" | "ajustes">, day: number): "T" | "F" {

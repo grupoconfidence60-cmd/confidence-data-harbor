@@ -18,14 +18,16 @@ function Painel() {
     queryKey: ["painel"],
     queryFn: async () => {
       const hoje = new Date().toISOString().slice(0, 10);
-      const [{ data: colabs }, { data: postos }, { data: presHoje }, { data: ocAbertas }, { data: feriasPend }] = await Promise.all([
+      const semanaAtras = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10);
+      const [{ data: colabs }, { data: postos }, { data: presHoje }, { data: ocAbertas }, { data: feriasPend }, { data: presSemana }] = await Promise.all([
         supabase.from("colaboradores").select("id,situacao,posto_id,arquivado").eq("arquivado", false),
         supabase.from("postos").select("id,nome,efetivo_previsto,ativo,supervisor_id").eq("ativo", true),
-        supabase.from("presencas").select("id,status").eq("data", hoje),
+        supabase.from("presencas").select("id,status,hora_entrada,hora_saida").eq("data", hoje),
         supabase.from("ocorrencias").select("id,gravidade").eq("resolvida", false),
         supabase.from("ferias").select("id").eq("status", "solicitada"),
+        supabase.from("presencas").select("data,status").gte("data", semanaAtras).lte("data", hoje),
       ]);
-      return { colabs: colabs ?? [], postos: postos ?? [], presHoje: presHoje ?? [], ocAbertas: ocAbertas ?? [], feriasPend: feriasPend ?? [] };
+      return { colabs: colabs ?? [], postos: postos ?? [], presHoje: presHoje ?? [], ocAbertas: ocAbertas ?? [], feriasPend: feriasPend ?? [], presSemana: presSemana ?? [] };
     },
   });
 
@@ -43,6 +45,18 @@ function Painel() {
   const presentesHoje = (data?.presHoje ?? []).filter((p) => p.status === "presente").length;
   const ocAbertas = data?.ocAbertas ?? [];
   const feriasPend = data?.feriasPend ?? [];
+  const semSaida = (data?.presHoje ?? []).filter((p) => p.hora_entrada && !p.hora_saida).length;
+
+  const porDia: { dia: string; presentes: number; faltas: number }[] = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
+    const rows = (data?.presSemana ?? []).filter((r) => r.data === d);
+    porDia.push({
+      dia: new Date(d + "T12:00:00").toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit" }),
+      presentes: rows.filter((r) => r.status === "presente").length,
+      faltas: rows.filter((r) => r.status === "falta" || r.status === "falta_justificada").length,
+    });
+  }
 
   const kpis = [
     { label: "Colaboradores ativos", value: ativos.length, icon: Users },
@@ -53,6 +67,7 @@ function Painel() {
     { label: "Ocorrências abertas", value: ocAbertas.length, icon: AlertTriangle, alert: ocAbertas.some((o) => o.gravidade === "grave") },
     { label: "Férias pendentes", value: feriasPend.length, icon: Palmtree, alert: feriasPend.length > 0 },
     { label: "Postos com déficit", value: deficit.length, icon: AlertTriangle, alert: deficit.length > 0 },
+    { label: "Pontos sem saída hoje", value: semSaida, icon: ClipboardCheck, alert: semSaida > 0 },
   ];
 
   return (
@@ -93,6 +108,21 @@ function Painel() {
           </CardContent>
         </Card>
         <Card>
+          <CardHeader><CardTitle className="text-base">Presenças nos últimos 7 dias</CardTitle></CardHeader>
+          <CardContent className="h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={porDia}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="dia" fontSize={11} stroke="var(--muted-foreground)" />
+                <YAxis allowDecimals={false} fontSize={12} stroke="var(--muted-foreground)" />
+                <Tooltip contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)" }} />
+                <Bar dataKey="presentes" name="Presentes" fill="var(--chart-1)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="faltas" name="Faltas" fill="var(--chart-3)" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+        <Card>
           <CardHeader><CardTitle className="text-base">Pendências</CardTitle></CardHeader>
           <CardContent className="space-y-3 text-sm">
             {feriasPend.length > 0 && (
@@ -111,6 +141,11 @@ function Painel() {
                 <span>Posto <b>{p.nome}</b> abaixo do efetivo previsto.</span>
               </div>
             ))}
+            {semSaida > 0 && (
+              <Link to="/presenca" className="flex items-start gap-2 rounded-md bg-muted p-3">
+                <ClipboardCheck className="mt-0.5 h-4 w-4" /> <span>{semSaida} ponto(s) de hoje sem saída registrada.</span>
+              </Link>
+            )}
             {semPosto > 0 && (
               <Link to="/colaboradores" className="flex items-start gap-2 rounded-md bg-muted p-3">
                 <Users className="mt-0.5 h-4 w-4" /> <span>{semPosto} colaborador(es) ativo(s) sem posto.</span>

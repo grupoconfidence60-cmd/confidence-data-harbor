@@ -45,7 +45,7 @@ function Ferias() {
   const lista = isColab ? (data?.ferias ?? []).filter((f) => f.colaborador_id === meuColabId) : (data?.ferias ?? []);
 
   async function setStatus(id: string, status: "aprovada" | "recusada") {
-    const { error } = await supabase.from("ferias").update({ status, aprovado_por: me?.profile?.id }).eq("id", id);
+    const { error } = await supabase.from("ferias").update({ status, aprovado_por: me?.profile?.id ?? null }).eq("id", id);
     if (error) { toast.error(error.message); return; }
     toast.success(status === "aprovada" ? "Férias aprovadas." : "Solicitação recusada.");
     qc.invalidateQueries({ queryKey: ["ferias"] });
@@ -89,7 +89,7 @@ function Ferias() {
   );
 }
 
-function FeriasDialog({ colabs, fixColabId, onClose }: { colabs: { id: string; nome: string; matricula: string }[]; fixColabId?: string; onClose: () => void }) {
+function FeriasDialog({ colabs, fixColabId, onClose }: { colabs: { id: string; nome: string; matricula: string }[]; fixColabId?: string | undefined; onClose: () => void }) {
   const [f, setF] = useState({ colaborador_id: fixColabId ?? "", data_inicio: "", dias: 30, observacoes: "" });
   const qc = useQueryClient();
   async function save(e: React.FormEvent) {

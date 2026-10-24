@@ -44,7 +44,7 @@ function Presenca() {
 
   async function setStatus(colabId: string, pPostoId: string | null, status: string) {
     const existing = presOf(colabId);
-    const payload = { colaborador_id: colabId, posto_id: pPostoId, data, status: status as (typeof STATUS)[number], registrado_por: me?.profile?.id };
+    const payload = { colaborador_id: colabId, posto_id: pPostoId, data, status: status as (typeof STATUS)[number], registrado_por: me?.profile?.id ?? null };
     const { error } = existing
       ? await supabase.from("presencas").update({ status: payload.status, registrado_por: payload.registrado_por }).eq("id", existing.id)
       : await supabase.from("presencas").insert(payload);

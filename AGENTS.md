@@ -18,3 +18,4 @@
 - Roster patterns use `escala_tipo` with shared options for employee registration and export; cell swaps run atomically through the RLS-enforced `trocar_plantao` function to avoid partially saved exchanges.
 - The primary roster view groups whole monthly assignments by pattern and shift; operational positions belong to each assignment, and whole-person moves use a single audited row update without changing employee records or daily overrides. Export mirrors those groups while retaining the monthly grid as a secondary sheet.
 - Equipment and uniform catalog entries are archived, while employee deliveries remain immutable except for a single audited return; post-scoped RLS controls supervisor access and the Excel export follows the visible delivery filters.
+- Inspection checklists: templates in checklist_modelos (archived, never deleted); inspecoes are insert-only with post-scoped RLS via can_manage_planilha so audit history stays immutable.

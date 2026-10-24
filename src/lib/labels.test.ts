@@ -1,7 +1,15 @@
 import { describe, it, expect } from "vitest";
-import { canAccess, canEditColaboradores, canEditPostos, canManageComunicados, canManageMateriais, type AppRole } from "./labels";
+import { canAccess, canEditColaboradores, canEditPostos, canManageComunicados, canManageMateriais, canManageChecklists, canCreateInspecoes, type AppRole } from "./labels";
 
 describe("permissões por perfil", () => {
+  it("checklists: admin/gestor criam modelos; supervisor inspeciona; RH só consulta; colaborador sem acesso", () => {
+    expect(canManageChecklists(["gestor"])).toBe(true);
+    expect(canManageChecklists(["supervisor"])).toBe(false);
+    expect(canCreateInspecoes(["supervisor"])).toBe(true);
+    expect(canCreateInspecoes(["rh"])).toBe(false);
+    expect(canAccess(["rh"], "inspecoes")).toBe(true);
+    expect(canAccess(["colaborador"], "inspecoes")).toBe(false);
+  });
   it("gestão e supervisão acessam materiais; catálogo é gerido por admin, gestor e RH", () => {
     for (const role of ["admin", "gestor", "rh"] as AppRole[]) {
       expect(canAccess([role], "materiais")).toBe(true);

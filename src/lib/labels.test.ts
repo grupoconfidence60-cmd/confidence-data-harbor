@@ -20,10 +20,10 @@ describe("permissões por perfil", () => {
     expect(canAccess(["colaborador"], "materiais")).toBe(false);
     expect(canManageMateriais([])).toBe(false);
   });
-  it("colaborador acessa apenas ponto e ocorrências", () => {
+  it("colaborador acessa apenas o próprio ponto", () => {
     const mods = Object.keys(MODULE_ACCESS).filter((m) => canAccess(["colaborador"], m)).sort();
-    expect(mods).toEqual(["ocorrencias", "ponto"]);
-    expect(canCreateOcorrencias(["colaborador"])).toBe(true);
+    expect(mods).toEqual(["ponto"]);
+    expect(canCreateOcorrencias(["admin"])).toBe(true);
   });
   it("perfis internos consultam comunicados, só administração publica", () => {
     const roles: AppRole[] = ["admin", "gestor", "rh", "supervisor"];

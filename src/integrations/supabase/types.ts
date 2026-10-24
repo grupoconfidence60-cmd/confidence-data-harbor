@@ -1046,6 +1046,10 @@ export type Database = {
     }
     Functions: {
       can_manage_planilha: { Args: { _posto_id: string }; Returns: boolean }
+      colaborador_no_posto: {
+        Args: { _posto_id: string; _user_id: string }
+        Returns: boolean
+      }
       distancia_metros: {
         Args: { lat1: number; lat2: number; lon1: number; lon2: number }
         Returns: number
@@ -1062,6 +1066,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      supervisiona_posto: {
+        Args: { _posto_id: string; _user_id: string }
         Returns: boolean
       }
       system_initialized: { Args: never; Returns: boolean }

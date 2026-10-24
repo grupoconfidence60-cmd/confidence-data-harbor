@@ -46,6 +46,7 @@ export const MODULE_ACCESS: Record<string, AppRole[]> = {
   presenca: ["admin", "gestor", "rh", "supervisor"],
   ferias: ["admin", "gestor", "rh", "supervisor", "colaborador"],
   ocorrencias: ["admin", "gestor", "rh", "supervisor"],
+  relatorios: ["admin", "gestor", "rh"],
   usuarios: ["admin"],
   auditoria: ["admin"],
 };

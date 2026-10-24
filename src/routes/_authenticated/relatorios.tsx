@@ -24,7 +24,7 @@ function downloadCsv(nome: string, rows: Row[]) {
   const first = rows[0];
   if (!first) { toast.error("Nenhum dado para exportar."); return; }
   const cols = Object.keys(first);
-  const esc = (v: string | number | null) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const esc = (v: string | number | null | undefined) => `"${String(v ?? "").replace(/"/g, '""')}"`;
   const csv = [cols.join(";"), ...rows.map((r) => cols.map((c) => esc(r[c])).join(";"))].join("\n");
   const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
   const a = document.createElement("a");

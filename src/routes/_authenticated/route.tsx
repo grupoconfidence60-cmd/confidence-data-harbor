@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, redirect, Link, useNavigate, useLocation } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { LayoutDashboard, Users, MapPin, Briefcase, UserCog, ScrollText, LogOut, Moon, Sun, CalendarRange, ClipboardCheck, Palmtree, AlertTriangle, FileBarChart, FolderOpen, Clock } from "lucide-react";
+import { LayoutDashboard, Users, MapPin, Briefcase, UserCog, ScrollText, LogOut, Moon, Sun, CalendarRange, ClipboardCheck, Palmtree, AlertTriangle, FileBarChart, FolderOpen, Clock, ClipboardList } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader,
@@ -33,6 +33,7 @@ const NAV = [
   { to: "/presenca", label: "Presença e faltas", icon: ClipboardCheck, mod: "presenca" },
   { to: "/ferias", label: "Férias", icon: Palmtree, mod: "ferias" },
   { to: "/ocorrencias", label: "Ocorrências", icon: AlertTriangle, mod: "ocorrencias" },
+  { to: "/visitas", label: "Visitas de supervisão", icon: ClipboardList, mod: "visitas" },
   { to: "/relatorios", label: "Relatórios", icon: FileBarChart, mod: "relatorios" },
   { to: "/documentos", label: "Documentos", icon: FolderOpen, mod: "documentos" },
   { to: "/usuarios", label: "Usuários e acessos", icon: UserCog, mod: "usuarios" },

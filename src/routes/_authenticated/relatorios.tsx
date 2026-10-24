@@ -122,10 +122,10 @@ function Relatorios() {
           <CardHeader><CardTitle className="text-base">{rows!.length} registro(s) — prévia dos primeiros {preview.length}</CardTitle></CardHeader>
           <CardContent className="p-0">
             <Table>
-              <TableHeader><TableRow>{Object.keys(preview[0]).map((c) => <TableHead key={c}>{c}</TableHead>)}</TableRow></TableHeader>
+              <TableHeader><TableRow>{previewCols.map((c) => <TableHead key={c}>{c}</TableHead>)}</TableRow></TableHeader>
               <TableBody>
                 {preview.map((r, i) => (
-                  <TableRow key={i}>{Object.values(r).map((v, j) => <TableCell key={j}>{v ?? "—"}</TableCell>)}</TableRow>
+                  <TableRow key={i}>{previewCols.map((c, j) => <TableCell key={j}>{r[c] ?? "—"}</TableCell>)}</TableRow>
                 ))}
               </TableBody>
             </Table>

@@ -123,7 +123,7 @@ function Documentos() {
 
 function UploadDialog({ colabs, onClose }: { colabs: { id: string; nome: string }[]; onClose: () => void }) {
   const [colaboradorId, setColaboradorId] = useState("");
-  const [tipo, setTipo] = useState(DOCUMENTO_TIPOS[0]);
+  const [tipo, setTipo] = useState<string>(DOCUMENTO_TIPOS[0] ?? "Outro");
   const [titulo, setTitulo] = useState("");
   const [observacao, setObservacao] = useState("");
   const [arquivo, setArquivo] = useState<File | null>(null);

@@ -99,6 +99,13 @@
       "when": 1792859513245,
       "tag": "0013_realtime_presencas",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1792861537836,
+      "tag": "0014_colaborador_ponto_ocorrencias",
+      "breakpoints": true
     }
   ]
 }

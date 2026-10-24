@@ -2,8 +2,45 @@ import * as XLSX from "xlsx";
 import type { AppRole } from "./labels";
 import { escalaLabel } from "./escala-options";
 
-export type PlanilhaRow = { id: string; colaborador_id: string; paridade: string; escala_tipo?: string | null | undefined; turno: string; hora_inicio: string; hora_fim: string; ajustes: unknown; observacoes: string };
+export type PlanilhaRow = { id: string; colaborador_id: string; paridade: string; escala_tipo?: string | null | undefined; turno: string; hora_inicio: string; hora_fim: string; ajustes: unknown; observacoes: string; posicao?: string };
 export type PlanilhaPerson = { id: string; nome: string; matricula: string; funcoes: { nome: string } | null };
+
+export function rosterGroup(row: PlanilhaRow) {
+  const type = row.escala_tipo ?? row.paridade;
+  return type === "par" || type === "impar" ? type : "outras";
+}
+export function rosterMove(type: "par" | "impar", turno: "diurno" | "noturno") {
+  return { escala_tipo: type, paridade: type, turno };
+}
+export function rosterWorkbook(post: string, month: string, rows: PlanilhaRow[], people: PlanilhaPerson[]) {
+  const workbook = XLSX.utils.book_new();
+  const grid: (string | number)[][] = [["Grupo Confidence — Escala de colaboradores"], ["Posto", post, "Mês", month], [], [`${post} · ÍMPAR`, "", "", "", "", `${post} · PAR`], ["Matrícula", "Nome", "Posição", "Horário", "", "Matrícula", "Nome", "Posição", "Horário"]];
+  const cells = (row: PlanilhaRow) => {
+    const person = people.find((p) => p.id === row.colaborador_id);
+    return [person?.matricula ?? "", person?.nome ?? "Colaborador indisponível", row.posicao ?? "", `${row.hora_inicio.slice(0, 5)} às ${row.hora_fim.slice(0, 5)}`];
+  };
+  for (const turno of ["diurno", "noturno"]) {
+    grid.push([turno.toUpperCase(), "", "", "", "", turno.toUpperCase()]);
+    const odd = rows.filter((r) => rosterGroup(r) === "impar" && r.turno === turno);
+    const even = rows.filter((r) => rosterGroup(r) === "par" && r.turno === turno);
+    for (let i = 0; i < Math.max(odd.length, even.length); i++) {
+      const left = odd[i]; const right = even[i];
+      grid.push([...(left ? cells(left) : ["", "", "", ""]), "", ...(right ? cells(right) : ["", "", "", ""])]);
+    }
+  }
+  const others = rows.filter((r) => rosterGroup(r) === "outras");
+  if (others.length) {
+    grid.push([], ["OUTRAS ESCALAS"], ["Matrícula", "Nome", "Posição", "Horário", "Escala", "Turno"]);
+    others.forEach((r) => grid.push([...cells(r), escalaLabel(r.escala_tipo ?? r.paridade), r.turno === "noturno" ? "Noturno" : "Diurno"]));
+  }
+  const sheet = XLSX.utils.aoa_to_sheet(grid);
+  sheet["!cols"] = [12, 30, 24, 20, 4, 12, 30, 24, 20].map((wch) => ({ wch }));
+  sheet["!merges"] = [{ s: { r: 3, c: 0 }, e: { r: 3, c: 3 } }, { s: { r: 3, c: 5 }, e: { r: 3, c: 8 } }];
+  XLSX.utils.book_append_sheet(workbook, sheet, "Colaboradores por escala");
+  const monthly = scheduleWorkbook(post, month, rows, people).Sheets["Escala mensal"];
+  if (monthly) XLSX.utils.book_append_sheet(workbook, monthly, "Escala mensal");
+  return workbook;
+}
 
 export function canManagePlanilha(roles: AppRole[], userId: string | undefined, supervisorId: string | null) {
   return roles.some((r) => ["admin", "gestor", "rh"].includes(r)) || (roles.includes("supervisor") && Boolean(userId) && userId === supervisorId);
@@ -47,7 +84,7 @@ export function scheduleWorkbook(post: string, month: string, rows: PlanilhaRow[
   return workbook;
 }
 export function downloadSchedule(post: string, month: string, rows: PlanilhaRow[], people: PlanilhaPerson[]) {
-  const bytes = XLSX.write(scheduleWorkbook(post, month, rows, people), { bookType: "xlsx", type: "array" });
+  const bytes = XLSX.write(rosterWorkbook(post, month, rows, people), { bookType: "xlsx", type: "array" });
   const url = URL.createObjectURL(new Blob([bytes], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }));
   const link = document.createElement("a");
   link.href = url;

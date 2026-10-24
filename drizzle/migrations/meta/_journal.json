@@ -64,6 +64,13 @@
       "when": 1792851417903,
       "tag": "0008_planilha_mensal_postos",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792852523836,
+      "tag": "0009_escalas_flexiveis_trocas",
+      "breakpoints": true
     }
   ]
 }

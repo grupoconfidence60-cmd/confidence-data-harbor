@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, redirect, Link, useNavigate, useLocation } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { LayoutDashboard, Users, MapPin, Briefcase, UserCog, ScrollText, LogOut, Moon, Sun, CalendarRange, ClipboardCheck, Palmtree, AlertTriangle, FileBarChart, FolderOpen } from "lucide-react";
+import { LayoutDashboard, Users, MapPin, Briefcase, UserCog, ScrollText, LogOut, Moon, Sun, CalendarRange, ClipboardCheck, Palmtree, AlertTriangle, FileBarChart, FolderOpen, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader,
@@ -24,6 +24,7 @@ export const Route = createFileRoute("/_authenticated")({
 
 const NAV = [
   { to: "/painel", label: "Painel", icon: LayoutDashboard, mod: "painel" },
+  { to: "/ponto", label: "Meu ponto", icon: Clock, mod: "ponto" },
   { to: "/colaboradores", label: "Colaboradores", icon: Users, mod: "colaboradores" },
   { to: "/postos", label: "Postos de serviço", icon: MapPin, mod: "postos" },
   { to: "/funcoes", label: "Funções", icon: Briefcase, mod: "funcoes" },

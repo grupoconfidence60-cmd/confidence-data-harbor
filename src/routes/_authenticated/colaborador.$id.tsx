@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RequireModule } from "@/components/page";
 import { useMe } from "@/lib/use-me";
 import { canEditColaboradores } from "@/lib/labels";
+import { escalaLabel } from "@/lib/escala-options";
 import { ColabDialog, SituacaoBadge, type ColabForm } from "./colaboradores";
 
 export const Route = createFileRoute("/_authenticated/colaborador/$id")({
@@ -56,7 +57,7 @@ function Detalhe() {
   const info: [string, string | null | undefined][] = [
     ["Matrícula", c.matricula], ["CPF", c.cpf], ["Telefone", c.telefone], ["E-mail", c.email],
     ["Função", c.funcoes?.nome], ["Posto", c.postos?.nome], ["Admissão", c.data_admissao && new Date(c.data_admissao + "T00:00").toLocaleDateString("pt-BR")],
-    ["Vínculo", c.vinculo], ["Jornada", c.jornada], ["Endereço", c.endereco],
+    ["Vínculo", c.vinculo], ["Jornada", c.jornada ? escalaLabel(c.jornada) : null], ["Endereço", c.endereco],
   ];
 
   return (

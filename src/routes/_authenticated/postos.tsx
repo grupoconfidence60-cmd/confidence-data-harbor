@@ -1,7 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Pencil, MapPin } from "lucide-react";
+import { Plus, Pencil, MapPin, Table2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -73,6 +73,7 @@ function Postos() {
                   <div className={`mt-2 text-xs ${p.latitude != null ? "text-muted-foreground" : "text-warning"}`}>
                     {p.latitude != null ? `Ponto por GPS: raio de ${p.raio_metros} m` : "Ponto por GPS não configurado"}
                   </div>
+                  <Button asChild variant="outline" className="mt-4 w-full"><Link to="/posto/$id" params={{ id: p.id }}><Table2 className="h-4 w-4" />Planilha de colaboradores</Link></Button>
                 </CardContent>
               </Card>
             );

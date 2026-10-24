@@ -15,6 +15,13 @@
       "when": 1792759020966,
       "tag": "0001_etapa2_escalas_presenca_ferias_ocorrencias",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792847100136,
+      "tag": "0002_etapa4_documentos",
+      "breakpoints": true
     }
   ]
 }

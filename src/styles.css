@@ -148,5 +148,8 @@
 .workspace .panel-section { background: transparent; border: 0; border-radius: 0; box-shadow: none; }
 .workspace [data-collapsible="icon"] [data-sidebar="header"] { padding: 12px 4px; }
 .workspace [data-collapsible="icon"] [data-sidebar="header"] img { width: 36px; height: 36px; }
+.workspace .roster-lists th { position: relative; height: 32px; font-size: 10px; text-transform: uppercase; }
+.workspace .roster-lists td { padding-top: 6px; padding-bottom: 6px; }
+.workspace .roster-lists table { min-width: 480px; }
 @keyframes workspace-enter { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }

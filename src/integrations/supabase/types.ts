@@ -555,6 +555,7 @@ export type Database = {
           mes: string
           observacoes: string
           paridade: string
+          posicao: string
           posto_id: string
           removido: boolean
           turno: string
@@ -571,6 +572,7 @@ export type Database = {
           mes: string
           observacoes?: string
           paridade?: string
+          posicao?: string
           posto_id: string
           removido?: boolean
           turno?: string
@@ -587,6 +589,7 @@ export type Database = {
           mes?: string
           observacoes?: string
           paridade?: string
+          posicao?: string
           posto_id?: string
           removido?: boolean
           turno?: string

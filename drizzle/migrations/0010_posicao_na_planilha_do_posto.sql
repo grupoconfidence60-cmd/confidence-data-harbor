@@ -1,0 +1,2 @@
+ALTER TABLE public.posto_planilha ADD COLUMN posicao text NOT NULL DEFAULT '';
+COMMENT ON COLUMN public.posto_planilha.posicao IS 'Posição operacional do colaborador nesta escala mensal; independente da função e do posto do cadastro.';

@@ -57,6 +57,13 @@
       "when": 1792850687544,
       "tag": "0007_comunicados_administracao",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792851417903,
+      "tag": "0008_planilha_mensal_postos",
+      "breakpoints": true
     }
   ]
 }

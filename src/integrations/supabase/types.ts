@@ -543,6 +543,69 @@ export type Database = {
           },
         ]
       }
+      posto_planilha: {
+        Row: {
+          ajustes: Json
+          colaborador_id: string
+          created_at: string
+          hora_fim: string
+          hora_inicio: string
+          id: string
+          mes: string
+          observacoes: string
+          paridade: string
+          posto_id: string
+          removido: boolean
+          turno: string
+          updated_at: string
+        }
+        Insert: {
+          ajustes?: Json
+          colaborador_id: string
+          created_at?: string
+          hora_fim?: string
+          hora_inicio?: string
+          id?: string
+          mes: string
+          observacoes?: string
+          paridade?: string
+          posto_id: string
+          removido?: boolean
+          turno?: string
+          updated_at?: string
+        }
+        Update: {
+          ajustes?: Json
+          colaborador_id?: string
+          created_at?: string
+          hora_fim?: string
+          hora_inicio?: string
+          id?: string
+          mes?: string
+          observacoes?: string
+          paridade?: string
+          posto_id?: string
+          removido?: boolean
+          turno?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "posto_planilha_colaborador_id_fkey"
+            columns: ["colaborador_id"]
+            isOneToOne: false
+            referencedRelation: "colaboradores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "posto_planilha_posto_id_fkey"
+            columns: ["posto_id"]
+            isOneToOne: false
+            referencedRelation: "postos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       postos: {
         Row: {
           ativo: boolean
@@ -787,6 +850,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_manage_planilha: { Args: { _posto_id: string }; Returns: boolean }
       distancia_metros: {
         Args: { lat1: number; lat2: number; lon1: number; lon2: number }
         Returns: number

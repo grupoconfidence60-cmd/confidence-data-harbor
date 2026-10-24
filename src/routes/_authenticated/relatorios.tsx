@@ -21,8 +21,9 @@ export const Route = createFileRoute("/_authenticated/relatorios")({
 type Row = Record<string, string | number | null>;
 
 function downloadCsv(nome: string, rows: Row[]) {
-  if (rows.length === 0) { toast.error("Nenhum dado para exportar."); return; }
-  const cols = Object.keys(rows[0]);
+  const first = rows[0];
+  if (!first) { toast.error("Nenhum dado para exportar."); return; }
+  const cols = Object.keys(first);
   const esc = (v: string | number | null) => `"${String(v ?? "").replace(/"/g, '""')}"`;
   const csv = [cols.join(";"), ...rows.map((r) => cols.map((c) => esc(r[c])).join(";"))].join("\n");
   const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
@@ -86,6 +87,7 @@ function Relatorios() {
   });
 
   const preview = (rows ?? []).slice(0, 50);
+  const previewCols = preview[0] ? Object.keys(preview[0]) : [];
 
   return (
     <div>

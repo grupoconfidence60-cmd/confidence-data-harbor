@@ -50,6 +50,13 @@
       "when": 1792848771038,
       "tag": "0006_etapa8_visitas_e_vencimentos",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792850687544,
+      "tag": "0007_comunicados_administracao",
+      "breakpoints": true
     }
   ]
 }

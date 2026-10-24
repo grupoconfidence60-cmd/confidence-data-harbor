@@ -166,6 +166,77 @@ export type Database = {
           },
         ]
       }
+      comunicado_leituras: {
+        Row: {
+          comunicado_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          comunicado_id: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Update: {
+          comunicado_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comunicado_leituras_comunicado_id_fkey"
+            columns: ["comunicado_id"]
+            isOneToOne: false
+            referencedRelation: "comunicados"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comunicado_leituras_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comunicados: {
+        Row: {
+          arquivado: boolean
+          created_at: string
+          id: string
+          mensagem: string
+          publicado_por: string
+          titulo: string
+        }
+        Insert: {
+          arquivado?: boolean
+          created_at?: string
+          id?: string
+          mensagem: string
+          publicado_por?: string
+          titulo: string
+        }
+        Update: {
+          arquivado?: boolean
+          created_at?: string
+          id?: string
+          mensagem?: string
+          publicado_por?: string
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comunicados_publicado_por_fkey"
+            columns: ["publicado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documentos: {
         Row: {
           arquivo_nome: string

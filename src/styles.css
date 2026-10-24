@@ -153,3 +153,15 @@
 .workspace .roster-lists table { min-width: 480px; }
 @keyframes workspace-enter { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+
+/* Tela de entrada */
+.auth-grid { background-image: linear-gradient(color-mix(in oklab, var(--primary-foreground) 8%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in oklab, var(--primary-foreground) 8%, transparent) 1px, transparent 1px); background-size: 40px 40px; mask-image: radial-gradient(circle at center, black 30%, transparent 80%); }
+.auth-scan { background: linear-gradient(to bottom, transparent, color-mix(in oklab, var(--primary-foreground) 10%, transparent), transparent); animation: auth-scan 6s linear infinite; }
+@keyframes auth-scan { from { top: -10%; } to { top: 110%; } }
+.auth-logo { animation: auth-float 5s ease-in-out infinite; }
+@keyframes auth-float { 50% { transform: translateY(-8px); } }
+.auth-ring { animation: auth-pulse 3s ease-in-out infinite; }
+.auth-ring-2 { animation: auth-spin 30s linear infinite; }
+@keyframes auth-pulse { 50% { opacity: .4; transform: scale(1.05); } }
+@keyframes auth-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .auth-scan, .auth-logo, .auth-ring, .auth-ring-2 { animation: none; } }

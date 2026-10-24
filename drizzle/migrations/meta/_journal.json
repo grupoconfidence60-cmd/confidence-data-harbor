@@ -78,6 +78,13 @@
       "when": 1792854444309,
       "tag": "0010_posicao_na_planilha_do_posto",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1792856188419,
+      "tag": "0011_equipamentos_uniformes",
+      "breakpoints": true
     }
   ]
 }

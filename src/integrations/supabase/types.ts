@@ -450,6 +450,117 @@ export type Database = {
         }
         Relationships: []
       }
+      materiais: {
+        Row: {
+          arquivado: boolean
+          categoria: string
+          created_at: string
+          id: string
+          identificacao: string
+          nome: string
+          tamanho: string
+        }
+        Insert: {
+          arquivado?: boolean
+          categoria: string
+          created_at?: string
+          id?: string
+          identificacao?: string
+          nome: string
+          tamanho?: string
+        }
+        Update: {
+          arquivado?: boolean
+          categoria?: string
+          created_at?: string
+          id?: string
+          identificacao?: string
+          nome?: string
+          tamanho?: string
+        }
+        Relationships: []
+      }
+      material_entregas: {
+        Row: {
+          colaborador_id: string
+          condicao_devolucao: string | null
+          created_at: string
+          data_devolucao: string | null
+          data_entrega: string
+          devolvido_por: string | null
+          id: string
+          material_id: string
+          observacoes: string
+          posto_id: string
+          quantidade: number
+          registrado_por: string
+        }
+        Insert: {
+          colaborador_id: string
+          condicao_devolucao?: string | null
+          created_at?: string
+          data_devolucao?: string | null
+          data_entrega: string
+          devolvido_por?: string | null
+          id?: string
+          material_id: string
+          observacoes?: string
+          posto_id: string
+          quantidade: number
+          registrado_por?: string
+        }
+        Update: {
+          colaborador_id?: string
+          condicao_devolucao?: string | null
+          created_at?: string
+          data_devolucao?: string | null
+          data_entrega?: string
+          devolvido_por?: string | null
+          id?: string
+          material_id?: string
+          observacoes?: string
+          posto_id?: string
+          quantidade?: number
+          registrado_por?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "material_entregas_colaborador_id_fkey"
+            columns: ["colaborador_id"]
+            isOneToOne: false
+            referencedRelation: "colaboradores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_entregas_devolvido_por_fkey"
+            columns: ["devolvido_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_entregas_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materiais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_entregas_posto_id_fkey"
+            columns: ["posto_id"]
+            isOneToOne: false
+            referencedRelation: "postos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_entregas_registrado_por_fkey"
+            columns: ["registrado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notificacoes: {
         Row: {
           created_at: string

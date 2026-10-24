@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { canAccess, canEditColaboradores, canEditPostos, canManageComunicados, canManageMateriais, canManageChecklists, canCreateInspecoes, type AppRole } from "./labels";
+import { canAccess, canEditColaboradores, canEditPostos, canManageComunicados, canManageMateriais, canManageChecklists, canCreateInspecoes, canCreateOcorrencias, MODULE_ACCESS, type AppRole } from "./labels";
 
 describe("permissões por perfil", () => {
   it("checklists: admin/gestor criam modelos; supervisor inspeciona; RH só consulta; colaborador sem acesso", () => {

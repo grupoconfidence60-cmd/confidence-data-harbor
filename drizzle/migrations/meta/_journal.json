@@ -92,6 +92,13 @@
       "when": 1792857740440,
       "tag": "0012_checklists_inspecao",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1792859513245,
+      "tag": "0013_realtime_presencas",
+      "breakpoints": true
     }
   ]
 }

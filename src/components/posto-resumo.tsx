@@ -1,3 +1,4 @@
+import { FuncaoBadge } from "@/components/funcao-badge";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,7 +35,7 @@ export function PostoResumo({ postoId }: { postoId: string }) {
     <div className="grid grid-cols-2 divide-x border-y py-4 md:grid-cols-4">{kpis.map(([l, v, alert]) => <div key={l} className="px-3 sm:px-5"><p className="text-xs text-muted-foreground">{l}</p><p className="mt-1 text-2xl font-semibold">{v}</p>{alert && <p className="text-xs text-destructive">{alert}</p>}</div>)}</div>
     <div className="grid gap-4 lg:grid-cols-3">
       <section className="rounded-lg border bg-card p-4 lg:col-span-2"><h2 className="mb-3 font-semibold">Equipe do posto ({data.equipe.length})</h2>
-        {!data.equipe.length ? <p className="text-sm text-muted-foreground">Nenhum colaborador vinculado.</p> : <ul className="divide-y text-sm">{data.equipe.map((c) => <li key={c.id} className="flex items-center justify-between gap-2 py-2"><Link to="/colaborador/$id" params={{ id: c.id }} className="min-w-0 hover:underline"><span className="font-medium">{c.nome}</span> <span className="text-muted-foreground">· {c.matricula}{c.funcoes?.nome ? ` · ${c.funcoes.nome}` : ""}</span></Link><Badge variant={c.situacao === "ativo" ? "secondary" : "outline"}>{SITUACAO_LABELS[c.situacao]}</Badge></li>)}</ul>}
+        {!data.equipe.length ? <p className="text-sm text-muted-foreground">Nenhum colaborador vinculado.</p> : <ul className="divide-y text-sm">{data.equipe.map((c) => <li key={c.id} className="flex items-center justify-between gap-2 py-2"><Link to="/colaborador/$id" params={{ id: c.id }} className="min-w-0 hover:underline"><span className="font-medium">{c.nome}</span> <span className="text-muted-foreground">· {c.matricula}</span> <FuncaoBadge nome={c.funcoes?.nome} /></Link><Badge variant={c.situacao === "ativo" ? "secondary" : "outline"}>{SITUACAO_LABELS[c.situacao]}</Badge></li>)}</ul>}
       </section>
       <div className="space-y-4">
         <section className="rounded-lg border bg-card p-4"><h2 className="mb-2 font-semibold">Ocorrências abertas</h2>{!data.ocorrencias.length ? <p className="text-sm text-muted-foreground">Nenhuma.</p> : <ul className="space-y-1 text-sm">{data.ocorrencias.map((o) => <li key={o.id} className="flex justify-between gap-2"><span className="min-w-0 break-words">{o.titulo}</span><span className={o.gravidade === "grave" ? "text-destructive" : "text-muted-foreground"}>{fmt(o.data_ocorrencia)}</span></li>)}</ul>}</section>

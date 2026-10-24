@@ -1,3 +1,5 @@
+import { FuncaoBadge, FuncaoLegenda } from "@/components/funcao-badge";
+import { FUNCAO_BORDA, funcaoTom } from "@/lib/funcao-cores";
 import { useState } from "react";
 import { ArrowLeftRight, GripVertical, Moon, Pencil, Plus, Save, Sun, UserMinus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,6 +22,7 @@ export function RosterLists(props: Props) {
   const [over, setOver] = useState<string | null>(null);
   const { rows, post, busy } = props;
   return <div className="roster-lists">
+    <div className="mb-3"><FuncaoLegenda /></div>
     <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
       {(["impar", "par"] as const).map((type) => <section key={type} className="min-w-0" aria-label={`Planilha ${type === "par" ? "Par" : "Ímpar"}`}>
         <div className="flex min-h-16 items-center gap-3 border border-primary bg-primary px-4 py-3 text-primary-foreground">
@@ -41,16 +44,16 @@ export function RosterLists(props: Props) {
         })}
       </section>)}
     </div>
-    {rows.some((r) => rosterGroup(r) === "outras") && <section className="mt-6"><h3 className="mb-3 text-sm font-semibold">Outras escalas</h3><div className="overflow-x-auto border bg-card"><table className="w-full"><thead><tr><th className="px-3 text-left">Mat.</th><th className="px-3 text-left">Nome</th><th className="px-3 text-left">Posição</th><th className="px-3 text-left">Escala / turno</th><th className="px-3 text-left">Horário</th><th>Ações</th></tr></thead><tbody>{rows.filter((r) => rosterGroup(r) === "outras").map((r) => { const person = props.people.find((p) => p.id === r.colaborador_id); return <tr key={r.id} className="border-t"><td className="px-3">{person?.matricula}</td><td className="px-3">{person?.nome}</td><td className="px-3">{r.posicao || "—"}</td><td className="px-3">{escalaLabel(r.escala_tipo ?? r.paridade)} · {r.turno}</td><td className="px-3">{r.hora_inicio.slice(0, 5)}–{r.hora_fim.slice(0, 5)}</td><td><Button size="icon" variant="ghost" title="Editar escala" aria-label={`Editar escala de ${person?.nome}`} onClick={() => props.edit(r)}><Pencil /></Button><Button size="icon" variant="ghost" title="Retirar da planilha" aria-label={`Retirar ${person?.nome}`} onClick={() => { if (window.confirm(`Retirar ${person?.nome} desta planilha?`)) void props.save(r.id, { removido: true }); }}><UserMinus /></Button></td></tr>; })}</tbody></table></div></section>}
+    {rows.some((r) => rosterGroup(r) === "outras") && <section className="mt-6"><h3 className="mb-3 text-sm font-semibold">Outras escalas</h3><div className="overflow-x-auto border bg-card"><table className="w-full"><thead><tr><th className="px-3 text-left">Mat.</th><th className="px-3 text-left">Nome</th><th className="px-3 text-left">Posição</th><th className="px-3 text-left">Escala / turno</th><th className="px-3 text-left">Horário</th><th>Ações</th></tr></thead><tbody>{rows.filter((r) => rosterGroup(r) === "outras").map((r) => { const person = props.people.find((p) => p.id === r.colaborador_id); return <tr key={r.id} className="border-t"><td className="px-3">{person?.matricula}</td><td className="px-3">{person?.nome} <FuncaoBadge nome={person?.funcoes?.nome} /></td><td className="px-3">{r.posicao || "—"}</td><td className="px-3">{escalaLabel(r.escala_tipo ?? r.paridade)} · {r.turno}</td><td className="px-3">{r.hora_inicio.slice(0, 5)}–{r.hora_fim.slice(0, 5)}</td><td><Button size="icon" variant="ghost" title="Editar escala" aria-label={`Editar escala de ${person?.nome}`} onClick={() => props.edit(r)}><Pencil /></Button><Button size="icon" variant="ghost" title="Retirar da planilha" aria-label={`Retirar ${person?.nome}`} onClick={() => { if (window.confirm(`Retirar ${person?.nome} desta planilha?`)) void props.save(r.id, { removido: true }); }}><UserMinus /></Button></td></tr>; })}</tbody></table></div></section>}
   </div>;
 }
 function RosterLine({ row, person, props, dragged, onDrag, onEnd }: { row: PlanilhaRow; person: PlanilhaPerson | undefined; props: Props; dragged: boolean; onDrag: (e: React.DragEvent) => void; onEnd: () => void }) {
   const [draft, setDraft] = useState({ posicao: row.posicao ?? "", hora_inicio: row.hora_inicio.slice(0, 5), hora_fim: row.hora_fim.slice(0, 5) });
   const [editing, setEditing] = useState(false);
   const name = person?.nome ?? "Colaborador indisponível";
-  return <tr className={`border-t ${dragged ? "opacity-40" : "hover:bg-accent/40"}`}>
+  return <tr className={`border-t ${FUNCAO_BORDA[funcaoTom(person?.funcoes?.nome)]} ${dragged ? "opacity-40" : "hover:bg-accent/40"}`}>
     <td className="px-2"><div className="flex items-center gap-1"><Button size="icon" variant="ghost" className="h-7 w-5 shrink-0 cursor-grab" disabled={props.busy} draggable={!props.busy} onDragStart={onDrag} onDragEnd={onEnd} title={`Arrastar ${name}`} aria-label={`Arrastar ${name}`}><GripVertical /></Button><span className="break-all text-[11px]">{person?.matricula ?? "—"}</span></div></td>
-    <td className="px-2"><span className="block break-words text-xs font-semibold uppercase">{name}</span></td>
+    <td className="px-2"><span className="block break-words text-xs font-semibold uppercase">{name}</span>{person?.funcoes?.nome && <FuncaoBadge nome={person.funcoes.nome} className="mt-0.5" />}</td>
     <td className="px-2">{editing ? <Input aria-label={`Posição de ${name}`} className="h-8 text-xs" value={draft.posicao} disabled={props.busy} onChange={(e) => setDraft({ ...draft, posicao: e.target.value })} /> : <span className="block break-words text-xs uppercase">{row.posicao || "—"}</span>}</td>
     <td className="px-2">{editing ? <div className="space-y-1"><Input type="time" aria-label={`Entrada de ${name}`} className="h-7 px-1 text-xs" value={draft.hora_inicio} onChange={(e) => setDraft({ ...draft, hora_inicio: e.target.value })} /><Input type="time" aria-label={`Saída de ${name}`} className="h-7 px-1 text-xs" value={draft.hora_fim} onChange={(e) => setDraft({ ...draft, hora_fim: e.target.value })} /></div> : <span className="text-[11px]">{row.hora_inicio.slice(0, 5)} às {row.hora_fim.slice(0, 5)}</span>}</td>
     <td className="px-1"><div className="flex flex-wrap gap-0.5">

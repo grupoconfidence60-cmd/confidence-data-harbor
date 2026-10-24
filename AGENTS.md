@@ -16,3 +16,4 @@
 - Keep the shared workspace layout, grouped navigation and searchable module list together; new modules must join both navigation and its group so additions preserve the established workspace.
 - Monthly per-post rosters use `posto_planilha`, independent of home-post transfers and recurring `escalas` templates; soft-remove assignments and audit edits to retain each month's history without changing GPS attendance or employee records.
 - Roster patterns use `escala_tipo` with shared options for employee registration and export; cell swaps run atomically through the RLS-enforced `trocar_plantao` function to avoid partially saved exchanges.
+- The primary roster view groups whole monthly assignments by pattern and shift; operational positions belong to each assignment, and whole-person moves use a single audited row update without changing employee records or daily overrides. Export mirrors those groups while retaining the monthly grid as a secondary sheet.

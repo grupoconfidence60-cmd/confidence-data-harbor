@@ -548,6 +548,7 @@ export type Database = {
           ajustes: Json
           colaborador_id: string
           created_at: string
+          escala_tipo: string | null
           hora_fim: string
           hora_inicio: string
           id: string
@@ -563,6 +564,7 @@ export type Database = {
           ajustes?: Json
           colaborador_id: string
           created_at?: string
+          escala_tipo?: string | null
           hora_fim?: string
           hora_inicio?: string
           id?: string
@@ -578,6 +580,7 @@ export type Database = {
           ajustes?: Json
           colaborador_id?: string
           created_at?: string
+          escala_tipo?: string | null
           hora_fim?: string
           hora_inicio?: string
           id?: string
@@ -870,6 +873,15 @@ export type Database = {
         Returns: boolean
       }
       system_initialized: { Args: never; Returns: boolean }
+      trocar_plantao: {
+        Args: {
+          destino: string
+          dia_destino: number
+          dia_origem: number
+          origem: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       account_status: "ativo" | "inativo" | "bloqueado"

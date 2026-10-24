@@ -15,6 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { PageHeader, RequireModule, EmptyState } from "@/components/page";
 import { useMe } from "@/lib/use-me";
 import { canEditColaboradores, SITUACAO_LABELS } from "@/lib/labels";
+import { ESCALA_OPTIONS } from "@/lib/escala-options";
 
 export const Route = createFileRoute("/_authenticated/colaboradores")({
   head: () => ({ meta: [
@@ -169,7 +170,11 @@ export function ColabDialog({ value, onClose }: { value: ColabForm; onClose: () 
               <SelectContent><SelectItem value="none">Sem posto</SelectItem>{lk?.postos.map((x) => <SelectItem key={x.id} value={x.id}>{x.nome}</SelectItem>)}</SelectContent>
             </Select></div>
           {field("vinculo", "Vínculo contratual")}
-          {field("jornada", "Escala / jornada")}
+          <div className="space-y-1.5"><Label>Escala / jornada</Label>
+            <Select value={f.jornada || "livre"} onValueChange={(v) => setF({ ...f, jornada: v })}>
+              <SelectTrigger aria-label="Escala do colaborador"><SelectValue /></SelectTrigger>
+              <SelectContent>{!ESCALA_OPTIONS.some((o) => o.value === f.jornada) && f.jornada && <SelectItem value={f.jornada}>{f.jornada}</SelectItem>}{ESCALA_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+            </Select></div>
           <div className="space-y-1.5"><Label>Situação</Label>
             <Select value={f.situacao} onValueChange={(v) => setF({ ...f, situacao: v as ColabForm["situacao"] })}>
               <SelectTrigger><SelectValue /></SelectTrigger>

@@ -2,6 +2,16 @@ import { describe, expect, it } from "vitest";
 import { canManagePlanilha, dayStatus, monthDays, scheduleWorkbook } from "./planilha";
 
 describe("planilha mensal por posto", () => {
+  it("escala personalizada não impõe alternância e aceita plantões escolhidos", () => {
+    expect(dayStatus({ paridade: "impar", escala_tipo: "livre", ajustes: {} }, 1, "2026-10")).toBe("F");
+    expect(dayStatus({ paridade: "impar", escala_tipo: "livre", ajustes: { "2": "T" } }, 2, "2026-10")).toBe("T");
+  });
+  it("oferece escalas semanais além de par e ímpar", () => {
+    expect(dayStatus({ paridade: "impar", escala_tipo: "5x2", ajustes: {} }, 23, "2026-10")).toBe("T");
+    expect(dayStatus({ paridade: "impar", escala_tipo: "5x2", ajustes: {} }, 24, "2026-10")).toBe("F");
+    expect(dayStatus({ paridade: "impar", escala_tipo: "6x1", ajustes: {} }, 24, "2026-10")).toBe("T");
+    expect(dayStatus({ paridade: "impar", escala_tipo: "6x1", ajustes: {} }, 25, "2026-10")).toBe("F");
+  });
   it("pares trabalham nos dias 2, 4, 6 e ímpares nos dias 1, 3, 5", () => {
     expect([1, 2, 3, 4, 5, 6].map((d) => dayStatus({ paridade: "par", ajustes: {} }, d))).toEqual(["F", "T", "F", "T", "F", "T"]);
     expect([1, 2, 3, 4, 5, 6].map((d) => dayStatus({ paridade: "impar", ajustes: {} }, d))).toEqual(["T", "F", "T", "F", "T", "F"]);

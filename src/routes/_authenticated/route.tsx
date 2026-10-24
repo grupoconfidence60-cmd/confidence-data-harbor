@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, redirect, Link, useNavigate, useLocation } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { LayoutDashboard, Users, MapPin, Briefcase, UserCog, ScrollText, LogOut, Moon, Sun, CalendarRange, ClipboardCheck, Palmtree, AlertTriangle, FileBarChart, FolderOpen, Clock, ClipboardList, Search, ChevronRight, Megaphone } from "lucide-react";
+import { LayoutDashboard, Users, MapPin, Briefcase, UserCog, ScrollText, LogOut, Moon, Sun, CalendarRange, ClipboardCheck, Palmtree, AlertTriangle, FileBarChart, FolderOpen, Clock, ClipboardList, Search, ChevronRight, Megaphone, Package } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader,
@@ -39,6 +39,7 @@ const NAV = [
   { to: "/visitas", label: "Visitas de supervisão", icon: ClipboardList, mod: "visitas" },
   { to: "/relatorios", label: "Relatórios", icon: FileBarChart, mod: "relatorios" },
   { to: "/documentos", label: "Documentos", icon: FolderOpen, mod: "documentos" },
+  { to: "/materiais", label: "Equipamentos e uniformes", icon: Package, mod: "materiais" },
   { to: "/comunicados", label: "Comunicados", icon: Megaphone, mod: "comunicados" },
   { to: "/usuarios", label: "Usuários e acessos", icon: UserCog, mod: "usuarios" },
   { to: "/auditoria", label: "Auditoria", icon: ScrollText, mod: "auditoria" },
@@ -57,7 +58,7 @@ function Layout() {
   const groups = [
     { label: "Visão geral", modules: ["painel", "ponto"] },
     { label: "Operação", modules: ["colaboradores", "postos", "escalas", "presenca", "ocorrencias", "visitas"] },
-    { label: "Gestão", modules: ["ferias", "documentos", "relatorios", "funcoes", "comunicados"] },
+    { label: "Gestão", modules: ["ferias", "documentos", "materiais", "relatorios", "funcoes", "comunicados"] },
     { label: "Administração", modules: ["usuarios", "auditoria"] },
   ];
   useEffect(() => {

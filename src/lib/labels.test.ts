@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { canAccess, canEditColaboradores, canEditPostos, canManageComunicados, canManageMateriais, canManageChecklists, canCreateInspecoes, type AppRole } from "./labels";
+import { canAccess, canEditColaboradores, canEditPostos, canManageComunicados, canManageMateriais, canManageChecklists, canCreateInspecoes, canCreateOcorrencias, MODULE_ACCESS, type AppRole } from "./labels";
 
 describe("permissões por perfil", () => {
   it("checklists: admin/gestor criam modelos; supervisor inspeciona; RH só consulta; colaborador sem acesso", () => {
@@ -20,8 +20,13 @@ describe("permissões por perfil", () => {
     expect(canAccess(["colaborador"], "materiais")).toBe(false);
     expect(canManageMateriais([])).toBe(false);
   });
-  it("todos os perfis consultam comunicados, só administração publica", () => {
-    const roles: AppRole[] = ["admin", "gestor", "rh", "supervisor", "colaborador"];
+  it("colaborador acessa apenas ponto e ocorrências", () => {
+    const mods = Object.keys(MODULE_ACCESS).filter((m) => canAccess(["colaborador"], m)).sort();
+    expect(mods).toEqual(["ocorrencias", "ponto"]);
+    expect(canCreateOcorrencias(["colaborador"])).toBe(true);
+  });
+  it("perfis internos consultam comunicados, só administração publica", () => {
+    const roles: AppRole[] = ["admin", "gestor", "rh", "supervisor"];
     for (const role of roles) {
       expect(canAccess([role], "comunicados")).toBe(true);
       expect(canManageComunicados([role])).toBe(role === "admin");

@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RequireModule } from "@/components/page";
 import { useMe } from "@/lib/use-me";
 import { canEditColaboradores } from "@/lib/labels";
@@ -84,6 +85,7 @@ function Detalhe() {
             {c.observacoes && canEdit && <div className="sm:col-span-2"><div className="text-xs text-muted-foreground">Observações</div><div className="text-sm whitespace-pre-wrap">{c.observacoes}</div></div>}
           </CardContent>
         </Card>
+        {canEdit && <ContaAcesso colabId={c.id} userId={c.user_id} />}
         <Card>
           <CardHeader><CardTitle className="text-base">Histórico</CardTitle></CardHeader>
           <CardContent>
@@ -101,5 +103,42 @@ function Detalhe() {
       </div>
       {editing && <ColabDialog value={editing} onClose={() => setEditing(null)} />}
     </div>
+  );
+}
+
+function ContaAcesso({ colabId, userId }: { colabId: string; userId: string | null }) {
+  const qc = useQueryClient();
+  const { data: contas } = useQuery({
+    queryKey: ["contas-colaborador"],
+    queryFn: async () => {
+      const [{ data: r }, { data: p }, { data: v }] = await Promise.all([
+        supabase.from("user_roles").select("user_id").eq("role", "colaborador"),
+        supabase.from("profiles").select("id, nome, email").order("nome"),
+        supabase.from("colaboradores").select("id, user_id").not("user_id", "is", null),
+      ]);
+      const ids = new Set((r ?? []).map((x) => x.user_id));
+      return (p ?? []).filter((x) => ids.has(x.id)).map((x) => ({ ...x, usadoPor: (v ?? []).find((y) => y.user_id === x.id)?.id }));
+    },
+  });
+  async function vincular(v: string) {
+    const { error } = await supabase.from("colaboradores").update({ user_id: v === "none" ? null : v }).eq("id", colabId);
+    if (error) { toast.error(error.message); return; }
+    toast.success(v === "none" ? "Conta desvinculada." : "Conta vinculada. O colaborador já pode bater ponto.");
+    qc.invalidateQueries();
+  }
+  return (
+    <Card className="lg:col-span-2">
+      <CardHeader><CardTitle className="text-base">Conta de acesso (ponto e ocorrências)</CardTitle></CardHeader>
+      <CardContent className="space-y-2">
+        <Select value={userId ?? "none"} onValueChange={vincular}>
+          <SelectTrigger className="max-w-md" aria-label="Conta de acesso"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">Sem conta vinculada</SelectItem>
+            {(contas ?? []).filter((x) => !x.usadoPor || x.usadoPor === colabId).map((x) => <SelectItem key={x.id} value={x.id}>{x.nome} · {x.email}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-muted-foreground">Mostra usuários com perfil Colaborador (crie em Usuários). Sem vínculo, o colaborador não consegue bater ponto.</p>
+      </CardContent>
+    </Card>
   );
 }

@@ -40,20 +40,20 @@ export const DOCUMENTO_TIPOS = ["Atestado", "Contrato", "Identidade", "Certifica
 
 /** Which roles can open each module. */
 export const MODULE_ACCESS: Record<string, AppRole[]> = {
-  painel: ["admin", "gestor", "rh", "supervisor", "colaborador"],
+  painel: ["admin", "gestor", "rh", "supervisor"],
   ponto: ["admin", "gestor", "rh", "supervisor", "colaborador"],
   colaboradores: ["admin", "gestor", "rh", "supervisor"],
   postos: ["admin", "gestor", "rh", "supervisor"],
   funcoes: ["admin", "gestor"],
   escalas: ["admin", "gestor", "rh", "supervisor"],
   presenca: ["admin", "gestor", "rh", "supervisor"],
-  ferias: ["admin", "gestor", "rh", "supervisor", "colaborador"],
-  ocorrencias: ["admin", "gestor", "rh", "supervisor"],
+  ferias: ["admin", "gestor", "rh", "supervisor"],
+  ocorrencias: ["admin", "gestor", "rh", "supervisor", "colaborador"],
   relatorios: ["admin", "gestor", "rh"],
-  documentos: ["admin", "gestor", "rh", "supervisor", "colaborador"],
+  documentos: ["admin", "gestor", "rh", "supervisor"],
   materiais: ["admin", "gestor", "rh", "supervisor"],
   inspecoes: ["admin", "gestor", "rh", "supervisor"],
-  comunicados: ["admin", "gestor", "rh", "supervisor", "colaborador"],
+  comunicados: ["admin", "gestor", "rh", "supervisor"],
   visitas: ["admin", "gestor", "rh", "supervisor"],
   usuarios: ["admin"],
   auditoria: ["admin"],
@@ -82,7 +82,7 @@ export function canEditOcorrencias(roles: AppRole[]) {
   return roles.some((r) => ["admin", "gestor"].includes(r));
 }
 export function canCreateOcorrencias(roles: AppRole[]) {
-  return roles.some((r) => ["admin", "gestor", "rh", "supervisor"].includes(r));
+  return roles.some((r) => ["admin", "gestor", "rh", "supervisor", "colaborador"].includes(r));
 }
 export function canEditDocumentos(roles: AppRole[]) {
   return roles.some((r) => ["admin", "gestor", "rh"].includes(r));

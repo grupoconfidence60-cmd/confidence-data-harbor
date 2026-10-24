@@ -16,7 +16,7 @@ import { ESCALA_OPTIONS, escalaLabel, escalaFromJornada } from "@/lib/escala-opt
 import { useMe } from "@/lib/use-me";
 
 type Person = PlanilhaPerson & { posto_id: string | null; jornada: string | null };
-type Form = { id?: string; colaborador_id: string; paridade: string; escala_tipo?: string | null; turno: string; hora_inicio: string; hora_fim: string; observacoes: string; posicao?: string };
+type Form = { id?: string; colaborador_id: string; paridade: string; escala_tipo?: string | null | undefined; turno: string; hora_inicio: string; hora_fim: string; observacoes: string; posicao?: string };
 const empty: Form = { colaborador_id: "", paridade: "impar", escala_tipo: "livre", turno: "diurno", hora_inicio: "06:00", hora_fim: "18:00", observacoes: "", posicao: "" };
 
 export function PostoPlanilha({ posto }: { posto: { id: string; nome: string; supervisor_id: string | null } }) {

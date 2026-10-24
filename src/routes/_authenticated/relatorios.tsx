@@ -20,6 +20,15 @@ export const Route = createFileRoute("/_authenticated/relatorios")({
 
 type Row = Record<string, string | number | null>;
 
+async function downloadXlsx(nome: string, rows: Row[]) {
+  if (!rows.length) { toast.error("Nenhum dado para exportar."); return; }
+  const XLSX = await import("xlsx");
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Relatório");
+  XLSX.writeFile(wb, `${nome}.xlsx`);
+}
+
 function downloadCsv(nome: string, rows: Row[]) {
   const first = rows[0];
   if (!first) { toast.error("Nenhum dado para exportar."); return; }
@@ -53,14 +62,19 @@ function Relatorios() {
     queryFn: async (): Promise<Row[]> => {
       const postoNome = (id: string | null) => postos?.find((p) => p.id === id)?.nome ?? "";
       if (tipo === "presencas") {
-        let q = supabase.from("presencas").select("data, status, justificativa, posto_id, colaboradores:colaborador_id(nome, matricula)")
+        let q = supabase.from("presencas").select("data, status, justificativa, posto_id, hora_entrada, hora_saida, distancia_metros, latitude, longitude, colaboradores:colaborador_id(nome, matricula)")
           .gte("data", de).lte("data", ate).order("data", { ascending: false });
         if (postoId !== "all") q = q.eq("posto_id", postoId);
         const { data, error } = await q;
         if (error) { toast.error(error.message); return []; }
+        const fmtHora = (v: string | null) => (v ? new Date(v).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "");
         return (data ?? []).map((r) => ({
           Data: r.data, Colaborador: (r.colaboradores as { nome: string } | null)?.nome ?? "", Matrícula: (r.colaboradores as { matricula: string } | null)?.matricula ?? "",
-          Posto: postoNome(r.posto_id), Status: PRESENCA_LABELS[r.status], Justificativa: r.justificativa ?? "",
+          Posto: postoNome(r.posto_id), Status: PRESENCA_LABELS[r.status],
+          Entrada: fmtHora(r.hora_entrada), Saída: fmtHora(r.hora_saida),
+          "Distância do posto (m)": r.distancia_metros != null ? Math.round(r.distancia_metros) : "",
+          "Localização (GPS)": r.latitude != null ? `${r.latitude}, ${r.longitude}` : "",
+          Justificativa: r.justificativa ?? "",
         }));
       }
       if (tipo === "ferias") {
@@ -91,8 +105,11 @@ function Relatorios() {
 
   return (
     <div>
-      <PageHeader title="Relatórios" description="Consulte períodos e exporte os dados em CSV (abre no Excel)"
-        actions={<Button onClick={() => downloadCsv(`relatorio-${tipo}-${de}-a-${ate}`, rows ?? [])} disabled={!rows?.length}><Download className="mr-1 h-4 w-4" />Exportar CSV</Button>} />
+      <PageHeader title="Relatórios" description="Consulte períodos e exporte planilhas mensais em Excel ou CSV"
+        actions={<div className="flex gap-2">
+          <Button onClick={() => downloadXlsx(`relatorio-${tipo}-${de}-a-${ate}`, rows ?? [])} disabled={!rows?.length}><Download className="mr-1 h-4 w-4" />Exportar Excel</Button>
+          <Button variant="outline" onClick={() => downloadCsv(`relatorio-${tipo}-${de}-a-${ate}`, rows ?? [])} disabled={!rows?.length}>CSV</Button>
+        </div>} />
       <Card className="mb-4"><CardContent className="flex flex-wrap items-end gap-3 p-4">
         <div className="space-y-1.5"><Label>Relatório</Label>
           <Select value={tipo} onValueChange={setTipo}>

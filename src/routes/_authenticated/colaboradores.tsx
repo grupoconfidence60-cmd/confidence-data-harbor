@@ -1,3 +1,4 @@
+import { FuncaoBadge } from "@/components/funcao-badge";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -101,7 +102,7 @@ function Colaboradores() {
                 <TableRow key={r.id}>
                   <TableCell className="font-mono text-xs">{r.matricula}</TableCell>
                   <TableCell><Link to="/colaborador/$id" params={{ id: r.id }} className="font-medium hover:underline">{r.nome}</Link></TableCell>
-                  <TableCell>{r.funcoes?.nome ?? "—"}</TableCell>
+                  <TableCell><FuncaoBadge nome={r.funcoes?.nome} /></TableCell>
                   <TableCell>{r.postos?.nome ?? <span className="text-warning">Sem posto</span>}</TableCell>
                   <TableCell><SituacaoBadge s={r.situacao} /></TableCell>
                 </TableRow>

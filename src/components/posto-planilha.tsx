@@ -78,7 +78,7 @@ export function PostoPlanilha({ posto }: { posto: { id: string; nome: string; su
   if (!allowed) return <p className="text-muted-foreground">Você não tem permissão para organizar a escala deste posto.</p>;
   return <section className="mt-7 min-w-0">
     <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
-      <div><h2 className="text-lg font-semibold">Planilha mensal de colaboradores</h2><div className="mt-2 flex flex-wrap gap-4 text-xs text-muted-foreground"><span>{rows.length} colaborador(es)</span><span>{rows.filter((r) => r.paridade === "par").length} pares</span><span>{rows.filter((r) => r.paridade === "impar").length} ímpares</span></div></div>
+      <div><h2 className="text-lg font-semibold">Planilha mensal de colaboradores</h2><div className="mt-2 flex flex-wrap gap-4 text-xs text-muted-foreground"><span>{rows.length} colaborador(es)</span><span>{rows.filter((r) => (r.escala_tipo ?? r.paridade) === "par").length} pares</span><span>{rows.filter((r) => (r.escala_tipo ?? r.paridade) === "impar").length} ímpares</span></div></div>
       <div className="flex flex-wrap gap-2"><Button variant={swapMode ? "secondary" : "outline"} aria-pressed={swapMode} onClick={() => { setSwapMode(!swapMode); setSource(null); }}><ArrowLeftRight className="h-4 w-4" />Trocar plantões</Button><Button variant="outline" disabled={isPending || isError || busy} onClick={() => downloadSchedule(posto.nome, month, rows, people)}><Download className="h-4 w-4" />Baixar Excel</Button><Button disabled={isPending || isError || busy} onClick={() => setEditing(empty)}><Plus className="h-4 w-4" />Incluir colaborador</Button></div>
     </div>
     <div className="mb-4 flex flex-wrap items-end gap-3">

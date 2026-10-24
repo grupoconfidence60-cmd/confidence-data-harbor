@@ -84,6 +84,7 @@ function Detalhe() {
             {c.observacoes && canEdit && <div className="sm:col-span-2"><div className="text-xs text-muted-foreground">Observações</div><div className="text-sm whitespace-pre-wrap">{c.observacoes}</div></div>}
           </CardContent>
         </Card>
+        {canEdit && <ContaAcesso colabId={c.id} userId={c.user_id} />}
         <Card>
           <CardHeader><CardTitle className="text-base">Histórico</CardTitle></CardHeader>
           <CardContent>

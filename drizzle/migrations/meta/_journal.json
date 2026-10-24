@@ -36,6 +36,13 @@
       "when": 1792847744192,
       "tag": "0004_etapa6_geolocalizacao_ponto",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792848049976,
+      "tag": "0005_etapa7_notificacoes",
+      "breakpoints": true
     }
   ]
 }

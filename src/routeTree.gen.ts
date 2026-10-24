@@ -29,6 +29,7 @@ import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authentic
 import { Route as AuthenticatedUsuariosRouteImport } from './routes/_authenticated/usuarios'
 import { Route as AuthenticatedVisitasRouteImport } from './routes/_authenticated/visitas'
 import { Route as AuthenticatedColaboradorIdRouteImport } from './routes/_authenticated/colaborador.$id'
+import { Route as AuthenticatedPostoIdRouteImport } from './routes/_authenticated/posto.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -133,6 +134,11 @@ const AuthenticatedColaboradorIdRoute =
     path: '/colaborador/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPostoIdRoute = AuthenticatedPostoIdRouteImport.update({
+  id: '/posto/$id',
+  path: '/posto/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -154,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/usuarios': typeof AuthenticatedUsuariosRoute
   '/visitas': typeof AuthenticatedVisitasRoute
   '/colaborador/$id': typeof AuthenticatedColaboradorIdRoute
+  '/posto/$id': typeof AuthenticatedPostoIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -175,6 +182,7 @@ export interface FileRoutesByTo {
   '/usuarios': typeof AuthenticatedUsuariosRoute
   '/visitas': typeof AuthenticatedVisitasRoute
   '/colaborador/$id': typeof AuthenticatedColaboradorIdRoute
+  '/posto/$id': typeof AuthenticatedPostoIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -198,6 +206,7 @@ export interface FileRoutesById {
   '/_authenticated/usuarios': typeof AuthenticatedUsuariosRoute
   '/_authenticated/visitas': typeof AuthenticatedVisitasRoute
   '/_authenticated/colaborador/$id': typeof AuthenticatedColaboradorIdRoute
+  '/_authenticated/posto/$id': typeof AuthenticatedPostoIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -221,6 +230,7 @@ export interface FileRouteTypes {
     | '/usuarios'
     | '/visitas'
     | '/colaborador/$id'
+    | '/posto/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -242,6 +252,7 @@ export interface FileRouteTypes {
     | '/usuarios'
     | '/visitas'
     | '/colaborador/$id'
+    | '/posto/$id'
   id:
     | '__root__'
     | '/'
@@ -264,6 +275,7 @@ export interface FileRouteTypes {
     | '/_authenticated/usuarios'
     | '/_authenticated/visitas'
     | '/_authenticated/colaborador/$id'
+    | '/_authenticated/posto/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -415,6 +427,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedColaboradorIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/posto/$id': {
+      id: '/_authenticated/posto/$id'
+      path: '/posto/$id'
+      fullPath: '/posto/$id'
+      preLoaderRoute: typeof AuthenticatedPostoIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -435,6 +454,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedUsuariosRoute: typeof AuthenticatedUsuariosRoute
   AuthenticatedVisitasRoute: typeof AuthenticatedVisitasRoute
   AuthenticatedColaboradorIdRoute: typeof AuthenticatedColaboradorIdRoute
+  AuthenticatedPostoIdRoute: typeof AuthenticatedPostoIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -454,6 +474,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedUsuariosRoute: AuthenticatedUsuariosRoute,
   AuthenticatedVisitasRoute: AuthenticatedVisitasRoute,
   AuthenticatedColaboradorIdRoute: AuthenticatedColaboradorIdRoute,
+  AuthenticatedPostoIdRoute: AuthenticatedPostoIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

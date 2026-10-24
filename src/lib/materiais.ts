@@ -8,8 +8,8 @@ export const materiaisQuery = queryOptions({
     const [items, deliveries, people, posts] = await Promise.all([
       supabase.from("materiais").select("*").order("nome"),
       supabase.from("material_entregas").select("*").order("data_entrega", { ascending: false }),
-      supabase.from("colaboradores").select("id,nome,matricula,posto_id").eq("arquivado", false).order("nome"),
-      supabase.from("postos").select("id,nome").eq("ativo", true).order("nome"),
+      supabase.from("colaboradores").select("id,nome,matricula,posto_id,arquivado").order("nome"),
+      supabase.from("postos").select("id,nome,ativo").order("nome"),
     ]);
     for (const result of [items, deliveries, people, posts]) if (result.error) throw result.error;
     return { items: items.data ?? [], deliveries: deliveries.data ?? [], people: people.data ?? [], posts: posts.data ?? [] };

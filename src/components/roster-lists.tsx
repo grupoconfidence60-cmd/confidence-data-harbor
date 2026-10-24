@@ -1,4 +1,4 @@
-import { FuncaoBadge } from "@/components/funcao-badge";
+import { FuncaoBadge, FuncaoLegenda } from "@/components/funcao-badge";
 import { FUNCAO_BORDA, funcaoTom } from "@/lib/funcao-cores";
 import { useState } from "react";
 import { ArrowLeftRight, GripVertical, Moon, Pencil, Plus, Save, Sun, UserMinus } from "lucide-react";
@@ -22,6 +22,7 @@ export function RosterLists(props: Props) {
   const [over, setOver] = useState<string | null>(null);
   const { rows, post, busy } = props;
   return <div className="roster-lists">
+    <div className="mb-3"><FuncaoLegenda /></div>
     <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
       {(["impar", "par"] as const).map((type) => <section key={type} className="min-w-0" aria-label={`Planilha ${type === "par" ? "Par" : "Ímpar"}`}>
         <div className="flex min-h-16 items-center gap-3 border border-primary bg-primary px-4 py-3 text-primary-foreground">

@@ -26,7 +26,7 @@ function Ponto() {
       const uid = userData.user?.id;
       if (!uid) return { colab: null, hoje: null, historico: [] };
       const { data: colab } = await supabase
-        .from("colaboradores").select("id, nome, posto_id, postos(nome)")
+        .from("colaboradores").select("id, nome, posto_id, postos(nome, latitude, longitude, raio_metros)")
         .eq("user_id", uid).eq("arquivado", false).maybeSingle();
       if (!colab) return { colab: null, hoje: null, historico: [] };
       const [{ data: hojeRow }, { data: hist }] = await Promise.all([
@@ -38,22 +38,57 @@ function Ponto() {
     },
   });
 
+  function obterPosicao(): Promise<GeolocationPosition> {
+    return new Promise((resolve, reject) =>
+      navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 15000 }),
+    );
+  }
+
+  function distanciaM(lat1: number, lon1: number, lat2: number, lon2: number) {
+    const rad = (g: number) => (g * Math.PI) / 180;
+    const a = Math.sin(rad(lat2 - lat1) / 2) ** 2 + Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(rad(lon2 - lon1) / 2) ** 2;
+    return 6371000 * 2 * Math.asin(Math.sqrt(a));
+  }
+
   async function bater(tipo: "entrada" | "saida") {
     const colab = data?.colab;
     if (!colab) return;
+    const posto = colab.postos as { nome: string; latitude: number | null; longitude: number | null; raio_metros: number } | null;
+
+    let lat: number | null = null;
+    let lng: number | null = null;
+    let dist: number | null = null;
+
+    if (posto?.latitude != null && posto.longitude != null) {
+      let pos: GeolocationPosition;
+      try {
+        pos = await obterPosicao();
+      } catch {
+        toast.error("Não foi possível obter sua localização. Ative o GPS e permita o acesso à localização.");
+        return;
+      }
+      lat = pos.coords.latitude;
+      lng = pos.coords.longitude;
+      dist = Math.round(distanciaM(lat, lng, posto.latitude, posto.longitude));
+      if (dist > posto.raio_metros) {
+        toast.error(`Você está a ${dist} m do posto "${posto.nome}". O ponto só pode ser registrado dentro de ${posto.raio_metros} m.`);
+        return;
+      }
+    }
+
     const agora = new Date().toISOString();
     if (tipo === "entrada") {
       const { error } = await supabase.from("presencas").insert({
         colaborador_id: colab.id, posto_id: colab.posto_id, data: hoje(),
-        status: "presente", hora_entrada: agora,
+        status: "presente", hora_entrada: agora, latitude: lat, longitude: lng, distancia_metros: dist,
       });
       if (error) { toast.error(error.message); return; }
-      toast.success("Entrada registrada às " + hora(agora));
+      toast.success("Entrada registrada às " + hora(agora) + (dist != null ? ` (${dist} m do posto)` : ""));
     } else {
       if (!data?.hoje) return;
-      const { error } = await supabase.from("presencas").update({ hora_saida: agora }).eq("id", data.hoje.id);
+      const { error } = await supabase.from("presencas").update({ hora_saida: agora, latitude: lat, longitude: lng, distancia_metros: dist }).eq("id", data.hoje.id);
       if (error) { toast.error(error.message); return; }
-      toast.success("Saída registrada às " + hora(agora));
+      toast.success("Saída registrada às " + hora(agora) + (dist != null ? ` (${dist} m do posto)` : ""));
     }
     qc.invalidateQueries({ queryKey: ["meu-ponto"] });
   }
@@ -69,7 +104,8 @@ function Ponto() {
   }
 
   const p = data.hoje;
-  const posto = (data.colab.postos as { nome: string } | null)?.nome;
+  const postoInfo = data.colab.postos as { nome: string; latitude: number | null; raio_metros: number } | null;
+  const posto = postoInfo?.nome;
 
   return (
     <div>
@@ -89,6 +125,9 @@ function Ponto() {
               <div className="text-2xl font-bold">{hora(p?.hora_saida ?? null)}</div>
             </div>
           </div>
+          {postoInfo?.latitude != null && (
+            <div className="text-xs text-muted-foreground">Ponto permitido dentro de {postoInfo.raio_metros} m do posto — sua localização será registrada.</div>
+          )}
           {!p?.hora_entrada ? (
             <Button size="lg" onClick={() => bater("entrada")}><LogIn className="mr-2 h-5 w-5" />Registrar entrada</Button>
           ) : !p?.hora_saida ? (

@@ -53,7 +53,7 @@ function Layout() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [dark, setDark] = useState(false);
   const visibleNav = NAV.filter((n) => canAccess(roles, n.mod));
-  const currentPage = NAV.find((n) => loc.pathname.startsWith(n.to))?.label ?? "Colaborador";
+  const currentPage = loc.pathname.startsWith("/posto/") ? "Planilha do posto" : NAV.find((n) => loc.pathname.startsWith(n.to))?.label ?? "Colaborador";
   const groups = [
     { label: "Visão geral", modules: ["painel", "ponto"] },
     { label: "Operação", modules: ["colaboradores", "postos", "escalas", "presenca", "ocorrencias", "visitas"] },

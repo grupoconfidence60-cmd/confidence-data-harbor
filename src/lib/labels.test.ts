@@ -1,7 +1,17 @@
 import { describe, it, expect } from "vitest";
-import { canAccess, canEditColaboradores, canEditPostos, canManageComunicados, type AppRole } from "./labels";
+import { canAccess, canEditColaboradores, canEditPostos, canManageComunicados, canManageMateriais, type AppRole } from "./labels";
 
 describe("permissões por perfil", () => {
+  it("gestão e supervisão acessam materiais; catálogo é gerido por admin, gestor e RH", () => {
+    for (const role of ["admin", "gestor", "rh"] as AppRole[]) {
+      expect(canAccess([role], "materiais")).toBe(true);
+      expect(canManageMateriais([role])).toBe(true);
+    }
+    expect(canAccess(["supervisor"], "materiais")).toBe(true);
+    expect(canManageMateriais(["supervisor"])).toBe(false);
+    expect(canAccess(["colaborador"], "materiais")).toBe(false);
+    expect(canManageMateriais([])).toBe(false);
+  });
   it("todos os perfis consultam comunicados, só administração publica", () => {
     const roles: AppRole[] = ["admin", "gestor", "rh", "supervisor", "colaborador"];
     for (const role of roles) {

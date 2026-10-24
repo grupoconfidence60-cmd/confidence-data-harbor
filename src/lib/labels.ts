@@ -51,6 +51,7 @@ export const MODULE_ACCESS: Record<string, AppRole[]> = {
   ocorrencias: ["admin", "gestor", "rh", "supervisor"],
   relatorios: ["admin", "gestor", "rh"],
   documentos: ["admin", "gestor", "rh", "supervisor", "colaborador"],
+  materiais: ["admin", "gestor", "rh", "supervisor"],
   comunicados: ["admin", "gestor", "rh", "supervisor", "colaborador"],
   visitas: ["admin", "gestor", "rh", "supervisor"],
   usuarios: ["admin"],
@@ -91,4 +92,8 @@ export function canCreateVisitas(roles: AppRole[]) {
 
 export function canManageComunicados(roles: AppRole[]) {
   return roles.includes("admin");
+}
+
+export function canManageMateriais(roles: AppRole[]) {
+  return roles.some((r) => ["admin", "gestor", "rh"].includes(r));
 }

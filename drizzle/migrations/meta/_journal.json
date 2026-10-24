@@ -29,6 +29,13 @@
       "when": 1792847292367,
       "tag": "0003_etapa5_ponto_colaborador",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792847744192,
+      "tag": "0004_etapa6_geolocalizacao_ponto",
+      "breakpoints": true
     }
   ]
 }

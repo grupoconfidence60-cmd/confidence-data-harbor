@@ -448,8 +448,11 @@ export type Database = {
           efetivo_previsto: number
           endereco: string | null
           id: string
+          latitude: number | null
+          longitude: number | null
           nome: string
           observacoes: string | null
+          raio_metros: number
           supervisor_id: string | null
           tipo: string | null
           updated_at: string
@@ -462,8 +465,11 @@ export type Database = {
           efetivo_previsto?: number
           endereco?: string | null
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           nome: string
           observacoes?: string | null
+          raio_metros?: number
           supervisor_id?: string | null
           tipo?: string | null
           updated_at?: string
@@ -476,8 +482,11 @@ export type Database = {
           efetivo_previsto?: number
           endereco?: string | null
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           nome?: string
           observacoes?: string | null
+          raio_metros?: number
           supervisor_id?: string | null
           tipo?: string | null
           updated_at?: string
@@ -489,10 +498,13 @@ export type Database = {
           colaborador_id: string
           created_at: string
           data: string
+          distancia_metros: number | null
           hora_entrada: string | null
           hora_saida: string | null
           id: string
           justificativa: string | null
+          latitude: number | null
+          longitude: number | null
           posto_id: string | null
           registrado_por: string | null
           status: Database["public"]["Enums"]["presenca_status"]
@@ -502,10 +514,13 @@ export type Database = {
           colaborador_id: string
           created_at?: string
           data: string
+          distancia_metros?: number | null
           hora_entrada?: string | null
           hora_saida?: string | null
           id?: string
           justificativa?: string | null
+          latitude?: number | null
+          longitude?: number | null
           posto_id?: string | null
           registrado_por?: string | null
           status?: Database["public"]["Enums"]["presenca_status"]
@@ -515,10 +530,13 @@ export type Database = {
           colaborador_id?: string
           created_at?: string
           data?: string
+          distancia_metros?: number | null
           hora_entrada?: string | null
           hora_saida?: string | null
           id?: string
           justificativa?: string | null
+          latitude?: number | null
+          longitude?: number | null
           posto_id?: string | null
           registrado_por?: string | null
           status?: Database["public"]["Enums"]["presenca_status"]
@@ -597,6 +615,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      distancia_metros: {
+        Args: { lat1: number; lat2: number; lon1: number; lon2: number }
+        Returns: number
+      }
       has_any_role: {
         Args: {
           _roles: Database["public"]["Enums"]["app_role"][]

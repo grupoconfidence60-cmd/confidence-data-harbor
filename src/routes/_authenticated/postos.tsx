@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Pencil } from "lucide-react";
+import { Plus, Pencil, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -15,14 +15,15 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { PageHeader, RequireModule, EmptyState } from "@/components/page";
 import { useMe } from "@/lib/use-me";
 import { canEditPostos } from "@/lib/labels";
+import { geocodeEndereco } from "@/lib/geo.functions";
 
 export const Route = createFileRoute("/_authenticated/postos")({
   head: () => ({ meta: [{ title: "Postos de serviço — Grupo Confidence" }] }),
   component: () => <RequireModule module="postos"><Postos /></RequireModule>,
 });
 
-type P = { id?: string; nome: string; cliente: string; tipo: string; endereco: string; cidade: string; efetivo_previsto: number; supervisor_id: string; ativo: boolean; observacoes: string };
-const EMPTY: P = { nome: "", cliente: "", tipo: "Shopping", endereco: "", cidade: "", efetivo_previsto: 0, supervisor_id: "", ativo: true, observacoes: "" };
+type P = { id?: string; nome: string; cliente: string; tipo: string; endereco: string; cidade: string; efetivo_previsto: number; supervisor_id: string; ativo: boolean; observacoes: string; latitude: number | null; longitude: number | null; raio_metros: number };
+const EMPTY: P = { nome: "", cliente: "", tipo: "Shopping", endereco: "", cidade: "", efetivo_previsto: 0, supervisor_id: "", ativo: true, observacoes: "", latitude: null, longitude: null, raio_metros: 150 };
 
 function Postos() {
   const { data: me } = useMe();
@@ -62,6 +63,9 @@ function Postos() {
                     <div className={`text-right font-display text-2xl font-semibold ${low ? "text-warning" : ""}`}>{n}<span className="text-sm text-muted-foreground">/{p.efetivo_previsto}</span></div>
                   </div>
                   {!p.ativo && <div className="mt-2 text-xs">Inativo</div>}
+                  <div className={`mt-2 text-xs ${p.latitude != null ? "text-muted-foreground" : "text-warning"}`}>
+                    {p.latitude != null ? `Ponto por GPS: raio de ${p.raio_metros} m` : "Ponto por GPS não configurado"}
+                  </div>
                 </CardContent>
               </Card>
             );
@@ -75,11 +79,23 @@ function Postos() {
 
 function PostoDialog({ value, sups, onClose }: { value: P; sups: { user_id: string; profiles: { nome: string } | null }[]; onClose: () => void }) {
   const [f, setF] = useState(value);
+  const [localizando, setLocalizando] = useState(false);
   const qc = useQueryClient();
+
+  async function localizar() {
+    if (!f.endereco.trim()) { toast.error("Preencha o endereço para localizar."); return; }
+    setLocalizando(true);
+    const r = await geocodeEndereco({ data: { endereco: f.endereco, cidade: f.cidade } });
+    setLocalizando(false);
+    if (!r) { toast.error("Endereço não encontrado. Confira o endereço e a cidade."); return; }
+    setF((prev) => ({ ...prev, latitude: r.lat, longitude: r.lng }));
+    toast.success("Localização encontrada: " + r.descricao);
+  }
   async function save(e: React.FormEvent) {
     e.preventDefault();
     const payload = { nome: f.nome.trim(), cliente: f.cliente || null, tipo: f.tipo || null, endereco: f.endereco || null, cidade: f.cidade || null,
-      efetivo_previsto: Math.max(0, Number(f.efetivo_previsto) || 0), supervisor_id: f.supervisor_id || null, ativo: f.ativo, observacoes: f.observacoes || null };
+      efetivo_previsto: Math.max(0, Number(f.efetivo_previsto) || 0), supervisor_id: f.supervisor_id || null, ativo: f.ativo, observacoes: f.observacoes || null,
+      latitude: f.latitude, longitude: f.longitude, raio_metros: Math.max(20, Number(f.raio_metros) || 150) };
     const { error } = f.id ? await supabase.from("postos").update(payload).eq("id", f.id) : await supabase.from("postos").insert(payload);
     if (error) { toast.error(error.message); return; }
     toast.success("Posto salvo.");
@@ -102,6 +118,17 @@ function PostoDialog({ value, sups, onClose }: { value: P; sups: { user_id: stri
               <SelectContent><SelectItem value="none">Não definido</SelectItem>{sups.map((s) => <SelectItem key={s.user_id} value={s.user_id}>{s.profiles?.nome}</SelectItem>)}</SelectContent>
             </Select></div>
           <div className="flex items-center gap-2 pt-6"><Switch checked={f.ativo} onCheckedChange={(v) => setF({ ...f, ativo: v })} /><Label>Posto ativo</Label></div>
+          <div className="space-y-1.5"><Label>Raio permitido p/ ponto (metros)</Label>
+            <Input type="number" min={20} value={f.raio_metros} onChange={(e) => setF({ ...f, raio_metros: Number(e.target.value) })} /></div>
+          <div className="space-y-1.5">
+            <Label>Localização do ponto (GPS)</Label>
+            <div className="flex items-center gap-2">
+              <Button type="button" variant="outline" onClick={localizar} disabled={localizando}>
+                <MapPin className="mr-1 h-4 w-4" />{localizando ? "Localizando…" : "Localizar endereço"}
+              </Button>
+              {f.latitude != null && <span className="text-xs text-muted-foreground">{f.latitude.toFixed(5)}, {f.longitude?.toFixed(5)}</span>}
+            </div>
+          </div>
           <div className="space-y-1.5 sm:col-span-2"><Label>Observações</Label><Textarea value={f.observacoes} onChange={(e) => setF({ ...f, observacoes: e.target.value })} /></div>
           <DialogFooter className="sm:col-span-2"><Button type="button" variant="outline" onClick={onClose}>Cancelar</Button><Button type="submit">Salvar</Button></DialogFooter>
         </form>

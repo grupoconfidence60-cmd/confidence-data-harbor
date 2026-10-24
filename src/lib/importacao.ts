@@ -11,7 +11,7 @@ function toDate(v: unknown): string | null | "invalid" {
   if (v === "" || v == null) return null;
   if (typeof v === "number") { const d = XLSX.SSF.parse_date_code(v); return d ? `${d.y}-${String(d.m).padStart(2, "0")}-${String(d.d).padStart(2, "0")}` : "invalid"; }
   const s = norm(v); let m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (m) return `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}`;
+  if (m) return `${m[3]}-${m[2]!.padStart(2, "0")}-${m[1]!.padStart(2, "0")}`;
   m = s.match(/^\d{4}-\d{2}-\d{2}$/); return m ? s : "invalid";
 }
 
@@ -19,8 +19,8 @@ function toDate(v: unknown): string | null | "invalid" {
 export function parseImport(sheet: unknown[][], refs: { funcoes: Ref[]; postos: Ref[]; existentes: string[]; escalas: { value: string; label: string }[] }): ImportRow[] {
   const [head = [], ...body] = sheet;
   const idx = (name: string) => head.findIndex((h) => key(norm(h)) === key(name));
-  const col = Object.fromEntries(IMPORT_HEADERS.map((h) => [h, idx(h)]));
-  const get = (r: unknown[], h: string) => (col[h] >= 0 ? r[col[h]] : "");
+  const col: Record<string, number> = Object.fromEntries(IMPORT_HEADERS.map((h) => [h, idx(h)]));
+  const get = (r: unknown[], h: string) => ((col[h] ?? -1) >= 0 ? r[col[h]!] : "");
   const find = (list: Ref[], v: string) => list.find((x) => key(x.nome) === key(v))?.id ?? null;
   const seen = new Set(refs.existentes.map(key));
   const out: ImportRow[] = [];

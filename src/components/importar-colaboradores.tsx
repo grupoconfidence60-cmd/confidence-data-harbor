@@ -18,7 +18,7 @@ export function ImportarColaboradores({ funcoes, postos, existentes, onClose }: 
   async function ler(file: File) {
     try {
       const book = XLSX.read(await file.arrayBuffer());
-      const sheet = XLSX.utils.sheet_to_json<unknown[]>(book.Sheets[book.SheetNames[0]], { header: 1, raw: true, defval: "" });
+      const sheet = XLSX.utils.sheet_to_json<unknown[]>(book.Sheets[book.SheetNames[0] ?? ""]!, { header: 1, raw: true, defval: "" });
       const parsed = parseImport(sheet, { funcoes, postos, existentes, escalas: [...ESCALA_OPTIONS] });
       if (!parsed.length) toast.error("Nenhuma linha encontrada. Use o modelo com os cabeçalhos corretos.");
       setRows(parsed);

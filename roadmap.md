@@ -6,6 +6,7 @@
 ## Pedido atual
 - [x] Implementar equipamentos e uniformes: cadastro, entregas por colaborador/posto, devoluções, histórico e Excel, mantendo os layouts aprovados; permissões testadas.
 - [x] Checklists de inspeção: modelos, inspeção por posto com não conformidades, histórico e Excel.
+- [x] Importação de colaboradores por planilha (modelo, validação por linha, importação das válidas).
 - [ ] Verificar entrega, devolução e Excel com conta conectada. Bloqueio: sessão indisponível e a conta solicitante não corresponde a um usuário cadastrado; aguarda login na prévia.
 - [x] Aplicar referência enviada: listas Ímpar/Par com matrícula, nome, posição e horário; diurno/noturno, mover colaboradores, edição e Excel correspondente. Inclusão, edição na linha, arrastar para Par/Noturno, persistência, retirada, celular e Excel verificados com conta conectada.
 - [x] Planilha com arrastar e trocar plantões, escalas além de par/ímpar e seleção de escala no cadastro; inclusão, troca por arrastar, persistência após recarga, retirada e Excel verificados com conta conectada.
@@ -13,5 +14,5 @@
 
 ## Próximas etapas do planejamento
 1. Concluir a verificação conectada de equipamentos e uniformes.
-3. Importação de colaboradores por planilha.
+
 4. Página detalhada de cada posto.

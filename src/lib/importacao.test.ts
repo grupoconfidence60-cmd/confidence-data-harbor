@@ -16,6 +16,6 @@ describe("importação de colaboradores", () => {
   it("aponta posto inexistente e ignora linhas vazias", () => {
     const rows = parseImport([head, ["400", "D", "", "Outro"], ["", "", "", ""]], refs);
     expect(rows).toHaveLength(1);
-    expect(rows[0].erros[0]).toContain("Posto");
+    expect(rows[0]?.erros[0]).toContain("Posto");
   });
 });

@@ -6,6 +6,10 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader, RequireModule, EmptyState } from "@/components/page";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useMe } from "@/lib/use-me";
 
 export const Route = createFileRoute("/_authenticated/ponto")({
   head: () => ({ meta: [
@@ -16,11 +20,83 @@ export const Route = createFileRoute("/_authenticated/ponto")({
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary" },
   ] }),
-  component: () => <RequireModule module="ponto"><Ponto /></RequireModule>,
+  component: () => <RequireModule module="ponto"><PontoTabs /></RequireModule>,
 });
 
 const hoje = () => new Date().toISOString().slice(0, 10);
 const hora = (iso: string | null) => (iso ? new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "—");
+
+function PontoTabs() {
+  const { data: me } = useMe();
+  const gestao = (me?.roles ?? []).some((r) => ["admin", "gestor", "rh", "supervisor"].includes(r));
+  if (!gestao) return <Ponto />;
+  return (
+    <Tabs defaultValue="registros">
+      <TabsList className="mb-4">
+        <TabsTrigger value="registros">Registros dos colaboradores</TabsTrigger>
+        <TabsTrigger value="meu">Meu ponto</TabsTrigger>
+      </TabsList>
+      <TabsContent value="registros"><RegistrosEquipe /></TabsContent>
+      <TabsContent value="meu"><Ponto /></TabsContent>
+    </Tabs>
+  );
+}
+
+function RegistrosEquipe() {
+  const [dia, setDia] = useState(hoje);
+  const [busca, setBusca] = useState("");
+  const { data, isLoading } = useQuery({
+    queryKey: ["ponto-equipe", dia],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("presencas")
+        .select("id, data, status, hora_entrada, hora_saida, distancia_metros, colaboradores(nome, matricula), postos(nome)")
+        .eq("data", dia).not("hora_entrada", "is", null).order("hora_entrada", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+    refetchInterval: 60000,
+  });
+  const lista = (data ?? []).filter((r) => {
+    const c = r.colaboradores as { nome: string; matricula: string } | null;
+    const t = busca.trim().toLowerCase();
+    return !t || c?.nome.toLowerCase().includes(t) || c?.matricula.includes(t);
+  });
+  return (
+    <div>
+      <PageHeader title="Registros de ponto" description="Entradas e saídas marcadas pelos colaboradores" />
+      <div className="mb-4 flex flex-wrap gap-2">
+        <Input type="date" className="w-44" value={dia} onChange={(e) => setDia(e.target.value || hoje())} />
+        <Input className="w-64" placeholder="Buscar nome ou matrícula" value={busca} onChange={(e) => setBusca(e.target.value)} />
+      </div>
+      {isLoading ? <p className="text-sm text-muted-foreground">Carregando…</p> : lista.length === 0 ? <EmptyState text="Nenhum ponto marcado neste dia." /> : (
+        <Card><CardContent className="p-0">
+          <Table>
+            <TableHeader><TableRow>
+              <TableHead>Matrícula</TableHead><TableHead>Colaborador</TableHead><TableHead>Posto</TableHead>
+              <TableHead>Entrada</TableHead><TableHead>Saída</TableHead><TableHead>Distância</TableHead>
+            </TableRow></TableHeader>
+            <TableBody>
+              {lista.map((r) => {
+                const c = r.colaboradores as { nome: string; matricula: string } | null;
+                const p = r.postos as { nome: string } | null;
+                return (
+                  <TableRow key={r.id}>
+                    <TableCell>{c?.matricula ?? "—"}</TableCell>
+                    <TableCell className="font-medium">{c?.nome ?? "—"}</TableCell>
+                    <TableCell>{p?.nome ?? "—"}</TableCell>
+                    <TableCell>{hora(r.hora_entrada)}</TableCell>
+                    <TableCell>{hora(r.hora_saida)}</TableCell>
+                    <TableCell>{r.distancia_metros != null ? `${Math.round(r.distancia_metros)} m` : "—"}</TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </CardContent></Card>
+      )}
+    </div>
+  );
+}
 
 function Ponto() {
   const qc = useQueryClient();

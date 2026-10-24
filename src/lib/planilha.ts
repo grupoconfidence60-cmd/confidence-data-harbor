@@ -27,9 +27,9 @@ export function scheduleWorkbook(post: string, month: string, rows: PlanilhaRow[
     grid.push([person?.matricula ?? "", person?.nome ?? "Colaborador indisponível", person?.funcoes?.nome ?? "", row.paridade === "par" ? "Par" : "Ímpar", row.turno === "noturno" ? "Noturno" : "Diurno", row.hora_inicio.slice(0, 5), row.hora_fim.slice(0, 5), ...days.map((d) => dayStatus(row, d)), "", row.observacoes]);
   }
   const sheet = XLSX.utils.aoa_to_sheet(grid);
-  rows.forEach((_, i) => {
+  rows.forEach((row, i) => {
     const r = i + 5;
-    sheet[XLSX.utils.encode_cell({ r: r - 1, c: 7 + days.length })] = { t: "n", f: `COUNTIF(H${r}:${XLSX.utils.encode_col(6 + days.length)}${r},"T")` };
+    sheet[XLSX.utils.encode_cell({ r: r - 1, c: 7 + days.length })] = { t: "n", v: days.filter((d) => dayStatus(row, d) === "T").length, f: `COUNTIF(H${r}:${XLSX.utils.encode_col(6 + days.length)}${r},"T")` };
   });
   sheet["!cols"] = headers.map((_, i) => ({ wch: i === 1 ? 36 : i === 2 || i === headers.length - 1 ? 28 : i >= 7 && i < 7 + days.length ? 4 : 18 }));
   sheet["!autofilter"] = { ref: `A4:${XLSX.utils.encode_col(headers.length - 1)}${Math.max(4, grid.length)}` };

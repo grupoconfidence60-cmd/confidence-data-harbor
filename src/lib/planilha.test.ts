@@ -33,5 +33,6 @@ describe("planilha mensal por posto", () => {
     expect(sheet["I5"].v).toBe("T");
     expect(sheet["AI4"].v).toBe("28");
     expect(sheet["AJ5"].f).toBe('COUNTIF(H5:AI5,"T")');
+    expect(sheet["AJ5"].v).toBe(14);
   });
 });

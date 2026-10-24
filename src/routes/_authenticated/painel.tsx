@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { canAccess } from "@/lib/labels";
 import { useMe } from "@/lib/use-me";
+import { PostosComparativo } from "@/components/postos-comparativo";
 
 export const Route = createFileRoute("/_authenticated/painel")({
   head: () => ({ meta: [
@@ -196,6 +197,7 @@ function Painel() {
           </CardContent>
         </Card>
       </div>
+      {canAccess(me?.roles ?? [], "postos") && <PostosComparativo />}
     </div>
   );
 }

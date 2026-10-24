@@ -15,7 +15,6 @@ export const materiaisQuery = queryOptions({
     return { items: items.data ?? [], deliveries: deliveries.data ?? [], people: people.data ?? [], posts: posts.data ?? [] };
   },
 });
-export type MateriaisData = Awaited<ReturnType<NonNullable<typeof materiaisQuery.queryFn>>>;
 export function materiaisWorkbook(rows: (string | number)[][]) {
   const book = XLSX.utils.book_new();
   const sheet = XLSX.utils.aoa_to_sheet([["Grupo Confidence — Equipamentos e uniformes"], ["Material", "Categoria", "Tamanho", "Identificação", "Matrícula", "Colaborador", "Posto", "Quantidade", "Entrega", "Devolução", "Condição", "Observações"], ...rows]);

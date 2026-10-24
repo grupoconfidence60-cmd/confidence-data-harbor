@@ -36,6 +36,8 @@ export const FERIAS_LABELS = {
 
 export const GRAVIDADE_LABELS = { leve: "Leve", moderada: "Moderada", grave: "Grave" } as const;
 
+export const DOCUMENTO_TIPOS = ["Atestado", "Contrato", "Identidade", "Certificado", "Advertência", "Outro"];
+
 /** Which roles can open each module. */
 export const MODULE_ACCESS: Record<string, AppRole[]> = {
   painel: ["admin", "gestor", "rh", "supervisor", "colaborador"],
@@ -47,6 +49,7 @@ export const MODULE_ACCESS: Record<string, AppRole[]> = {
   ferias: ["admin", "gestor", "rh", "supervisor", "colaborador"],
   ocorrencias: ["admin", "gestor", "rh", "supervisor"],
   relatorios: ["admin", "gestor", "rh"],
+  documentos: ["admin", "gestor", "rh", "supervisor", "colaborador"],
   usuarios: ["admin"],
   auditoria: ["admin"],
 };
@@ -75,4 +78,7 @@ export function canEditOcorrencias(roles: AppRole[]) {
 }
 export function canCreateOcorrencias(roles: AppRole[]) {
   return roles.some((r) => ["admin", "gestor", "rh", "supervisor"].includes(r));
+}
+export function canEditDocumentos(roles: AppRole[]) {
+  return roles.some((r) => ["admin", "gestor", "rh"].includes(r));
 }

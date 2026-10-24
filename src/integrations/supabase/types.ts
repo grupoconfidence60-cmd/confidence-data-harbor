@@ -166,6 +166,50 @@ export type Database = {
           },
         ]
       }
+      documentos: {
+        Row: {
+          arquivo_nome: string
+          arquivo_path: string
+          colaborador_id: string
+          created_at: string
+          enviado_por: string | null
+          id: string
+          observacao: string | null
+          tipo: string
+          titulo: string
+        }
+        Insert: {
+          arquivo_nome: string
+          arquivo_path: string
+          colaborador_id: string
+          created_at?: string
+          enviado_por?: string | null
+          id?: string
+          observacao?: string | null
+          tipo?: string
+          titulo: string
+        }
+        Update: {
+          arquivo_nome?: string
+          arquivo_path?: string
+          colaborador_id?: string
+          created_at?: string
+          enviado_por?: string | null
+          id?: string
+          observacao?: string | null
+          tipo?: string
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documentos_colaborador_id_fkey"
+            columns: ["colaborador_id"]
+            isOneToOne: false
+            referencedRelation: "colaboradores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       escala_colaboradores: {
         Row: {
           colaborador_id: string

@@ -1,7 +1,15 @@
 import { describe, it, expect } from "vitest";
-import { canAccess, canEditColaboradores, canEditPostos } from "./labels";
+import { canAccess, canEditColaboradores, canEditPostos, canManageComunicados, type AppRole } from "./labels";
 
 describe("permissões por perfil", () => {
+  it("todos os perfis consultam comunicados, só administração publica", () => {
+    const roles: AppRole[] = ["admin", "gestor", "rh", "supervisor", "colaborador"];
+    for (const role of roles) {
+      expect(canAccess([role], "comunicados")).toBe(true);
+      expect(canManageComunicados([role])).toBe(role === "admin");
+    }
+    expect(canManageComunicados([])).toBe(false);
+  });
   it("só administrador acessa usuários e auditoria", () => {
     expect(canAccess(["admin"], "usuarios")).toBe(true);
     expect(canAccess(["gestor"], "usuarios")).toBe(false);

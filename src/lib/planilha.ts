@@ -2,7 +2,7 @@ import * as XLSX from "xlsx";
 import type { AppRole } from "./labels";
 import { escalaLabel } from "./escala-options";
 
-export type PlanilhaRow = { id: string; colaborador_id: string; paridade: string; escala_tipo?: string | null; turno: string; hora_inicio: string; hora_fim: string; ajustes: unknown; observacoes: string };
+export type PlanilhaRow = { id: string; colaborador_id: string; paridade: string; escala_tipo?: string | null | undefined; turno: string; hora_inicio: string; hora_fim: string; ajustes: unknown; observacoes: string };
 export type PlanilhaPerson = { id: string; nome: string; matricula: string; funcoes: { nome: string } | null };
 
 export function canManagePlanilha(roles: AppRole[], userId: string | undefined, supervisorId: string | null) {

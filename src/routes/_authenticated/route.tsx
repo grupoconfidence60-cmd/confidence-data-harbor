@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, redirect, Link, useNavigate, useLocation } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { LayoutDashboard, Users, MapPin, Briefcase, UserCog, ScrollText, LogOut, Moon, Sun, CalendarRange, ClipboardCheck, Palmtree, AlertTriangle, FileBarChart, FolderOpen, Clock, ClipboardList, Search, ChevronRight, Megaphone, Package } from "lucide-react";
+import { LayoutDashboard, Users, MapPin, Briefcase, UserCog, ScrollText, LogOut, Moon, Sun, CalendarRange, ClipboardCheck, Palmtree, AlertTriangle, FileBarChart, FolderOpen, Clock, ClipboardList, Search, ChevronRight, Megaphone, Package, ListChecks } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader,
@@ -37,6 +37,7 @@ const NAV = [
   { to: "/ferias", label: "Férias", icon: Palmtree, mod: "ferias" },
   { to: "/ocorrencias", label: "Ocorrências", icon: AlertTriangle, mod: "ocorrencias" },
   { to: "/visitas", label: "Visitas de supervisão", icon: ClipboardList, mod: "visitas" },
+  { to: "/inspecoes", label: "Checklists de inspeção", icon: ListChecks, mod: "inspecoes" },
   { to: "/relatorios", label: "Relatórios", icon: FileBarChart, mod: "relatorios" },
   { to: "/documentos", label: "Documentos", icon: FolderOpen, mod: "documentos" },
   { to: "/materiais", label: "Equipamentos e uniformes", icon: Package, mod: "materiais" },
@@ -57,7 +58,7 @@ function Layout() {
   const currentPage = loc.pathname.startsWith("/posto/") ? "Planilha do posto" : NAV.find((n) => loc.pathname.startsWith(n.to))?.label ?? "Colaborador";
   const groups = [
     { label: "Visão geral", modules: ["painel", "ponto"] },
-    { label: "Operação", modules: ["colaboradores", "postos", "escalas", "presenca", "ocorrencias", "visitas"] },
+    { label: "Operação", modules: ["colaboradores", "postos", "escalas", "presenca", "ocorrencias", "visitas", "inspecoes"] },
     { label: "Gestão", modules: ["ferias", "documentos", "materiais", "relatorios", "funcoes", "comunicados"] },
     { label: "Administração", modules: ["usuarios", "auditoria"] },
   ];

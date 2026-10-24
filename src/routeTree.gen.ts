@@ -20,6 +20,7 @@ import { Route as AuthenticatedDocumentosRouteImport } from './routes/_authentic
 import { Route as AuthenticatedEscalasRouteImport } from './routes/_authenticated/escalas'
 import { Route as AuthenticatedFeriasRouteImport } from './routes/_authenticated/ferias'
 import { Route as AuthenticatedFuncoesRouteImport } from './routes/_authenticated/funcoes'
+import { Route as AuthenticatedInspecoesRouteImport } from './routes/_authenticated/inspecoes'
 import { Route as AuthenticatedMateriaisRouteImport } from './routes/_authenticated/materiais'
 import { Route as AuthenticatedOcorrenciasRouteImport } from './routes/_authenticated/ocorrencias'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
@@ -86,6 +87,11 @@ const AuthenticatedFeriasRoute = AuthenticatedFeriasRouteImport.update({
 const AuthenticatedFuncoesRoute = AuthenticatedFuncoesRouteImport.update({
   id: '/funcoes',
   path: '/funcoes',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedInspecoesRoute = AuthenticatedInspecoesRouteImport.update({
+  id: '/inspecoes',
+  path: '/inspecoes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedMateriaisRoute = AuthenticatedMateriaisRouteImport.update({
@@ -157,6 +163,7 @@ export interface FileRoutesByFullPath {
   '/escalas': typeof AuthenticatedEscalasRoute
   '/ferias': typeof AuthenticatedFeriasRoute
   '/funcoes': typeof AuthenticatedFuncoesRoute
+  '/inspecoes': typeof AuthenticatedInspecoesRoute
   '/materiais': typeof AuthenticatedMateriaisRoute
   '/ocorrencias': typeof AuthenticatedOcorrenciasRoute
   '/painel': typeof AuthenticatedPainelRoute
@@ -180,6 +187,7 @@ export interface FileRoutesByTo {
   '/escalas': typeof AuthenticatedEscalasRoute
   '/ferias': typeof AuthenticatedFeriasRoute
   '/funcoes': typeof AuthenticatedFuncoesRoute
+  '/inspecoes': typeof AuthenticatedInspecoesRoute
   '/materiais': typeof AuthenticatedMateriaisRoute
   '/ocorrencias': typeof AuthenticatedOcorrenciasRoute
   '/painel': typeof AuthenticatedPainelRoute
@@ -205,6 +213,7 @@ export interface FileRoutesById {
   '/_authenticated/escalas': typeof AuthenticatedEscalasRoute
   '/_authenticated/ferias': typeof AuthenticatedFeriasRoute
   '/_authenticated/funcoes': typeof AuthenticatedFuncoesRoute
+  '/_authenticated/inspecoes': typeof AuthenticatedInspecoesRoute
   '/_authenticated/materiais': typeof AuthenticatedMateriaisRoute
   '/_authenticated/ocorrencias': typeof AuthenticatedOcorrenciasRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
@@ -230,6 +239,7 @@ export interface FileRouteTypes {
     | '/escalas'
     | '/ferias'
     | '/funcoes'
+    | '/inspecoes'
     | '/materiais'
     | '/ocorrencias'
     | '/painel'
@@ -253,6 +263,7 @@ export interface FileRouteTypes {
     | '/escalas'
     | '/ferias'
     | '/funcoes'
+    | '/inspecoes'
     | '/materiais'
     | '/ocorrencias'
     | '/painel'
@@ -277,6 +288,7 @@ export interface FileRouteTypes {
     | '/_authenticated/escalas'
     | '/_authenticated/ferias'
     | '/_authenticated/funcoes'
+    | '/_authenticated/inspecoes'
     | '/_authenticated/materiais'
     | '/_authenticated/ocorrencias'
     | '/_authenticated/painel'
@@ -376,6 +388,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFuncoesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/inspecoes': {
+      id: '/_authenticated/inspecoes'
+      path: '/inspecoes'
+      fullPath: '/inspecoes'
+      preLoaderRoute: typeof AuthenticatedInspecoesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/materiais': {
       id: '/_authenticated/materiais'
       path: '/materiais'
@@ -464,6 +483,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedEscalasRoute: typeof AuthenticatedEscalasRoute
   AuthenticatedFeriasRoute: typeof AuthenticatedFeriasRoute
   AuthenticatedFuncoesRoute: typeof AuthenticatedFuncoesRoute
+  AuthenticatedInspecoesRoute: typeof AuthenticatedInspecoesRoute
   AuthenticatedMateriaisRoute: typeof AuthenticatedMateriaisRoute
   AuthenticatedOcorrenciasRoute: typeof AuthenticatedOcorrenciasRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
@@ -485,6 +505,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedEscalasRoute: AuthenticatedEscalasRoute,
   AuthenticatedFeriasRoute: AuthenticatedFeriasRoute,
   AuthenticatedFuncoesRoute: AuthenticatedFuncoesRoute,
+  AuthenticatedInspecoesRoute: AuthenticatedInspecoesRoute,
   AuthenticatedMateriaisRoute: AuthenticatedMateriaisRoute,
   AuthenticatedOcorrenciasRoute: AuthenticatedOcorrenciasRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,

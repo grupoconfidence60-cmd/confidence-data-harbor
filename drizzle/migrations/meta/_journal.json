@@ -71,6 +71,13 @@
       "when": 1792852523836,
       "tag": "0009_escalas_flexiveis_trocas",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792854444309,
+      "tag": "0010_posicao_na_planilha_do_posto",
+      "breakpoints": true
     }
   ]
 }

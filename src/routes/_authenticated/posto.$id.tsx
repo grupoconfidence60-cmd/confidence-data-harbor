@@ -5,10 +5,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { PageHeader, RequireModule } from "@/components/page";
 import { PostoPlanilha } from "@/components/posto-planilha";
+import { PostoResumo } from "@/components/posto-resumo";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState } from "react";
 
 export const Route = createFileRoute("/_authenticated/posto/$id")({
   head: () => ({ meta: [
-    { title: "Planilha do posto — Grupo Confidence" },
+    { title: "Detalhes do posto — Grupo Confidence" },
     { name: "description", content: "Planilha mensal por posto com escalas pares e ímpares da equipe Confidence." },
     { property: "og:title", content: "Planilha do posto — Grupo Confidence" },
     { property: "og:description", content: "Escalas mensais, colaboradores e exportação Excel por posto." },
@@ -18,6 +21,7 @@ export const Route = createFileRoute("/_authenticated/posto/$id")({
 });
 function Posto() {
   const { id } = Route.useParams();
+  const [tab, setTab] = useState("geral");
   const { data, isPending, isError } = useQuery({ queryKey: ["posto", id], queryFn: async () => {
     const result = await supabase.from("postos").select("id,nome,cliente,endereco,cidade,supervisor_id,ativo").eq("id", id).maybeSingle();
     if (result.error) throw result.error;
@@ -27,8 +31,9 @@ function Posto() {
     <Button asChild variant="ghost" size="sm" className="mb-4"><Link to="/postos"><ArrowLeft className="h-4 w-4" />Postos de serviço</Link></Button>
     {isPending ? <p className="text-muted-foreground">Carregando posto…</p> : isError || !data ? <p role="alert" className="text-muted-foreground">Posto não encontrado ou acesso indisponível.</p> : <>
       <PageHeader title={data.nome} description={`${data.cliente ?? "Grupo Confidence"}${data.ativo ? "" : " · Inativo"}`} />
-      <div className="flex items-start gap-2 text-sm text-muted-foreground"><MapPin className="h-4 w-4 shrink-0" /><span>{[data.endereco, data.cidade].filter(Boolean).join(" · ") || "Endereço não informado"}</span></div>
-      <PostoPlanilha posto={data} />
+      <div className="mb-4 flex items-start gap-2 text-sm text-muted-foreground"><MapPin className="h-4 w-4 shrink-0" /><span>{[data.endereco, data.cidade].filter(Boolean).join(" · ") || "Endereço não informado"}</span></div>
+      <Tabs value={tab} onValueChange={setTab} className="mb-4"><TabsList><TabsTrigger value="geral">Visão geral</TabsTrigger><TabsTrigger value="planilha">Planilha de escalas</TabsTrigger></TabsList></Tabs>
+      {tab === "geral" ? <PostoResumo postoId={data.id} /> : <PostoPlanilha posto={data} />}
     </>}
   </div>;
 }

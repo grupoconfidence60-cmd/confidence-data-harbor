@@ -1,13 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { LogIn, LogOut, Clock } from "lucide-react";
+import { LogIn, LogOut, Fingerprint } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { PageHeader, RequireModule, EmptyState } from "@/components/page";
-import { PRESENCA_LABELS } from "@/lib/labels";
 
 export const Route = createFileRoute("/_authenticated/ponto")({
   head: () => ({ meta: [
@@ -26,6 +24,7 @@ const hora = (iso: string | null) => (iso ? new Date(iso).toLocaleTimeString("pt
 
 function Ponto() {
   const qc = useQueryClient();
+  const [marcando, setMarcando] = useState(false);
   const { data, isLoading } = useQuery({
     queryKey: ["meu-ponto"],
     queryFn: async () => {
@@ -113,56 +112,63 @@ function Ponto() {
   const p = data.hoje;
   const postoInfo = data.colab.postos as { nome: string; latitude: number | null; raio_metros: number } | null;
   const posto = postoInfo?.nome;
+  const proximo: "entrada" | "saida" | null = !p?.hora_entrada ? "entrada" : !p?.hora_saida ? "saida" : null;
 
   return (
-    <div>
+    <div className="mx-auto max-w-md">
       <PageHeader title="Meu ponto" description={`${data.colab.nome}${posto ? ` · ${posto}` : ""}`} />
       <Card className="mb-6">
-        <CardContent className="flex flex-col items-center gap-4 p-6 text-center">
-          <div className="text-sm text-muted-foreground">
-            {new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
-          </div>
+        <CardContent className="flex flex-col items-center gap-5 p-6 text-center">
+          <Relogio />
+          <button
+            type="button"
+            disabled={!proximo || marcando}
+            onClick={async () => { if (!proximo) return; setMarcando(true); try { await bater(proximo); } finally { setMarcando(false); } }}
+            className="flex h-44 w-44 flex-col items-center justify-center gap-2 rounded-full bg-primary text-primary-foreground shadow-lg ring-8 ring-primary/20 transition active:scale-95 disabled:opacity-60"
+          >
+            <Fingerprint className="h-14 w-14" />
+            <span className="text-lg font-bold">{marcando ? "Marcando…" : proximo ? "Marcar ponto" : "Ponto completo"}</span>
+            {proximo && <span className="text-xs opacity-80">{proximo === "entrada" ? "Entrada" : "Saída"}</span>}
+          </button>
           <div className="flex gap-8">
-            <div>
-              <div className="text-xs text-muted-foreground">Entrada</div>
-              <div className="text-2xl font-bold">{hora(p?.hora_entrada ?? null)}</div>
-            </div>
-            <div>
-              <div className="text-xs text-muted-foreground">Saída</div>
-              <div className="text-2xl font-bold">{hora(p?.hora_saida ?? null)}</div>
-            </div>
+            <div><div className="text-xs text-muted-foreground">Entrada</div><div className="text-2xl font-bold">{hora(p?.hora_entrada ?? null)}</div></div>
+            <div><div className="text-xs text-muted-foreground">Saída</div><div className="text-2xl font-bold">{hora(p?.hora_saida ?? null)}</div></div>
           </div>
           {postoInfo?.latitude != null && (
-            <div className="text-xs text-muted-foreground">Ponto permitido dentro de {postoInfo.raio_metros} m do posto — sua localização será registrada.</div>
-          )}
-          {!p?.hora_entrada ? (
-            <Button size="lg" onClick={() => bater("entrada")}><LogIn className="mr-2 h-5 w-5" />Registrar entrada</Button>
-          ) : !p?.hora_saida ? (
-            <Button size="lg" variant="outline" onClick={() => bater("saida")}><LogOut className="mr-2 h-5 w-5" />Registrar saída</Button>
-          ) : (
-            <Badge variant="secondary" className="px-4 py-2 text-sm"><Clock className="mr-1 h-4 w-4" />Ponto do dia completo</Badge>
+            <div className="text-xs text-muted-foreground">Ponto permitido dentro de {postoInfo.raio_metros} m do posto.</div>
           )}
         </CardContent>
       </Card>
 
-      <h2 className="mb-3 text-lg font-semibold">Histórico recente</h2>
-      {data.historico.length === 0 ? <EmptyState text="Nenhum registro ainda." /> : (
+      <h2 className="mb-3 text-lg font-semibold">Meus pontos marcados</h2>
+      {data.historico.length === 0 ? <EmptyState text="Nenhum ponto marcado ainda." /> : (
         <div className="grid gap-2">
           {data.historico.map((r) => (
             <Card key={r.id}>
               <CardContent className="flex items-center justify-between gap-4 p-3">
-                <div className="flex items-center gap-3">
-                  <span className="font-medium">{new Date(r.data + "T12:00:00").toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit" })}</span>
-                  <Badge variant={r.status === "presente" ? "default" : r.status === "falta" ? "destructive" : "secondary"}>
-                    {PRESENCA_LABELS[r.status]}
-                  </Badge>
+                <span className="font-medium">{new Date(r.data + "T12:00:00").toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit", year: "numeric" })}</span>
+                <div className="text-sm text-muted-foreground">
+                  <LogIn className="mr-1 inline h-3 w-3" />{hora(r.hora_entrada)}
+                  <LogOut className="ml-3 mr-1 inline h-3 w-3" />{hora(r.hora_saida)}
                 </div>
-                <div className="text-sm text-muted-foreground">{hora(r.hora_entrada)} — {hora(r.hora_saida)}</div>
               </CardContent>
             </Card>
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function Relogio() {
+  const [agora, setAgora] = useState<Date | null>(null);
+  useEffect(() => { setAgora(new Date()); const t = setInterval(() => setAgora(new Date()), 1000); return () => clearInterval(t); }, []);
+  return (
+    <div>
+      <div className="text-sm capitalize text-muted-foreground">
+        {agora?.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
+      </div>
+      <div className="text-5xl font-bold tabular-nums">{agora?.toLocaleTimeString("pt-BR") ?? "--:--:--"}</div>
     </div>
   );
 }

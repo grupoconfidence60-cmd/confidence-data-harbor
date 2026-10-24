@@ -29,6 +29,7 @@ function Documentos() {
   const [open, setOpen] = useState(false);
   const [filtroColab, setFiltroColab] = useState("todos");
   const [filtroTipo, setFiltroTipo] = useState("todos");
+  const [filtroVenc, setFiltroVenc] = useState("todos");
   const { data } = useQuery({
     queryKey: ["documentos"],
     queryFn: async () => {
@@ -39,8 +40,14 @@ function Documentos() {
       return { docs: docs ?? [], colabs: colabs ?? [] };
     },
   });
+  const hoje = new Date().toISOString().slice(0, 10);
+  const em30 = new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10);
+  const situacaoVenc = (v: string | null) => (!v ? "sem" : v < hoje ? "vencido" : v <= em30 ? "vencendo" : "ok");
   const lista = (data?.docs ?? []).filter(
-    (d) => (filtroColab === "todos" || d.colaborador_id === filtroColab) && (filtroTipo === "todos" || d.tipo === filtroTipo),
+    (d) =>
+      (filtroColab === "todos" || d.colaborador_id === filtroColab) &&
+      (filtroTipo === "todos" || d.tipo === filtroTipo) &&
+      (filtroVenc === "todos" || situacaoVenc(d.data_vencimento) === filtroVenc),
   );
   const nomeColab = (id: string) => data?.colabs.find((c) => c.id === id)?.nome ?? "—";
 
@@ -82,6 +89,16 @@ function Documentos() {
             {DOCUMENTO_TIPOS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
           </SelectContent>
         </Select>
+        <Select value={filtroVenc} onValueChange={setFiltroVenc}>
+          <SelectTrigger className="w-48"><SelectValue placeholder="Vencimento" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Vencimento: todos</SelectItem>
+            <SelectItem value="vencido">Vencidos</SelectItem>
+            <SelectItem value="vencendo">Vencendo em 30 dias</SelectItem>
+            <SelectItem value="ok">Em dia</SelectItem>
+            <SelectItem value="sem">Sem vencimento</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       {lista.length === 0 ? <EmptyState text="Nenhum documento encontrado." /> : (
         <div className="grid gap-3">
@@ -94,9 +111,12 @@ function Documentos() {
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="font-semibold">{d.titulo}</span>
                       <Badge variant="outline">{d.tipo}</Badge>
+                      {situacaoVenc(d.data_vencimento) === "vencido" && <Badge variant="destructive">Vencido</Badge>}
+                      {situacaoVenc(d.data_vencimento) === "vencendo" && <Badge>A vencer</Badge>}
                     </div>
                     <div className="mt-1 truncate text-sm text-muted-foreground">
                       {nomeColab(d.colaborador_id)} · {d.arquivo_nome} · {new Date(d.created_at).toLocaleString("pt-BR")}
+                      {d.data_vencimento && ` · Vence em ${new Date(d.data_vencimento + "T12:00:00").toLocaleDateString("pt-BR")}`}
                     </div>
                     {d.observacao && <p className="mt-1 text-sm">{d.observacao}</p>}
                   </div>
@@ -126,6 +146,7 @@ function UploadDialog({ colabs, onClose }: { colabs: { id: string; nome: string 
   const [tipo, setTipo] = useState<string>(DOCUMENTO_TIPOS[0] ?? "Outro");
   const [titulo, setTitulo] = useState("");
   const [observacao, setObservacao] = useState("");
+  const [vencimento, setVencimento] = useState("");
   const [arquivo, setArquivo] = useState<File | null>(null);
   const [enviando, setEnviando] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -143,6 +164,7 @@ function UploadDialog({ colabs, onClose }: { colabs: { id: string; nome: string 
     const { error } = await supabase.from("documentos").insert({
       colaborador_id: colaboradorId, tipo, titulo: titulo.trim(), arquivo_path: path,
       arquivo_nome: arquivo.name, observacao: observacao || null, enviado_por: userData.user?.id ?? null,
+      data_vencimento: vencimento || null,
     });
     setEnviando(false);
     if (error) { toast.error(error.message); return; }
@@ -169,7 +191,9 @@ function UploadDialog({ colabs, onClose }: { colabs: { id: string; nome: string 
           <div className="space-y-1.5"><Label>Título *</Label><Input required value={titulo} onChange={(e) => setTitulo(e.target.value)} /></div>
           <div className="space-y-1.5 sm:col-span-2"><Label>Arquivo * (máx. 20 MB)</Label>
             <Input ref={fileRef} type="file" required onChange={(e) => setArquivo(e.target.files?.[0] ?? null)} /></div>
-          <div className="space-y-1.5 sm:col-span-2"><Label>Observação</Label><Textarea value={observacao} onChange={(e) => setObservacao(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>Data de vencimento (se houver)</Label>
+            <Input type="date" value={vencimento} onChange={(e) => setVencimento(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>Observação</Label><Textarea value={observacao} onChange={(e) => setObservacao(e.target.value)} /></div>
           <DialogFooter className="sm:col-span-2">
             <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
             <Button type="submit" disabled={enviando || !colaboradorId}>{enviando ? "Enviando…" : "Enviar"}</Button>

@@ -8,7 +8,14 @@ import { PageHeader, EmptyState } from "@/components/page";
 import { useMe } from "@/lib/use-me";
 
 export const Route = createFileRoute("/_authenticated/painel")({
-  head: () => ({ meta: [{ title: "Painel — Grupo Confidence" }] }),
+  head: () => ({ meta: [
+    { title: "Painel — Grupo Confidence" },
+    { name: "description", content: "Indicadores e pendências da operação do Grupo Confidence." },
+    { property: "og:title", content: "Painel — Grupo Confidence" },
+    { property: "og:description", content: "Indicadores e pendências da operação do Grupo Confidence." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: Painel,
 });
 

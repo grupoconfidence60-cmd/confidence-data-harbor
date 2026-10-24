@@ -14,7 +14,14 @@ import { useMe } from "@/lib/use-me";
 import { canEditPresenca, PRESENCA_LABELS } from "@/lib/labels";
 
 export const Route = createFileRoute("/_authenticated/presenca")({
-  head: () => ({ meta: [{ title: "Presença e faltas — Grupo Confidence" }] }),
+  head: () => ({ meta: [
+    { title: "Presença e faltas — Grupo Confidence" },
+    { name: "description", content: "Presenças, faltas e registros de jornada da equipe Confidence." },
+    { property: "og:title", content: "Presença e faltas — Grupo Confidence" },
+    { property: "og:description", content: "Presenças, faltas e registros de jornada da equipe Confidence." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: () => <RequireModule module="presenca"><Presenca /></RequireModule>,
 });
 

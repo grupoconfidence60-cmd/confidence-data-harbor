@@ -8,7 +8,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { PageHeader, RequireModule } from "@/components/page";
 
 export const Route = createFileRoute("/_authenticated/auditoria")({
-  head: () => ({ meta: [{ title: "Auditoria — Grupo Confidence" }] }),
+  head: () => ({ meta: [
+    { title: "Auditoria — Grupo Confidence" },
+    { name: "description", content: "Histórico auditado das alterações da operação Confidence." },
+    { property: "og:title", content: "Auditoria — Grupo Confidence" },
+    { property: "og:description", content: "Histórico auditado das alterações da operação Confidence." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: () => <RequireModule module="auditoria"><Auditoria /></RequireModule>,
 });
 

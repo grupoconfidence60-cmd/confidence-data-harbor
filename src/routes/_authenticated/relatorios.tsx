@@ -14,7 +14,14 @@ import { PageHeader, RequireModule, EmptyState } from "@/components/page";
 import { PRESENCA_LABELS, FERIAS_LABELS, GRAVIDADE_LABELS } from "@/lib/labels";
 
 export const Route = createFileRoute("/_authenticated/relatorios")({
-  head: () => ({ meta: [{ title: "Relatórios — Grupo Confidence" }] }),
+  head: () => ({ meta: [
+    { title: "Relatórios — Grupo Confidence" },
+    { name: "description", content: "Consultas e exportação de registros operacionais Confidence." },
+    { property: "og:title", content: "Relatórios — Grupo Confidence" },
+    { property: "og:description", content: "Consultas e exportação de registros operacionais Confidence." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: () => <RequireModule module="relatorios"><Relatorios /></RequireModule>,
 });
 

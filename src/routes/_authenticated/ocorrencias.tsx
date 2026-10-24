@@ -17,7 +17,14 @@ import { useMe } from "@/lib/use-me";
 import { canEditOcorrencias, canCreateOcorrencias, GRAVIDADE_LABELS } from "@/lib/labels";
 
 export const Route = createFileRoute("/_authenticated/ocorrencias")({
-  head: () => ({ meta: [{ title: "Ocorrências — Grupo Confidence" }] }),
+  head: () => ({ meta: [
+    { title: "Ocorrências — Grupo Confidence" },
+    { name: "description", content: "Registro e acompanhamento de ocorrências nos postos Confidence." },
+    { property: "og:title", content: "Ocorrências — Grupo Confidence" },
+    { property: "og:description", content: "Registro e acompanhamento de ocorrências nos postos Confidence." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: () => <RequireModule module="ocorrencias"><Ocorrencias /></RequireModule>,
 });
 

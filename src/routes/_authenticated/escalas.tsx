@@ -18,7 +18,14 @@ import { useMe } from "@/lib/use-me";
 import { canEditEscalas } from "@/lib/labels";
 
 export const Route = createFileRoute("/_authenticated/escalas")({
-  head: () => ({ meta: [{ title: "Escalas de trabalho — Grupo Confidence" }] }),
+  head: () => ({ meta: [
+    { title: "Escalas de trabalho — Grupo Confidence" },
+    { name: "description", content: "Escalas de trabalho e alocações nos postos Confidence." },
+    { property: "og:title", content: "Escalas de trabalho — Grupo Confidence" },
+    { property: "og:description", content: "Escalas de trabalho e alocações nos postos Confidence." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: () => <RequireModule module="escalas"><Escalas /></RequireModule>,
 });
 

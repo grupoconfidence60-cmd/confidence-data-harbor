@@ -18,7 +18,14 @@ import { useMe } from "@/lib/use-me";
 import { canEditFerias, FERIAS_LABELS } from "@/lib/labels";
 
 export const Route = createFileRoute("/_authenticated/ferias")({
-  head: () => ({ meta: [{ title: "Férias — Grupo Confidence" }] }),
+  head: () => ({ meta: [
+    { title: "Férias — Grupo Confidence" },
+    { name: "description", content: "Solicitações e acompanhamento de férias da equipe Confidence." },
+    { property: "og:title", content: "Férias — Grupo Confidence" },
+    { property: "og:description", content: "Solicitações e acompanhamento de férias da equipe Confidence." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: () => <RequireModule module="ferias"><Ferias /></RequireModule>,
 });
 

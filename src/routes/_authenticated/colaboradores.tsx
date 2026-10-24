@@ -17,7 +17,14 @@ import { useMe } from "@/lib/use-me";
 import { canEditColaboradores, SITUACAO_LABELS } from "@/lib/labels";
 
 export const Route = createFileRoute("/_authenticated/colaboradores")({
-  head: () => ({ meta: [{ title: "Colaboradores — Grupo Confidence" }] }),
+  head: () => ({ meta: [
+    { title: "Colaboradores — Grupo Confidence" },
+    { name: "description", content: "Consulta e gestão dos colaboradores do Grupo Confidence." },
+    { property: "og:title", content: "Colaboradores — Grupo Confidence" },
+    { property: "og:description", content: "Consulta e gestão dos colaboradores do Grupo Confidence." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: () => <RequireModule module="colaboradores"><Colaboradores /></RequireModule>,
 });
 

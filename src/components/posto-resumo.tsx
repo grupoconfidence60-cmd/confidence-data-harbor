@@ -24,7 +24,7 @@ export function PostoResumo({ postoId }: { postoId: string }) {
   const ativos = data.equipe.filter((c) => c.situacao === "ativo").length;
   const presentes = data.presencas.filter((p) => p.status === "presente").length;
   const faltas = data.presencas.filter((p) => p.status === "falta" || p.status === "falta_justificada" || p.status === "atestado").length;
-  const kpis: [string, string | number, string?][] = [
+  const kpis: [string, string | number, (string | undefined)?][] = [
     ["Efetivo ativo / previsto", `${ativos} / ${data.posto?.efetivo_previsto ?? 0}`, ativos < (data.posto?.efetivo_previsto ?? 0) ? "Abaixo do previsto" : undefined],
     ["Presentes hoje", presentes, faltas ? `${faltas} ausência(s)` : undefined],
     ["Ocorrências abertas", data.ocorrencias.length],

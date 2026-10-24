@@ -5,7 +5,7 @@ export type AutoStatus = "registrado" | "presente" | "atraso" | "aguardando" | "
  * Status automático do dia: cruza a escala da planilha do posto com o ponto.
  * scheduled: "T" trabalha, "F" folga, null sem planilha no mês.
  */
-export function statusAutomatico(opts: { scheduled: "T" | "F" | null; data: string; inicio?: string; entrada?: string | null; manual?: string | null; agora: Date }): AutoStatus {
+export function statusAutomatico(opts: { scheduled: "T" | "F" | null; data: string; inicio?: string | undefined; entrada?: string | null | undefined; manual?: string | null | undefined; agora: Date }): AutoStatus {
   const { scheduled, data, inicio, entrada, manual, agora } = opts;
   if (manual && manual !== "presente") return "registrado";
   if (entrada || manual === "presente") {

@@ -47,6 +47,33 @@ export type Database = {
         }
         Relationships: []
       }
+      checklist_modelos: {
+        Row: {
+          arquivado: boolean
+          created_at: string
+          criado_por: string | null
+          id: string
+          itens: string[]
+          nome: string
+        }
+        Insert: {
+          arquivado?: boolean
+          created_at?: string
+          criado_por?: string | null
+          id?: string
+          itens: string[]
+          nome: string
+        }
+        Update: {
+          arquivado?: boolean
+          created_at?: string
+          criado_por?: string | null
+          id?: string
+          itens?: string[]
+          nome?: string
+        }
+        Relationships: []
+      }
       colaborador_historico: {
         Row: {
           colaborador_id: string
@@ -449,6 +476,57 @@ export type Database = {
           nome?: string
         }
         Relationships: []
+      }
+      inspecoes: {
+        Row: {
+          created_at: string
+          data: string
+          id: string
+          modelo_id: string
+          nao_conformes: number
+          observacoes: string
+          posto_id: string
+          realizado_por: string
+          respostas: Json
+        }
+        Insert: {
+          created_at?: string
+          data?: string
+          id?: string
+          modelo_id: string
+          nao_conformes?: number
+          observacoes?: string
+          posto_id: string
+          realizado_por?: string
+          respostas: Json
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          id?: string
+          modelo_id?: string
+          nao_conformes?: number
+          observacoes?: string
+          posto_id?: string
+          realizado_por?: string
+          respostas?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspecoes_modelo_id_fkey"
+            columns: ["modelo_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_modelos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspecoes_posto_id_fkey"
+            columns: ["posto_id"]
+            isOneToOne: false
+            referencedRelation: "postos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       materiais: {
         Row: {

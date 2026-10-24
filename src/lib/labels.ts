@@ -48,7 +48,7 @@ export const MODULE_ACCESS: Record<string, AppRole[]> = {
   escalas: ["admin", "gestor", "rh", "supervisor"],
   presenca: ["admin", "gestor", "rh", "supervisor"],
   ferias: ["admin", "gestor", "rh", "supervisor"],
-  ocorrencias: ["admin", "gestor", "rh", "supervisor"],
+  ocorrencias: ["admin", "gestor", "rh", "supervisor", "colaborador"],
   relatorios: ["admin", "gestor", "rh"],
   documentos: ["admin", "gestor", "rh", "supervisor"],
   materiais: ["admin", "gestor", "rh", "supervisor"],

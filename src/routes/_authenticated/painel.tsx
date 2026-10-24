@@ -4,7 +4,7 @@ import { Users, MapPin, Plane, AlertTriangle, ClipboardCheck, Palmtree, FileText
 import { Bar, BarChart, Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { EmptyState } from "@/components/page";
+import { EmptyState, RequireModule } from "@/components/page";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { canAccess } from "@/lib/labels";
@@ -19,7 +19,7 @@ export const Route = createFileRoute("/_authenticated/painel")({
     { property: "og:description", content: "Indicadores e acompanhamento da operação do Grupo Confidence." },
     { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
   ] }),
-  component: Painel,
+  component: () => <RequireModule module="painel"><Painel /></RequireModule>,
 });
 
 function Painel() {

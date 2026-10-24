@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { BrandMark } from "@/components/brand";
+import { NotificacoesBell } from "@/components/notificacoes";
 import { useMe } from "@/lib/use-me";
 import { canAccess, ROLE_LABELS } from "@/lib/labels";
 import { touchLastAccess } from "@/lib/users.functions";
@@ -93,6 +94,7 @@ function Layout() {
           <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b bg-card/80 px-4 backdrop-blur">
             <SidebarTrigger />
             <div className="flex-1" />
+            <NotificacoesBell />
             <Button variant="ghost" size="icon" onClick={toggleDark} aria-label="Alternar tema">
               <Sun className="hidden h-4 w-4 dark:block" /><Moon className="h-4 w-4 dark:hidden" />
             </Button>

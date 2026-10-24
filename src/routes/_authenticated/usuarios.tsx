@@ -17,7 +17,14 @@ import { ROLE_LABELS, STATUS_LABELS, type AppRole } from "@/lib/labels";
 import { createUser, updateUserAccess, resetUserPassword } from "@/lib/users.functions";
 
 export const Route = createFileRoute("/_authenticated/usuarios")({
-  head: () => ({ meta: [{ title: "Usuários e acessos — Grupo Confidence" }] }),
+  head: () => ({ meta: [
+    { title: "Usuários e acessos — Grupo Confidence" },
+    { name: "description", content: "Administração de contas e acessos ao Grupo Confidence." },
+    { property: "og:title", content: "Usuários e acessos — Grupo Confidence" },
+    { property: "og:description", content: "Administração de contas e acessos ao Grupo Confidence." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: () => <RequireModule module="usuarios"><Usuarios /></RequireModule>,
 });
 

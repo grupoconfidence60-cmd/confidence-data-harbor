@@ -17,7 +17,14 @@ import { useMe } from "@/lib/use-me";
 import { canEditDocumentos, DOCUMENTO_TIPOS } from "@/lib/labels";
 
 export const Route = createFileRoute("/_authenticated/documentos")({
-  head: () => ({ meta: [{ title: "Documentos — Grupo Confidence" }] }),
+  head: () => ({ meta: [
+    { title: "Documentos — Grupo Confidence" },
+    { name: "description", content: "Documentos privados e vencimentos da equipe Confidence." },
+    { property: "og:title", content: "Documentos — Grupo Confidence" },
+    { property: "og:description", content: "Documentos privados e vencimentos da equipe Confidence." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: () => <RequireModule module="documentos"><Documentos /></RequireModule>,
 });
 

@@ -12,7 +12,14 @@ import { canEditColaboradores } from "@/lib/labels";
 import { ColabDialog, SituacaoBadge, type ColabForm } from "./colaboradores";
 
 export const Route = createFileRoute("/_authenticated/colaborador/$id")({
-  head: () => ({ meta: [{ title: "Colaborador — Grupo Confidence" }] }),
+  head: () => ({ meta: [
+    { title: "Colaborador — Grupo Confidence" },
+    { name: "description", content: "Cadastro e histórico individual do colaborador Confidence." },
+    { property: "og:title", content: "Colaborador — Grupo Confidence" },
+    { property: "og:description", content: "Cadastro e histórico individual do colaborador Confidence." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: () => <RequireModule module="colaboradores"><Detalhe /></RequireModule>,
 });
 

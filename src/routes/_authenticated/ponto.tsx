@@ -10,7 +10,14 @@ import { PageHeader, RequireModule, EmptyState } from "@/components/page";
 import { PRESENCA_LABELS } from "@/lib/labels";
 
 export const Route = createFileRoute("/_authenticated/ponto")({
-  head: () => ({ meta: [{ title: "Meu ponto — Grupo Confidence" }] }),
+  head: () => ({ meta: [
+    { title: "Meu ponto — Grupo Confidence" },
+    { name: "description", content: "Registro pessoal de entrada e saída com localização Confidence." },
+    { property: "og:title", content: "Meu ponto — Grupo Confidence" },
+    { property: "og:description", content: "Registro pessoal de entrada e saída com localização Confidence." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: () => <RequireModule module="ponto"><Ponto /></RequireModule>,
 });
 

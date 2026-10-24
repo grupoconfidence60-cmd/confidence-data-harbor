@@ -10,7 +10,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { PageHeader, RequireModule } from "@/components/page";
 
 export const Route = createFileRoute("/_authenticated/funcoes")({
-  head: () => ({ meta: [{ title: "Funções — Grupo Confidence" }] }),
+  head: () => ({ meta: [
+    { title: "Funções — Grupo Confidence" },
+    { name: "description", content: "Funções operacionais cadastradas no Grupo Confidence." },
+    { property: "og:title", content: "Funções — Grupo Confidence" },
+    { property: "og:description", content: "Funções operacionais cadastradas no Grupo Confidence." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: () => <RequireModule module="funcoes"><Funcoes /></RequireModule>,
 });
 

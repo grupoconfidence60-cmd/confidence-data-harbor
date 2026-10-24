@@ -17,7 +17,14 @@ import { useMe } from "@/lib/use-me";
 import { canCreateVisitas } from "@/lib/labels";
 
 export const Route = createFileRoute("/_authenticated/visitas")({
-  head: () => ({ meta: [{ title: "Visitas de supervisão — Grupo Confidence" }] }),
+  head: () => ({ meta: [
+    { title: "Visitas de supervisão — Grupo Confidence" },
+    { name: "description", content: "Visitas de supervisão e pendências dos postos Confidence." },
+    { property: "og:title", content: "Visitas de supervisão — Grupo Confidence" },
+    { property: "og:description", content: "Visitas de supervisão e pendências dos postos Confidence." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: () => <RequireModule module="visitas"><Visitas /></RequireModule>,
 });
 

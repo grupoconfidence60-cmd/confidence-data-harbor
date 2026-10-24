@@ -18,7 +18,14 @@ import { canEditPostos } from "@/lib/labels";
 import { geocodeEndereco } from "@/lib/geo.functions";
 
 export const Route = createFileRoute("/_authenticated/postos")({
-  head: () => ({ meta: [{ title: "Postos de serviço — Grupo Confidence" }] }),
+  head: () => ({ meta: [
+    { title: "Postos de serviço — Grupo Confidence" },
+    { name: "description", content: "Postos de serviço, endereços e efetivo da operação Confidence." },
+    { property: "og:title", content: "Postos de serviço — Grupo Confidence" },
+    { property: "og:description", content: "Postos de serviço, endereços e efetivo da operação Confidence." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: () => <RequireModule module="postos"><Postos /></RequireModule>,
 });
 

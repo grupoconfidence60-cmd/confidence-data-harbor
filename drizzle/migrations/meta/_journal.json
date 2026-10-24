@@ -43,6 +43,13 @@
       "when": 1792848049976,
       "tag": "0005_etapa7_notificacoes",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792848771038,
+      "tag": "0006_etapa8_visitas_e_vencimentos",
+      "breakpoints": true
     }
   ]
 }

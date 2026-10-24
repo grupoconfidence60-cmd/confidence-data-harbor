@@ -65,7 +65,7 @@ function Inspecoes() {
   async function archive(id: string) {
     if (!window.confirm("Arquivar este checklist? As inspeções já feitas serão preservadas.")) return;
     const r = await supabase.from("checklist_modelos").update({ arquivado: true }).eq("id", id).select("id").single();
-    if (r.error) return toast.error("Não foi possível arquivar.");
+    if (r.error) { toast.error("Não foi possível arquivar."); return; }
     await refresh(); toast.success("Checklist arquivado.");
   }
   function exportar() {
@@ -103,7 +103,7 @@ function ModeloDialog({ onClose, onSaved }: { onClose: () => void; onSaved: () =
     e.preventDefault(); setBusy(true);
     const r = await supabase.from("checklist_modelos").insert({ nome: nome.trim(), itens }).select("id").single();
     setBusy(false);
-    if (r.error) return toast.error("Não foi possível salvar o checklist.");
+    if (r.error) { toast.error("Não foi possível salvar o checklist."); return; }
     await onSaved(); toast.success("Checklist cadastrado."); onClose();
   }
   return <Dialog open onOpenChange={(o) => !o && !busy && onClose()}><DialogContent className="sm:max-w-lg"><DialogHeader><DialogTitle>Novo checklist</DialogTitle><DialogDescription>Um item por linha.</DialogDescription></DialogHeader>
@@ -127,7 +127,7 @@ function InspecaoDialog({ modelos, postos, userId, onClose, onSaved }: { modelos
     e.preventDefault(); setBusy(true);
     const r = await supabase.from("inspecoes").insert({ modelo_id: modeloId, posto_id: posto, data, respostas, observacoes: obs.trim(), realizado_por: userId }).select("id").single();
     setBusy(false);
-    if (r.error) return toast.error("Não foi possível registrar. Confira se o posto está sob sua responsabilidade.");
+    if (r.error) { toast.error("Não foi possível registrar. Confira se o posto está sob sua responsabilidade."); return; }
     await onSaved(); toast.success("Inspeção registrada."); onClose();
   }
   return <Dialog open onOpenChange={(o) => !o && !busy && onClose()}><DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-2xl"><DialogHeader><DialogTitle>Nova inspeção</DialogTitle><DialogDescription>Marque cada item verificado no posto.</DialogDescription></DialogHeader>

@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Upload } from "lucide-react";
+import { ImportarColaboradores } from "@/components/importar-colaboradores";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -56,6 +57,7 @@ function Colaboradores() {
   const [sit, setSit] = useState("todos");
   const [posto, setPosto] = useState("todos");
   const [editing, setEditing] = useState<ColabForm | null>(null);
+  const [importing, setImporting] = useState(false);
   const { data: lk } = useLookups();
   const { data: rows = [] } = useQuery({
     queryKey: ["colaboradores"],
@@ -72,7 +74,8 @@ function Colaboradores() {
   return (
     <div>
       <PageHeader title="Colaboradores" description={`${rows.length} cadastrados`}
-        actions={canEdit && <Button onClick={() => setEditing(EMPTY)}><Plus className="mr-1 h-4 w-4" />Novo colaborador</Button>} />
+        actions={canEdit && <div className="flex flex-wrap gap-2"><Button variant="outline" onClick={() => setImporting(true)}><Upload className="mr-1 h-4 w-4" />Importar planilha</Button><Button onClick={() => setEditing(EMPTY)}><Plus className="mr-1 h-4 w-4" />Novo colaborador</Button></div>} />
+      {importing && <ImportarColaboradores funcoes={lk?.funcoes ?? []} postos={lk?.postos ?? []} existentes={rows.map((r) => r.matricula)} onClose={() => setImporting(false)} />}
       <div className="mb-4 flex flex-wrap gap-2">
         <div className="relative min-w-60 flex-1">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />

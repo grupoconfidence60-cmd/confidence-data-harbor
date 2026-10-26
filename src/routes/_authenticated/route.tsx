@@ -35,7 +35,7 @@ const NAV = [
   { to: "/escalas", label: "Escalas", icon: CalendarRange, mod: "escalas" },
   { to: "/presenca", label: "Presença e faltas", icon: ClipboardCheck, mod: "presenca" },
   { to: "/ferias", label: "Férias", icon: Palmtree, mod: "ferias" },
-  { to: "/ocorrencias", label: "Ocorrências", icon: AlertTriangle, mod: "ocorrencias" },
+  { to: "/ocorrencias", label: "Solicitações", icon: AlertTriangle, mod: "ocorrencias" },
   { to: "/visitas", label: "Visitas de supervisão", icon: ClipboardList, mod: "visitas" },
   { to: "/inspecoes", label: "Checklists de inspeção", icon: ListChecks, mod: "inspecoes" },
   { to: "/relatorios", label: "Relatórios", icon: FileBarChart, mod: "relatorios" },

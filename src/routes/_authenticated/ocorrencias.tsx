@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PageHeader, RequireModule, EmptyState } from "@/components/page";
@@ -136,11 +137,9 @@ function OcorrenciasGestao() {
   const nome = (list: { id: string; nome: string }[], id: string | null) => list.find((x) => x.id === id)?.nome ?? "—";
 
   async function resolver(id: string) {
-    const resolucao = window.prompt("Descreva a resolução:");
-    if (resolucao === null) return;
-    const { error } = await supabase.from("ocorrencias").update({ resolvida: true, resolucao: resolucao || null }).eq("id", id);
+    const { error } = await supabase.from("ocorrencias").update({ resolvida: true }).eq("id", id);
     if (error) { toast.error(error.message); return; }
-    toast.success("Solicitação resolvida.");
+    toast.success("Baixa registrada.");
     qc.invalidateQueries({ queryKey: ["ocorrencias"] });
   }
 
@@ -149,14 +148,13 @@ function OcorrenciasGestao() {
       <PageHeader title="Solicitações" description="Registro e acompanhamento de solicitações nos postos"
         actions={canCreate && <Button onClick={() => setOpen(true)}><Plus className="mr-1 h-4 w-4" />Nova solicitação</Button>} />
       <div className="mb-4">
-        <Select value={filtro} onValueChange={setFiltro}>
-          <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="abertas">Em aberto</SelectItem>
-            <SelectItem value="resolvidas">Resolvidas</SelectItem>
-            <SelectItem value="todas">Todas</SelectItem>
-          </SelectContent>
-        </Select>
+        <Tabs value={filtro} onValueChange={setFiltro}>
+          <TabsList>
+            <TabsTrigger value="abertas">Dar baixa ({(data?.oc ?? []).filter((o) => !o.resolvida).length})</TabsTrigger>
+            <TabsTrigger value="resolvidas">Resolvidos</TabsTrigger>
+            <TabsTrigger value="todas">Todos</TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
       {lista.length === 0 ? <EmptyState text="Nenhuma solicitação encontrada." /> : (
         <div className="grid gap-3">
@@ -166,7 +164,7 @@ function OcorrenciasGestao() {
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-semibold">{o.titulo}</span>
-                    <Badge variant={o.gravidade === "grave" ? "destructive" : o.gravidade === "moderada" ? "default" : "secondary"}>{GRAVIDADE_LABELS[o.gravidade]}</Badge>
+                    <Badge variant={o.gravidade === "grave" ? "destructive" : "secondary"} className={o.gravidade === "moderada" ? "border-transparent bg-[var(--funcao-intermitente)] text-white" : ""}>{GRAVIDADE_LABELS[o.gravidade]}</Badge>
                     <Badge variant="outline">{o.tipo}</Badge>
                   </div>
                   <div className="mt-1 text-sm text-muted-foreground">
@@ -176,7 +174,7 @@ function OcorrenciasGestao() {
                   {o.resolvida && o.resolucao && <p className="mt-2 text-sm text-muted-foreground">Resolução: {o.resolucao}</p>}
                 </div>
                 {canEdit && !o.resolvida && (
-                  <Button size="sm" variant="outline" onClick={() => resolver(o.id)}><CheckCircle2 className="mr-1 h-4 w-4" />Resolver</Button>
+                  <Button size="sm" variant="outline" onClick={() => resolver(o.id)}><CheckCircle2 className="mr-1 h-4 w-4" />Dar baixa</Button>
                 )}
               </CardContent>
             </Card>

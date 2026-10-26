@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { canAccess, canEditColaboradores, canEditPostos, canManageComunicados, canManageMateriais, canManageChecklists, canCreateInspecoes, canCreateOcorrencias, MODULE_ACCESS, type AppRole } from "./labels";
+import { canAccess, canEditColaboradores, canEditPostos, canEditOcorrencias, canManageComunicados, canManageMateriais, canManageChecklists, canCreateInspecoes, canCreateOcorrencias, MODULE_ACCESS, type AppRole } from "./labels";
 
 describe("permissões por perfil", () => {
   it("checklists: admin/gestor criam modelos; supervisor inspeciona; RH só consulta; colaborador sem acesso", () => {
@@ -45,6 +45,14 @@ describe("permissões por perfil", () => {
   it("supervisor consulta mas não edita colaboradores", () => {
     expect(canAccess(["supervisor"], "colaboradores")).toBe(true);
     expect(canEditColaboradores(["supervisor"])).toBe(false);
+  });
+  it("administração, gestores e RH dão baixa nas solicitações; supervisor e colaborador não", () => {
+    for (const role of ["admin", "gestor", "rh"] as AppRole[]) {
+      expect(canEditOcorrencias([role])).toBe(true);
+    }
+    expect(canEditOcorrencias(["supervisor"])).toBe(false);
+    expect(canEditOcorrencias(["colaborador"])).toBe(false);
+    expect(canEditOcorrencias([])).toBe(false);
   });
   it("RH edita colaboradores mas não postos", () => {
     expect(canEditColaboradores(["rh"])).toBe(true);

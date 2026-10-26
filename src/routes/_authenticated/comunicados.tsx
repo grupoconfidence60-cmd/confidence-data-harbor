@@ -94,7 +94,7 @@ function Comunicados() {
     <PageHeader title="Comunicados" description="Administração · Grupo Confidence" actions={manage && <Button onClick={() => setOpen(true)}><Plus className="mr-2 h-4 w-4" />Novo comunicado</Button>} />
     <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
       <Tabs value={filter} onValueChange={setFilter}>
-        <TabsList><TabsTrigger value="ativos">Publicados</TabsTrigger><TabsTrigger value="pendentes">Não lidos ({pending})</TabsTrigger>{manage && <TabsTrigger value="resolvidos">Resolvidos</TabsTrigger>}{manage && <TabsTrigger value="arquivados">Arquivados</TabsTrigger>}</TabsList>
+        <TabsList><TabsTrigger value="ativos">{manage ? `Dar baixa (${data?.posts.filter((p) => !p.arquivado && !p.resolvido).length ?? 0})` : "Publicados"}</TabsTrigger><TabsTrigger value="pendentes">Não lidos ({pending})</TabsTrigger>{manage && <TabsTrigger value="resolvidos">Resolvidos</TabsTrigger>}{manage && <TabsTrigger value="arquivados">Arquivados</TabsTrigger>}</TabsList>
       </Tabs>
       <div className="relative w-full sm:w-72"><Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" /><Input className="pl-9" aria-label="Buscar comunicados" placeholder="Buscar comunicados" value={search} onChange={(e) => setSearch(e.target.value)} /></div>
     </div>

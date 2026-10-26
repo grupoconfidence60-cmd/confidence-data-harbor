@@ -18,10 +18,10 @@ import { canEditOcorrencias, canCreateOcorrencias, GRAVIDADE_LABELS } from "@/li
 
 export const Route = createFileRoute("/_authenticated/ocorrencias")({
   head: () => ({ meta: [
-    { title: "Ocorrências — Grupo Confidence" },
-    { name: "description", content: "Registro e acompanhamento de ocorrências nos postos Confidence." },
-    { property: "og:title", content: "Ocorrências — Grupo Confidence" },
-    { property: "og:description", content: "Registro e acompanhamento de ocorrências nos postos Confidence." },
+    { title: "Solicitações — Grupo Confidence" },
+    { name: "description", content: "Registro e acompanhamento de solicitações nos postos Confidence." },
+    { property: "og:title", content: "Solicitações — Grupo Confidence" },
+    { property: "og:description", content: "Registro e acompanhamento de solicitações nos postos Confidence." },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary" },
   ] }),
@@ -75,15 +75,15 @@ function MinhasOcorrencias() {
       data_ocorrencia: new Date(quando).toISOString(),
     });
     setEnviando(false);
-    if (error) { toast.error("Não foi possível enviar a ocorrência. Tente novamente."); return; }
-    toast.success("Ocorrência enviada para a empresa.");
+    if (error) { toast.error("Não foi possível enviar a solicitação. Tente novamente."); return; }
+    toast.success("Solicitação enviada para a empresa.");
     setDescricao(""); setQuando(agoraLocal());
     qc.invalidateQueries({ queryKey: ["minhas-ocorrencias"] });
   }
 
   return (
     <div className="mx-auto max-w-md">
-      <PageHeader title="Relatar ocorrência" description="Descreva o que aconteceu" />
+      <PageHeader title="Nova solicitação" description="Descreva o que aconteceu" />
       <Card className="mb-6">
         <CardContent className="p-4">
           <form onSubmit={enviar} className="grid gap-4">
@@ -91,12 +91,12 @@ function MinhasOcorrencias() {
               <Input type="datetime-local" required value={quando} onChange={(e) => setQuando(e.target.value)} /></div>
             <div className="space-y-1.5"><Label>Descrição do ocorrido</Label>
               <Textarea required rows={6} value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Conte o que aconteceu…" /></div>
-            <Button type="submit" size="lg" disabled={enviando}>{enviando ? "Enviando…" : "Enviar ocorrência"}</Button>
+            <Button type="submit" size="lg" disabled={enviando}>{enviando ? "Enviando…" : "Enviar solicitação"}</Button>
           </form>
         </CardContent>
       </Card>
-      <h2 className="mb-3 text-lg font-semibold">Minhas ocorrências</h2>
-      {(data?.lista ?? []).length === 0 ? <EmptyState text="Nenhuma ocorrência enviada." /> : (
+      <h2 className="mb-3 text-lg font-semibold">Minhas solicitações</h2>
+      {(data?.lista ?? []).length === 0 ? <EmptyState text="Nenhuma solicitação enviada." /> : (
         <div className="grid gap-2">
           {data!.lista.map((o) => (
             <Card key={o.id}><CardContent className="p-3">
@@ -140,14 +140,14 @@ function OcorrenciasGestao() {
     if (resolucao === null) return;
     const { error } = await supabase.from("ocorrencias").update({ resolvida: true, resolucao: resolucao || null }).eq("id", id);
     if (error) { toast.error(error.message); return; }
-    toast.success("Ocorrência resolvida.");
+    toast.success("Solicitação resolvida.");
     qc.invalidateQueries({ queryKey: ["ocorrencias"] });
   }
 
   return (
     <div>
-      <PageHeader title="Ocorrências" description="Registro e acompanhamento de ocorrências nos postos"
-        actions={canCreate && <Button onClick={() => setOpen(true)}><Plus className="mr-1 h-4 w-4" />Nova ocorrência</Button>} />
+      <PageHeader title="Solicitações" description="Registro e acompanhamento de solicitações nos postos"
+        actions={canCreate && <Button onClick={() => setOpen(true)}><Plus className="mr-1 h-4 w-4" />Nova solicitação</Button>} />
       <div className="mb-4">
         <Select value={filtro} onValueChange={setFiltro}>
           <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
@@ -158,7 +158,7 @@ function OcorrenciasGestao() {
           </SelectContent>
         </Select>
       </div>
-      {lista.length === 0 ? <EmptyState text="Nenhuma ocorrência encontrada." /> : (
+      {lista.length === 0 ? <EmptyState text="Nenhuma solicitação encontrada." /> : (
         <div className="grid gap-3">
           {lista.map((o) => (
             <Card key={o.id} className={o.resolvida ? "opacity-70" : ""}>
@@ -199,14 +199,14 @@ function OcorrenciaDialog({ postos, colabs, onClose }: { postos: { id: string; n
       data_ocorrencia: new Date(f.data_ocorrencia).toISOString(),
     });
     if (error) { toast.error(error.message); return; }
-    toast.success("Ocorrência registrada.");
+    toast.success("Solicitação registrada.");
     qc.invalidateQueries({ queryKey: ["ocorrencias"] });
     onClose();
   }
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-xl">
-        <DialogHeader><DialogTitle>Nova ocorrência</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>Nova solicitação</DialogTitle></DialogHeader>
         <form onSubmit={save} className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1.5 sm:col-span-2"><Label>Título *</Label><Input required value={f.titulo} onChange={(e) => setF({ ...f, titulo: e.target.value })} /></div>
           <div className="space-y-1.5"><Label>Tipo</Label>

@@ -236,6 +236,7 @@ export type Database = {
           id: string
           mensagem: string
           publicado_por: string
+          resolvido: boolean
           titulo: string
         }
         Insert: {
@@ -244,6 +245,7 @@ export type Database = {
           id?: string
           mensagem: string
           publicado_por?: string
+          resolvido?: boolean
           titulo: string
         }
         Update: {
@@ -252,6 +254,7 @@ export type Database = {
           id?: string
           mensagem?: string
           publicado_por?: string
+          resolvido?: boolean
           titulo?: string
         }
         Relationships: [

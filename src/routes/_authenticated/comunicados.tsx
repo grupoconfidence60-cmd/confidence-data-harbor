@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Archive, CheckCheck, Megaphone, Plus, Search } from "lucide-react";
+import { Archive, CheckCheck, CheckCircle2, Megaphone, Plus, Search } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -49,10 +49,15 @@ function Comunicados() {
     },
   });
   const readByMe = (id: string) => data?.reads.find((r) => r.comunicado_id === id && r.user_id === me?.id);
-  const pending = data?.posts.filter((p) => !p.arquivado && !readByMe(p.id)).length ?? 0;
+  const pending = data?.posts.filter((p) => !p.arquivado && !p.resolvido && !readByMe(p.id)).length ?? 0;
   const posts = (data?.posts ?? []).filter((p) => {
     const matches = `${p.titulo} ${p.mensagem}`.toLocaleLowerCase("pt-BR").includes(search.toLocaleLowerCase("pt-BR"));
-    return matches && (filter === "arquivados" ? p.arquivado : !p.arquivado && (filter !== "pendentes" || !readByMe(p.id)));
+    if (!matches) return false;
+    if (filter === "arquivados") return p.arquivado;
+    if (p.arquivado) return false;
+    if (filter === "pendentes") return !p.resolvido && !readByMe(p.id);
+    if (filter === "resolvidos") return p.resolvido;
+    return !p.resolvido;
   });
 
   async function confirm(id: string) {
@@ -75,11 +80,21 @@ function Comunicados() {
     toast.success("Comunicado arquivado.");
   }
 
+  async function resolver(id: string) {
+    if (busy || !window.confirm("Dar baixa neste comunicado? Ele será marcado como resolvido.")) return;
+    setBusy(id);
+    const { error } = await supabase.from("comunicados").update({ resolvido: true }).eq("id", id);
+    setBusy(null);
+    if (error) { toast.error("Não foi possível dar baixa no comunicado."); return; }
+    await qc.invalidateQueries({ queryKey: ["comunicados"] });
+    toast.success("Comunicado resolvido.");
+  }
+
   return <div className="workspace">
     <PageHeader title="Comunicados" description="Administração · Grupo Confidence" actions={manage && <Button onClick={() => setOpen(true)}><Plus className="mr-2 h-4 w-4" />Novo comunicado</Button>} />
     <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
       <Tabs value={filter} onValueChange={setFilter}>
-        <TabsList><TabsTrigger value="ativos">Publicados</TabsTrigger><TabsTrigger value="pendentes">Não lidos ({pending})</TabsTrigger>{manage && <TabsTrigger value="arquivados">Arquivados</TabsTrigger>}</TabsList>
+        <TabsList><TabsTrigger value="ativos">Publicados</TabsTrigger><TabsTrigger value="pendentes">Não lidos ({pending})</TabsTrigger>{manage && <TabsTrigger value="resolvidos">Resolvidos</TabsTrigger>}{manage && <TabsTrigger value="arquivados">Arquivados</TabsTrigger>}</TabsList>
       </Tabs>
       <div className="relative w-full sm:w-72"><Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" /><Input className="pl-9" aria-label="Buscar comunicados" placeholder="Buscar comunicados" value={search} onChange={(e) => setSearch(e.target.value)} /></div>
     </div>
@@ -89,12 +104,12 @@ function Comunicados() {
         return <article key={p.id} className="min-w-0 rounded-lg border bg-card p-5">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="flex min-w-0 flex-1 items-start gap-3"><Megaphone className="mt-1 h-5 w-5 shrink-0 text-primary" /><div className="min-w-0"><h2 className="break-words text-lg font-semibold">{p.titulo}</h2><p className="mt-1 text-xs text-muted-foreground">Administração · {new Date(p.created_at).toLocaleString("pt-BR")}</p></div></div>
-            <Badge variant="secondary">{p.arquivado ? "Arquivado" : read ? "Lido" : "Não lido"}</Badge>
+            <Badge variant="secondary">{p.arquivado ? "Arquivado" : p.resolvido ? "Resolvido" : read ? "Lido" : "Não lido"}</Badge>
           </div>
           <p className="mt-4 whitespace-pre-wrap break-words text-sm leading-relaxed">{p.mensagem}</p>
           <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t pt-4">
             <div className="text-xs text-muted-foreground">{read ? `Leitura confirmada em ${new Date(read.created_at).toLocaleString("pt-BR")}` : "Leitura pendente"}{manage && <span className="ml-3">{data?.reads.filter((r) => r.comunicado_id === p.id).length ?? 0} leitura(s) confirmada(s)</span>}</div>
-            <div className="flex gap-2">{!p.arquivado && !read && <Button size="sm" variant="outline" disabled={busy !== null} onClick={() => confirm(p.id)}><CheckCheck className="mr-2 h-4 w-4" />Confirmar leitura</Button>}{manage && !p.arquivado && <Button size="icon" variant="ghost" title="Arquivar comunicado" aria-label={`Arquivar ${p.titulo}`} disabled={busy !== null} onClick={() => archive(p.id)}><Archive className="h-4 w-4" /></Button>}</div>
+            <div className="flex gap-2">{!p.arquivado && !p.resolvido && !read && <Button size="sm" variant="outline" disabled={busy !== null} onClick={() => confirm(p.id)}><CheckCheck className="mr-2 h-4 w-4" />Confirmar leitura</Button>}{manage && !p.arquivado && !p.resolvido && <Button size="sm" variant="outline" disabled={busy !== null} onClick={() => resolver(p.id)}><CheckCircle2 className="mr-2 h-4 w-4" />Dar baixa</Button>}{manage && !p.arquivado && <Button size="icon" variant="ghost" title="Arquivar comunicado" aria-label={`Arquivar ${p.titulo}`} disabled={busy !== null} onClick={() => archive(p.id)}><Archive className="h-4 w-4" /></Button>}</div>
           </div>
         </article>;
       })}

@@ -79,7 +79,7 @@ export function canEditFerias(roles: AppRole[]) {
   return roles.some((r) => ["admin", "gestor", "rh"].includes(r));
 }
 export function canEditOcorrencias(roles: AppRole[]) {
-  return roles.some((r) => ["admin", "gestor"].includes(r));
+  return roles.some((r) => ["admin", "gestor", "rh"].includes(r));
 }
 export function canCreateOcorrencias(roles: AppRole[]) {
   return roles.some((r) => ["admin", "gestor", "rh", "supervisor", "colaborador"].includes(r));

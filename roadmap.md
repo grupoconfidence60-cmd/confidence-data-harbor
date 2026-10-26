@@ -14,4 +14,8 @@
 - [x] Planilha mensal dentro de cada posto: escalas pares/ímpares, inclusão e retirada de colaboradores, ajustes por dia e download Excel para supervisores, gestores, administração e RH; inclusão, edição, persistência, retirada e arquivo baixado verificados.
 
 ## Próximas etapas do planejamento
+- [x] Etapa 1: estoque e movimentações de materiais (16 itens cadastrados)
+- [ ] Etapa 2: contracheques
+- [ ] Etapa 3: cursos e treinamentos
+- [ ] Etapa 4: avaliação de desempenho
 

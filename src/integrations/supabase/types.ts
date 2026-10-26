@@ -642,6 +642,74 @@ export type Database = {
           },
         ]
       }
+      material_movimentacoes: {
+        Row: {
+          colaborador_id: string | null
+          created_at: string
+          id: string
+          material_id: string
+          motivo: string
+          posto_id: string | null
+          quantidade: number
+          registrado_por: string
+          supervisor_id: string | null
+          tipo: string
+        }
+        Insert: {
+          colaborador_id?: string | null
+          created_at?: string
+          id?: string
+          material_id: string
+          motivo?: string
+          posto_id?: string | null
+          quantidade: number
+          registrado_por?: string
+          supervisor_id?: string | null
+          tipo: string
+        }
+        Update: {
+          colaborador_id?: string | null
+          created_at?: string
+          id?: string
+          material_id?: string
+          motivo?: string
+          posto_id?: string | null
+          quantidade?: number
+          registrado_por?: string
+          supervisor_id?: string | null
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "material_movimentacoes_colaborador_id_fkey"
+            columns: ["colaborador_id"]
+            isOneToOne: false
+            referencedRelation: "colaboradores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_movimentacoes_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materiais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_movimentacoes_posto_id_fkey"
+            columns: ["posto_id"]
+            isOneToOne: false
+            referencedRelation: "postos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_movimentacoes_supervisor_id_fkey"
+            columns: ["supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notificacoes: {
         Row: {
           created_at: string
@@ -1071,6 +1139,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      material_saldo: { Args: { _material_id: string }; Returns: number }
       supervisiona_posto: {
         Args: { _posto_id: string; _user_id: string }
         Returns: boolean

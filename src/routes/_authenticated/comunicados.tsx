@@ -15,6 +15,7 @@ import { PageHeader, EmptyState, RequireModule } from "@/components/page";
 import { canManageComunicados, canPublishComunicados } from "@/lib/labels";
 import { useMe } from "@/lib/use-me";
 import { RelatoColaboradorDialog } from "@/components/relato-colaborador-dialog";
+import { ComunicadoDetalhes, type ComunicadoOpcoes } from "@/components/comunicado-detalhes";
 
 export const Route = createFileRoute("/_authenticated/comunicados")({
   head: () => ({ meta: [
@@ -128,9 +129,22 @@ function NovoComunicado({ onClose }: { onClose: () => void }) {
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
+  const [options, setOptions] = useState<ComunicadoOpcoes>({ audience: "todos", recipients: "", scheduledAt: "", files: [] });
+  const needsDeliverySetup = options.audience !== "todos" || Boolean(options.scheduledAt) || options.files.length > 0;
+
+  function close() {
+    if (saving) return;
+    if ((title.trim() || message.trim() || needsDeliverySetup || options.recipients.trim()) && !window.confirm("Descartar este comunicado e os anexos selecionados? As informações não foram salvas.")) return;
+    onClose();
+  }
+
   async function save(e: React.FormEvent) {
     e.preventDefault();
     if (saving || !title.trim() || !message.trim()) return;
+    if (needsDeliverySetup) {
+      toast.info("O envio direcionado, o agendamento e os anexos ainda não estão habilitados. Nada foi enviado; os dados continuam neste formulário.");
+      return;
+    }
     setSaving(true);
     const { error } = await supabase.from("comunicados").insert({ titulo: title.trim(), mensagem: message.trim() });
     setSaving(false);
@@ -139,12 +153,16 @@ function NovoComunicado({ onClose }: { onClose: () => void }) {
     toast.success("Comunicado publicado.");
     onClose();
   }
-  return <Dialog open onOpenChange={(value) => { if (!value && !saving) onClose(); }}>
-    <DialogContent className="max-w-xl"><DialogHeader><DialogTitle>Novo comunicado</DialogTitle></DialogHeader>
+  return <Dialog open onOpenChange={(value) => { if (!value) close(); }}>
+    <DialogContent className="max-h-[90dvh] max-w-xl overflow-y-auto bg-background text-foreground"><DialogHeader><DialogTitle>Novo comunicado</DialogTitle></DialogHeader>
       <form onSubmit={save} className="space-y-4">
-        <div className="space-y-2"><Label htmlFor="comunicado-titulo">Título</Label><Input id="comunicado-titulo" required value={title} onChange={(e) => setTitle(e.target.value)} /></div>
-        <div className="space-y-2"><Label htmlFor="comunicado-mensagem">Mensagem</Label><Textarea id="comunicado-mensagem" required rows={7} value={message} onChange={(e) => setMessage(e.target.value)} /></div>
-        <DialogFooter><Button type="button" variant="outline" disabled={saving} onClick={onClose}>Cancelar</Button><Button type="submit" disabled={saving || !title.trim() || !message.trim()}>{saving ? "Publicando…" : "Publicar"}</Button></DialogFooter>
+        <fieldset disabled={saving} className="min-w-0 space-y-4">
+          <div className="space-y-2"><Label htmlFor="comunicado-titulo">Título</Label><Input id="comunicado-titulo" required value={title} onChange={(e) => setTitle(e.target.value)} /></div>
+          <div className="space-y-2"><Label htmlFor="comunicado-mensagem">Mensagem</Label><Textarea id="comunicado-mensagem" required rows={7} value={message} onChange={(e) => setMessage(e.target.value)} /></div>
+          <ComunicadoDetalhes value={options} onChange={setOptions} />
+        </fieldset>
+        {needsDeliverySetup && <p id="comunicado-publicacao-aviso" role="status" className="rounded-lg border bg-muted/50 p-3 text-sm text-muted-foreground">Este comunicado não pode ser publicado ainda: o envio direcionado, o agendamento e os anexos precisam ser habilitados. Nenhum destinatário receberá este conteúdo. Os dados ficam apenas nesta tela e serão descartados ao fechá-la.</p>}
+        <DialogFooter className="gap-2"><Button type="button" variant="outline" disabled={saving} onClick={close}>Cancelar</Button><Button type="submit" aria-describedby={needsDeliverySetup ? "comunicado-publicacao-aviso" : undefined} disabled={saving || needsDeliverySetup || !title.trim() || !message.trim()}>{saving ? "Publicando…" : needsDeliverySetup ? "Envio ainda não habilitado" : "Publicar"}</Button></DialogFooter>
       </form>
     </DialogContent>
   </Dialog>;

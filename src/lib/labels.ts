@@ -91,6 +91,10 @@ export function canCreateVisitas(roles: AppRole[]) {
   return roles.some((r) => ["admin", "gestor", "supervisor"].includes(r));
 }
 
+export function canPublishComunicados(roles: AppRole[]) {
+  return roles.some((r) => ["admin", "gestor", "rh", "supervisor"].includes(r));
+}
+
 export function canManageComunicados(roles: AppRole[]) {
   return roles.some((r) => ["admin", "gestor", "rh"].includes(r));
 }

@@ -12,8 +12,9 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PageHeader, EmptyState, RequireModule } from "@/components/page";
-import { canManageComunicados } from "@/lib/labels";
+import { canManageComunicados, canPublishComunicados } from "@/lib/labels";
 import { useMe } from "@/lib/use-me";
+import { RelatoColaboradorDialog } from "@/components/relato-colaborador-dialog";
 
 export const Route = createFileRoute("/_authenticated/comunicados")({
   head: () => ({ meta: [
@@ -30,8 +31,11 @@ export const Route = createFileRoute("/_authenticated/comunicados")({
 function Comunicados() {
   const { data: me } = useMe();
   const manage = canManageComunicados(me?.roles ?? []);
+  const publish = canPublishComunicados(me?.roles ?? []);
+  const collaborator = me?.roles.includes("colaborador") ?? false;
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [relatoOpen, setRelatoOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("ativos");
   const [busy, setBusy] = useState<string | null>(null);
@@ -91,7 +95,7 @@ function Comunicados() {
   }
 
   return <div className="workspace">
-    <PageHeader title="Comunicados" description="Administração · Grupo Confidence" actions={manage && <Button onClick={() => setOpen(true)}><Plus className="mr-2 h-4 w-4" />Novo comunicado</Button>} />
+    <PageHeader title="Comunicados" description="Avisos dos supervisores, administração, RH e gestores para os colaboradores" actions={<div className="flex flex-wrap gap-2">{publish && <Button onClick={() => setOpen(true)}><Plus className="mr-2 h-4 w-4" />Novo comunicado</Button>}{collaborator && <Button variant="outline" onClick={() => setRelatoOpen(true)}><Plus className="mr-2 h-4 w-4" />Preparar relato / atestado</Button>}</div>} />
     <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
       <Tabs value={filter} onValueChange={setFilter}>
         <TabsList><TabsTrigger value="ativos">{manage ? `Dar baixa (${data?.posts.filter((p) => !p.arquivado && !p.resolvido).length ?? 0})` : "Publicados"}</TabsTrigger><TabsTrigger value="pendentes">Não lidos ({pending})</TabsTrigger>{manage && <TabsTrigger value="resolvidos">Resolvidos</TabsTrigger>}{manage && <TabsTrigger value="arquivados">Arquivados</TabsTrigger>}</TabsList>
@@ -114,7 +118,8 @@ function Comunicados() {
         </article>;
       })}
     </div>}
-    {open && <NovoComunicado onClose={() => setOpen(false)} />}
+    {open && publish && <NovoComunicado onClose={() => setOpen(false)} />}
+    {relatoOpen && collaborator && <RelatoColaboradorDialog onClose={() => setRelatoOpen(false)} />}
   </div>;
 }
 

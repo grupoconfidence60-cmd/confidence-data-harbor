@@ -109,14 +109,14 @@ function Painel() {
   }
 
   return (
-    <div>
-      <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
+    <div className="confidence-panel rounded-xl border bg-background p-4 text-foreground md:p-6">
+      <div className="painel-heading mb-7 flex flex-wrap items-end justify-between gap-4 rounded-lg border p-5 md:p-6">
         <div><div className="section-label mb-2">Central de operações</div><h1 className="text-2xl font-semibold md:text-3xl">Olá, {me?.profile?.nome?.split(" ")[0] ?? ""}<span className="text-primary">.</span></h1><p className="mt-2 text-sm text-muted-foreground">Acompanhe o dia a dia da Confidence.</p></div>
         <div className="flex items-center gap-3"><span className="flex items-center gap-2 text-xs text-muted-foreground"><CalendarDays className="h-4 w-4" />{new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}</span><Button variant="outline" size="icon" aria-label="Atualizar painel" title="Atualizar painel" disabled={isFetching} onClick={() => qc.invalidateQueries({ queryKey: ["painel"] })}><RefreshCw className={isFetching ? "animate-spin" : ""} /></Button></div>
       </div>
       <div className="mb-6 flex flex-wrap items-center gap-2">{shortcuts.filter((n) => canAccess(roles, n.module)).map((n) => <Button key={n.to} variant="outline" size="sm" asChild><Link to={n.to}><n.icon />{n.label}<ArrowRight className="ml-2" /></Link></Button>)}</div>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{kpis.slice(0, 4).map(renderMetric)}</div>
-      <section className="mt-6 border-y bg-card px-5 py-4" aria-label="Resumo operacional">
+      <section className="mt-6 rounded-lg border bg-card px-5 py-4 shadow-sm" aria-label="Resumo operacional">
         <div className="section-label mb-4">Resumo operacional</div>
         <div className="grid grid-cols-2 gap-x-5 gap-y-5 sm:grid-cols-3 xl:grid-cols-7">{kpis.slice(4).map((k, i) => {
           const content = <><k.icon className={k.alert ? "mb-2 h-4 w-4 text-warning" : "mb-2 h-4 w-4 text-muted-foreground"} /><div className="text-xl font-semibold tabular-nums">{isPending ? "—" : k.value}</div><div className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{k.label}</div></>;

@@ -1,4 +1,5 @@
 import { FuncaoBadge, FuncaoLegenda } from "@/components/funcao-badge";
+import { PlanilhaSupervisores, useSupervisoresEscala } from "@/components/planilha-supervisores";
 import { FUNCAO_BORDA, funcaoTom } from "@/lib/funcao-cores";
 import { useState } from "react";
 import { ArrowLeftRight, GripVertical, Moon, Pencil, Plus, Save, Sun, UserMinus } from "lucide-react";
@@ -11,6 +12,7 @@ import logoAsset from "@/assets/logo-confidence.png.asset.json";
 
 export type RosterEdit = { posicao?: string; hora_inicio?: string; hora_fim?: string; removido?: boolean; escala_tipo?: string; paridade?: string; turno?: string };
 type Props = {
+  supervisorScope: string;
   post: string; rows: PlanilhaRow[]; people: PlanilhaPerson[]; busy: boolean;
   save: (id: string, payload: RosterEdit) => Promise<boolean>;
   move: (id: string, type: "par" | "impar", turno: "diurno" | "noturno") => void;
@@ -20,14 +22,24 @@ type Props = {
 export function RosterLists(props: Props) {
   const [dragged, setDragged] = useState<string | null>(null);
   const [over, setOver] = useState<string | null>(null);
-  const { rows, post, busy } = props;
+  const [supervisorFilter, setSupervisorFilter] = useState("todos");
+  const supervision = useSupervisoresEscala(props.supervisorScope);
+  const { post, busy } = props;
+  const matchesSupervisor = (name: string) => supervisorFilter === "todos" || (supervisorFilter === "sem-supervisor" ? !name : supervisorFilter === `nome:${name}`);
+  const groups = (["impar", "par"] as const).filter((type) => matchesSupervisor(supervision.saved[type]));
+  const rows = props.rows.filter((row) => {
+    const group = rosterGroup(row);
+    return matchesSupervisor(group === "outras" ? "" : supervision.saved[group]);
+  });
   return <div className="roster-lists">
+    <PlanilhaSupervisores {...supervision} filter={supervisorFilter} onFilterChange={setSupervisorFilter} busy={busy} />
     <div className="mb-3"><FuncaoLegenda /></div>
+    {groups.length === 0 && rows.length === 0 && <div role="status" className="mb-4 flex min-h-24 items-center justify-center rounded-lg border bg-card p-4 text-sm text-muted-foreground">Nenhuma escala encontrada para este supervisor.</div>}
     <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
-      {(["impar", "par"] as const).map((type) => <section key={type} className="min-w-0" aria-label={`Planilha ${type === "par" ? "Par" : "Ímpar"}`}>
+      {groups.map((type) => <section key={type} className="min-w-0" aria-label={`Planilha ${type === "par" ? "Par" : "Ímpar"}`}>
         <div className="flex min-h-16 items-center gap-3 border border-primary bg-primary px-4 py-3 text-primary-foreground">
           <img src={logoAsset.url} alt="Grupo Confidence" className="h-10 w-10 shrink-0 bg-card object-contain p-1" />
-          <div className="min-w-0 flex-1"><h3 className="break-words text-sm font-semibold uppercase">{post} · {type === "par" ? "Par" : "Ímpar"}</h3><span className="text-xs opacity-80">{rows.filter((r) => rosterGroup(r) === type).length} colaboradores</span></div>
+          <div className="min-w-0 flex-1"><h3 className="break-words text-sm font-semibold uppercase">{post} · {type === "par" ? "Par" : "Ímpar"}</h3><span className="text-xs opacity-80">{rows.filter((r) => rosterGroup(r) === type).length} colaboradores</span><p className="mt-1 break-words text-xs">Supervisor: {supervision.ready ? supervision.saved[type] || "Não definido" : "Carregando…"}</p></div>
         </div>
         {(["diurno", "noturno"] as const).map((turno) => {
           const list = rows.filter((r) => rosterGroup(r) === type && r.turno === turno);

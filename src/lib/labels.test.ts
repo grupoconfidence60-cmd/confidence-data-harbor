@@ -2,6 +2,26 @@ import { describe, it, expect } from "vitest";
 import { canAccess, canEditColaboradores, canEditPostos, canEditOcorrencias, canManageComunicados, canManageMateriais, canManageChecklists, canCreateInspecoes, canCreateOcorrencias, MODULE_ACCESS, type AppRole } from "./labels";
 
 describe("permissões por perfil", () => {
+  it("RH acessa os módulos de trabalho, incluindo Funções, sem administrar contas ou auditoria", () => {
+    const modules = Object.keys(MODULE_ACCESS).filter((module) => canAccess(["rh"], module)).sort();
+    expect(modules).toEqual([
+      "colaboradores", "comunicados", "documentos", "escalas", "ferias", "funcoes",
+      "inspecoes", "materiais", "ocorrencias", "painel", "ponto", "postos", "presenca",
+      "relatorios", "visitas",
+    ]);
+    expect(canAccess(["rh"], "usuarios")).toBe(false);
+    expect(canAccess(["rh"], "auditoria")).toBe(false);
+  });
+  it("administrador mantém acesso a todos os módulos", () => {
+    for (const module of Object.keys(MODULE_ACCESS)) {
+      expect(canAccess(["admin"], module)).toBe(true);
+    }
+  });
+  it("Funções continua indisponível para supervisor, colaborador e contas sem perfil", () => {
+    expect(canAccess(["supervisor"], "funcoes")).toBe(false);
+    expect(canAccess(["colaborador"], "funcoes")).toBe(false);
+    expect(canAccess([], "funcoes")).toBe(false);
+  });
   it("checklists: admin/gestor criam modelos; supervisor inspeciona; RH só consulta; colaborador sem acesso", () => {
     expect(canManageChecklists(["gestor"])).toBe(true);
     expect(canManageChecklists(["supervisor"])).toBe(false);

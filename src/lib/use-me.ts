@@ -20,5 +20,9 @@ export function useMe() {
       };
     },
     staleTime: 60_000,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: "always",
+    refetchOnReconnect: "always",
+    refetchInterval: 60_000,
   });
 }

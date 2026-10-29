@@ -16,7 +16,6 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/compone
 import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { touchLastAccess } from "@/lib/users.functions";
-import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -68,38 +67,25 @@ function Layout() {
     { label: "Administração", modules: ["usuarios", "auditoria"] },
   ];
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem("confidence-theme") === "dark";
-      setDark(saved);
-      document.documentElement.classList.toggle("dark", saved);
-    } catch {
-      setDark(document.documentElement.classList.contains("dark"));
-    }
+    const saved = localStorage.getItem("confidence-theme") === "dark";
+    setDark(saved);
+    document.documentElement.classList.toggle("dark", saved);
   }, []);
 
   useEffect(() => { touchLastAccess().catch(() => {}); }, []);
 
   async function signOut() {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      await qc.cancelQueries();
-      qc.clear();
-      await navigate({ to: "/auth", replace: true });
-    } catch {
-      toast.error("Não foi possível concluir a saída da conta. Tente novamente.");
-    }
+    await qc.cancelQueries();
+    qc.clear();
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
   }
 
   function toggleDark() {
     const next = !dark;
     setDark(next);
     document.documentElement.classList.toggle("dark", next);
-    try {
-      localStorage.setItem("confidence-theme", next ? "dark" : "light");
-    } catch {
-      toast.info("Tema aplicado, mas não foi possível salvar a preferência neste navegador.");
-    }
+    localStorage.setItem("confidence-theme", next ? "dark" : "light");
   }
 
   return (

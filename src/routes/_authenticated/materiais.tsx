@@ -43,7 +43,16 @@ function Materiais() {
   const personFor = (id: string) => data.people.find((c) => c.id === id);
   const postFor = (id: string) => data.posts.find((p) => p.id === id)?.nome ?? "Posto indisponível";
   const matches = (text: string) => text.toLocaleLowerCase("pt-BR").includes(search.toLocaleLowerCase("pt-BR"));
-  const deliveries = data.deliveries.filter((e) => (post === "todos" || e.posto_id === post) && (status === "todos" || (status === "devolvidos") === Boolean(e.data_devolucao)) && matches(`${itemFor(e.material_id)?.nome} ${personFor(e.colaborador_id)?.nome} ${personFor(e.colaborador_id)?.matricula} ${postFor(e.posto_id)}`));
+  const isTestRadio = (materialId: string) => {
+    const item = itemFor(materialId);
+    if (!item) return false;
+    const description = `${item.nome} ${item.identificacao ?? ""}`
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLocaleLowerCase("pt-BR");
+    return /\bradios?\b/.test(description) && /\btestes?\b/.test(description);
+  };
+  const deliveries = data.deliveries.filter((e) => !isTestRadio(e.material_id) && (post === "todos" || e.posto_id === post) && (status === "todos" || (status === "devolvidos") === Boolean(e.data_devolucao)) && matches(`${itemFor(e.material_id)?.nome} ${personFor(e.colaborador_id)?.nome} ${personFor(e.colaborador_id)?.matricula} ${postFor(e.posto_id)}`));
   const items = active.filter((i) => matches(`${i.nome} ${i.tamanho} ${i.identificacao}`));
   const fmt = (date: string) => new Date(`${date}T12:00:00`).toLocaleDateString("pt-BR");
   async function archive(id: string) {

@@ -40,15 +40,25 @@ function Postos() {
   const { data } = useQuery({
     queryKey: ["postos"],
     queryFn: async () => {
-      const [{ data: postos }, { data: colabs }, { data: sups }] = await Promise.all([
+      const [{ data: postos }, { data: colabs }, { data: roles }] = await Promise.all([
         supabase.from("postos").select("*").order("nome"),
         supabase.from("colaboradores").select("posto_id").eq("arquivado", false).eq("situacao", "ativo"),
-        supabase.from("user_roles").select("user_id, profiles:user_id(nome)").eq("role", "supervisor"),
+        supabase.from("user_roles").select("user_id").eq("role", "supervisor"),
       ]);
-      return { postos: postos ?? [], colabs: colabs ?? [], sups: (sups ?? []) as unknown as { user_id: string; profiles: { nome: string } | null }[] };
+      const ids = Array.from(new Set([
+        ...(roles ?? []).map((r) => r.user_id as string),
+        ...(postos ?? []).map((p) => p.supervisor_id as string | null).filter((v): v is string => Boolean(v)),
+      ]));
+      const perfis = ids.length
+        ? ((await supabase.from("profiles").select("id,nome").in("id", ids)).data ?? [])
+        : [];
+      const sups = ids
+        .map((id) => ({ user_id: id, profiles: { nome: perfis.find((p) => p.id === id)?.nome ?? "" } }))
+        .sort((a, b) => (a.profiles.nome || "Supervisor sem nome").localeCompare(b.profiles.nome || "Supervisor sem nome", "pt-BR"));
+      return { postos: postos ?? [], colabs: colabs ?? [], sups };
     },
   });
-  const supName = (id: string | null) => data?.sups.find((s) => s.user_id === id)?.profiles?.nome;
+  const supName = (id: string | null) => data?.sups.find((s) => s.user_id === id)?.profiles?.nome || undefined;
   const visiblePostos = (data?.postos ?? []).filter((posto) => {
     if (supervisorFilter === "todos") return true;
     if (supervisorFilter === "sem-supervisor") return !posto.supervisor_id;

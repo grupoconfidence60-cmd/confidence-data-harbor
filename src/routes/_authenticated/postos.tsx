@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Pencil, MapPin, Table2 } from "lucide-react";
 import { toast } from "sonner";
@@ -36,6 +36,44 @@ type Supervisor = { user_id: string; profiles: { nome: string } | null };
 
 const EMPTY: P = { nome: "", cliente: "", tipo: "Shopping", endereco: "", cidade: "", efetivo_previsto: 0, supervisor_id: "", supervisor_ids: [], ativo: true, observacoes: "", latitude: null, longitude: null, raio_metros: 150 };
 
+const SUPERVISORES_LOCAIS = "confidence:postos:supervisores";
+const SUPERVISORES_EVENTO = "confidence:postos:supervisores-atualizados";
+
+function lerSupervisoresLocais(): Record<string, string[]> {
+  const raw = window.localStorage.getItem(SUPERVISORES_LOCAIS);
+  if (!raw) return {};
+  const parsed: unknown = JSON.parse(raw);
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error("Seleções locais inválidas.");
+  }
+  const entries = Object.entries(parsed);
+  if (entries.some(([, ids]) => !Array.isArray(ids) || !ids.every((id) => typeof id === "string"))) {
+    throw new Error("Seleções locais inválidas.");
+  }
+  return Object.fromEntries(entries) as Record<string, string[]>;
+}
+
+function useSupervisoresLocais() {
+  const [selecoes, setSelecoes] = useState<Record<string, string[]>>({});
+  useEffect(() => {
+    const carregar = () => {
+      try { setSelecoes(lerSupervisoresLocais()); }
+      catch { toast.error("Não foi possível ler os supervisores salvos neste navegador."); }
+    };
+    const sincronizar = (event: StorageEvent) => {
+      if (event.key === SUPERVISORES_LOCAIS || event.key === null) carregar();
+    };
+    carregar();
+    window.addEventListener(SUPERVISORES_EVENTO, carregar);
+    window.addEventListener("storage", sincronizar);
+    return () => {
+      window.removeEventListener(SUPERVISORES_EVENTO, carregar);
+      window.removeEventListener("storage", sincronizar);
+    };
+  }, []);
+  return selecoes;
+}
+
 function idsSupervisores(p: { supervisor_id: string | null; supervisor_ids?: string[] | null }): string[] {
   const varios = (p.supervisor_ids ?? []).filter((v): v is string => Boolean(v));
   if (varios.length) return varios;
@@ -64,6 +102,7 @@ function paraFormulario(p: PostoRow): P {
 
 function Postos() {
   const { data: me } = useMe();
+  const supervisoresLocais = useSupervisoresLocais();
   const canEdit = canEditPostos(me?.roles ?? []);
   const [editing, setEditing] = useState<P | null>(null);
   const [supervisorFilter, setSupervisorFilter] = useState("todos");
@@ -93,7 +132,10 @@ function Postos() {
     (id ? data?.sups.find((s) => s.user_id === id)?.profiles?.nome : "") || undefined;
   const nomesSupervisores = (p: PostoRow) =>
     idsSupervisores(p).map((id) => nomeSupervisor(id)).filter((n): n is string => Boolean(n));
-  const postosVisiveis = (data?.postos ?? []).filter((posto) => {
+  const postosVisiveis = (data?.postos ?? []).map((posto) => {
+    const ids = supervisoresLocais[posto.id];
+    return ids === undefined ? posto : { ...posto, supervisor_ids: ids, supervisor_id: ids[0] ?? null };
+  }).filter((posto) => {
     if (supervisorFilter === "todos") return true;
     const ids = idsSupervisores(posto);
     if (supervisorFilter === "sem-supervisor") return ids.length === 0;
@@ -138,6 +180,7 @@ function Postos() {
                     <div className="min-w-0 text-sm">
                       <div className="text-muted-foreground">{nomes.length > 1 ? "Supervisores" : "Supervisor"}</div>
                       <div className="break-words">{nomes.length ? nomes.join(", ") : "Não definido"}</div>
+                      {supervisoresLocais[p.id] !== undefined && <p className="mt-1 text-xs text-muted-foreground">Supervisão salva neste navegador</p>}
                     </div>
                     <div className={`shrink-0 text-right font-display text-2xl font-semibold ${low ? "text-warning" : ""}`}>{n}<span className="text-sm text-muted-foreground">/{p.efetivo_previsto}</span></div>
                   </div>
@@ -182,6 +225,28 @@ function PostoDialog({ value, sups, onClose }: { value: P; sups: Supervisor[]; o
   async function save(e: React.FormEvent) {
     e.preventDefault();
     const ids = f.supervisor_ids ?? [];
+    const outrosCamposAlterados = (Object.keys(value) as (keyof P)[]).some((key) =>
+      key !== "supervisor_ids" && key !== "supervisor_id" && f[key] !== value[key]
+    );
+    if (f.id && !outrosCamposAlterados) {
+      try {
+        const selecoes = lerSupervisoresLocais();
+        selecoes[f.id] = Array.from(new Set(ids));
+        window.localStorage.setItem(SUPERVISORES_LOCAIS, JSON.stringify(selecoes));
+        window.dispatchEvent(new Event(SUPERVISORES_EVENTO));
+        toast.success(`${ids.length} supervisor(es) salvo(s) para este posto neste navegador.`);
+        onClose();
+      } catch {
+        toast.error("Não foi possível salvar neste navegador. Sua seleção foi mantida; verifique se o armazenamento local está permitido.");
+      }
+      return;
+    }
+    if (ids.length !== value.supervisor_ids.length || ids.some((id, index) => id !== value.supervisor_ids[index])) {
+      toast.error(f.id
+        ? "Salve a supervisão separadamente: reabra a edição e altere apenas os supervisores. Os outros dados deste formulário ainda não foram salvos."
+        : "Cadastre o posto primeiro, sem supervisores. Depois, edite apenas a supervisão para salvar os responsáveis neste navegador.");
+      return;
+    }
     const base = { nome: f.nome.trim(), cliente: f.cliente || null, tipo: f.tipo || null, endereco: f.endereco || null, cidade: f.cidade || null,
       efetivo_previsto: Math.max(0, Number(f.efetivo_previsto) || 0), supervisor_id: ids[0] ?? null, ativo: f.ativo, observacoes: f.observacoes || null,
       latitude: f.latitude, longitude: f.longitude, raio_metros: Math.max(20, Number(f.raio_metros) || 150) };
@@ -224,7 +289,7 @@ function PostoDialog({ value, sups, onClose }: { value: P; sups: Supervisor[]; o
               })}
             </div>
             <p role="status" aria-live="polite" className="text-sm font-medium text-foreground">{f.supervisor_ids.length} supervisor(es) selecionado(s)</p>
-            <p className="text-xs text-muted-foreground">Você pode marcar dois ou mais supervisores para o mesmo posto. Marcar outro nome mantém os anteriores selecionados; o primeiro marcado é o responsável principal. Clique em Salvar para gravar as alterações.</p>
+            <p className="text-xs text-muted-foreground">Marque os dois supervisores e clique em Salvar. Para um posto já cadastrado, altere somente os supervisores nesta edição: a seleção será salva neste navegador para este posto, sem alterar permissões de acesso. Outros dados do posto devem ser editados separadamente.</p>
           </div>
           <div className="flex items-center gap-2 pt-6"><Switch checked={f.ativo} onCheckedChange={(v) => setF({ ...f, ativo: v })} /><Label>Posto ativo</Label></div>
           <div className="space-y-1.5"><Label>Raio permitido p/ ponto (metros)</Label>

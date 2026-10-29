@@ -9,7 +9,7 @@ export type FuncaoTom =
 
 const norm = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
-/** Vigia cinza · Intermitente (vigia ou bombeiro) laranja · Vigilante azul · Bombeiro vermelho · Assistente Administrativo preto · Supervisor cinza escuro. */
+/** Vigia cinza · Intermitente (vigia ou bombeiro) laranja · Vigilante azul · Bombeiro vermelho · Assistente Administrativo preto · Supervisor marrom. */
 export function funcaoTom(nome: string | null | undefined): FuncaoTom {
   const n = norm(nome ?? "");
   if (/\bassistente\s+administrativo\b/.test(n)) return "administrativo";
@@ -27,7 +27,7 @@ export const FUNCAO_CLASSES: Record<FuncaoTom, string> = {
   vigilante: "bg-funcao-vigilante text-primary-foreground",
   bombeiro: "bg-funcao-bombeiro text-primary-foreground",
   administrativo: "bg-black text-white",
-  supervisor: "bg-neutral-700 text-white",
+  supervisor: "bg-[#6b4423] text-white",
   outra: "bg-muted text-muted-foreground",
 };
 export const FUNCAO_BORDA: Record<FuncaoTom, string> = {
@@ -36,6 +36,6 @@ export const FUNCAO_BORDA: Record<FuncaoTom, string> = {
   vigilante: "border-l-4 border-l-funcao-vigilante",
   bombeiro: "border-l-4 border-l-funcao-bombeiro",
   administrativo: "border-l-4 border-l-black",
-  supervisor: "border-l-4 border-l-neutral-700",
+  supervisor: "border-l-4 border-l-[#6b4423]",
   outra: "",
 };

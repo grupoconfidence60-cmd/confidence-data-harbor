@@ -19,10 +19,10 @@ import { FUNCAO_BORDA, FUNCAO_CLASSES, funcaoTom } from "./funcao-cores";
     expect(FUNCAO_BORDA.administrativo).toBe("border-l-4 border-l-black");
   });
 
-  it("usa cinza escuro para supervisor", () => {
+  it("usa marrom para supervisor", () => {
     expect(funcaoTom("Supervisor")).toBe("supervisor");
     expect(funcaoTom("SUPERVISOR OPERACIONAL")).toBe("supervisor");
-    expect(FUNCAO_CLASSES.supervisor).toContain("bg-neutral-700");
-    expect(FUNCAO_BORDA.supervisor).toContain("border-l-neutral-700");
+    expect(FUNCAO_CLASSES.supervisor).toContain("bg-[#6b4423]");
+    expect(FUNCAO_BORDA.supervisor).toContain("border-l-[#6b4423]");
   });
 });

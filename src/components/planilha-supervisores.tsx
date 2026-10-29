@@ -60,15 +60,27 @@ export function PlanilhaSupervisores({ saved, save, ready, storageError, filter,
 }) {
   const [draft, setDraft] = useState(saved);
   useEffect(() => { setDraft(saved); }, [saved]);
-  const names = Array.from(new Set([saved.impar, saved.par].filter(Boolean))).sort((a, b) => a.localeCompare(b, "pt-BR"));
+  const names = Array.from(new Set([saved.impar, saved.par, "Janilson"].filter(Boolean))).sort((a, b) => a.localeCompare(b, "pt-BR"));
+  const options = Array.from(new Set([...names, draft.impar.trim(), draft.par.trim()].filter(Boolean))).sort((a, b) => a.localeCompare(b, "pt-BR"));
   const changed = draft.impar.trim() !== saved.impar || draft.par.trim() !== saved.par;
 
   return <section className="mb-5 rounded-lg border bg-card p-4 text-card-foreground" aria-label="Supervisores das escalas">
     <h3 className="text-sm font-semibold">Supervisores · Par e Ímpar</h3>
     <p className="mt-1 text-xs text-muted-foreground">Informe os nomes dos responsáveis deste mês. Salvos somente neste navegador; não alteram permissões de acesso e não são incluídos no Excel.</p>
     <div className="mt-4 grid items-end gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      <div className="space-y-2"><Label htmlFor="supervisor-escala-impar">Supervisor da escala Ímpar</Label><Input id="supervisor-escala-impar" placeholder="Nome do supervisor" maxLength={120} disabled={!ready || busy} value={draft.impar} onChange={(event) => setDraft({ ...draft, impar: event.target.value })} /></div>
-      <div className="space-y-2"><Label htmlFor="supervisor-escala-par">Supervisor da escala Par</Label><Input id="supervisor-escala-par" placeholder="Nome do supervisor" maxLength={120} disabled={!ready || busy} value={draft.par} onChange={(event) => setDraft({ ...draft, par: event.target.value })} /></div>
+      {(["impar", "par"] as const).map((type) => (
+        <div key={type} className="space-y-2">
+          <Label htmlFor={`supervisor-escala-${type}-selecao`}>Supervisor da escala {type === "impar" ? "Ímpar" : "Par"}</Label>
+          <Select value={draft[type].trim() ? `nome:${draft[type].trim()}` : "sem-supervisor"} disabled={!ready || busy} onValueChange={(value) => setDraft((prev) => ({ ...prev, [type]: value === "sem-supervisor" ? "" : value.slice(5) }))}>
+            <SelectTrigger id={`supervisor-escala-${type}-selecao`} className="w-full"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="sem-supervisor">Sem supervisor definido</SelectItem>
+              {options.map((name) => <SelectItem key={name} value={`nome:${name}`}>{name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Input id={`supervisor-escala-${type}`} aria-label={`Digitar nome do supervisor da escala ${type === "impar" ? "Ímpar" : "Par"}`} placeholder="Ou digite outro nome" maxLength={120} disabled={!ready || busy} value={draft[type]} onChange={(event) => setDraft({ ...draft, [type]: event.target.value })} />
+        </div>
+      ))}
       <Button type="button" disabled={!ready || busy || !changed} onClick={() => { save(draft); onFilterChange("todos"); }}>Salvar supervisores</Button>
       <div className="space-y-2"><Label htmlFor="supervisor-escala-filtro">Filtrar por supervisor</Label><Select value={filter} disabled={!ready || busy} onValueChange={onFilterChange}><SelectTrigger id="supervisor-escala-filtro" className="w-full"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="todos">Todos os supervisores</SelectItem><SelectItem value="sem-supervisor">Sem supervisor definido</SelectItem>{names.map((name) => <SelectItem key={name} value={`nome:${name}`}>{name}</SelectItem>)}</SelectContent></Select></div>
     </div>

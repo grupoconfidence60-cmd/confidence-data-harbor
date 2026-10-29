@@ -225,11 +225,16 @@ function PostoDialog({ value, sups, onClose }: { value: P; sups: Supervisor[]; o
   async function localizar() {
     if (!f.endereco.trim()) { toast.error("Preencha o endereço para localizar."); return; }
     setLocalizando(true);
-    const r = await geocodeEndereco({ data: { endereco: f.endereco, cidade: f.cidade } });
-    setLocalizando(false);
-    if (!r) { toast.error("Endereço não encontrado. Confira o endereço e a cidade."); return; }
-    setF((prev) => ({ ...prev, latitude: r.lat, longitude: r.lng }));
-    toast.success("Localização encontrada: " + r.descricao);
+    try {
+      const r = await geocodeEndereco({ data: { endereco: f.endereco, cidade: f.cidade } });
+      if (!r) { toast.error("Endereço não encontrado. Confira o endereço e a cidade."); return; }
+      setF((prev) => ({ ...prev, latitude: r.lat, longitude: r.lng }));
+      toast.success("Localização encontrada: " + r.descricao);
+    } catch {
+      toast.error("Não foi possível localizar o endereço agora. Tente novamente.");
+    } finally {
+      setLocalizando(false);
+    }
   }
   async function save(e: React.FormEvent) {
     e.preventDefault();

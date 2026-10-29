@@ -67,7 +67,12 @@ function Layout() {
     { label: "Administração", modules: ["usuarios", "auditoria"] },
   ];
   useEffect(() => {
-    const saved = localStorage.getItem("confidence-theme") === "dark";
+    let saved = false;
+    try {
+      saved = localStorage.getItem("confidence-theme") === "dark";
+    } catch {
+      // O navegador pode bloquear o armazenamento; o tema apenas não é lembrado.
+    }
     setDark(saved);
     document.documentElement.classList.toggle("dark", saved);
   }, []);
@@ -75,9 +80,13 @@ function Layout() {
   useEffect(() => { touchLastAccess().catch(() => {}); }, []);
 
   async function signOut() {
-    await qc.cancelQueries();
-    qc.clear();
-    await supabase.auth.signOut();
+    try {
+      await qc.cancelQueries();
+      qc.clear();
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error("Não foi possível encerrar a sessão neste navegador.", error);
+    }
     navigate({ to: "/auth", replace: true });
   }
 
@@ -85,7 +94,11 @@ function Layout() {
     const next = !dark;
     setDark(next);
     document.documentElement.classList.toggle("dark", next);
-    localStorage.setItem("confidence-theme", next ? "dark" : "light");
+    try {
+      localStorage.setItem("confidence-theme", next ? "dark" : "light");
+    } catch {
+      // Sem armazenamento disponível o tema vale apenas para esta visita.
+    }
   }
 
   return (

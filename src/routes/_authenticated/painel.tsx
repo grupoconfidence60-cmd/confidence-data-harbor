@@ -109,23 +109,23 @@ function Painel() {
   }
 
   return (
-    <div>
-      <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
+    <div className="painel-dashboard dark min-h-screen rounded-2xl border border-border bg-background p-4 text-foreground shadow-xl sm:p-6 lg:p-8">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-5 rounded-xl border border-border bg-gradient-to-br from-accent to-card p-5 sm:p-6">
         <div><div className="section-label mb-2">Central de operações</div><h1 className="text-2xl font-semibold md:text-3xl">Olá, {me?.profile?.nome?.split(" ")[0] ?? ""}<span className="text-primary">.</span></h1><p className="mt-2 text-sm text-muted-foreground">Acompanhe o dia a dia da Confidence.</p></div>
         <div className="flex items-center gap-3"><span className="flex items-center gap-2 text-xs text-muted-foreground"><CalendarDays className="h-4 w-4" />{new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}</span><Button variant="outline" size="icon" aria-label="Atualizar painel" title="Atualizar painel" disabled={isFetching} onClick={() => qc.invalidateQueries({ queryKey: ["painel"] })}><RefreshCw className={isFetching ? "animate-spin" : ""} /></Button></div>
       </div>
       <div className="mb-6 flex flex-wrap items-center gap-2">{shortcuts.filter((n) => canAccess(roles, n.module)).map((n) => <Button key={n.to} variant="outline" size="sm" asChild><Link to={n.to}><n.icon />{n.label}<ArrowRight className="ml-2" /></Link></Button>)}</div>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{kpis.slice(0, 4).map(renderMetric)}</div>
-      <section className="mt-6 border-y bg-card px-5 py-4" aria-label="Resumo operacional">
-        <div className="section-label mb-4">Resumo operacional</div>
+      <section className="mt-6 rounded-xl border border-border bg-card p-5 sm:p-6" aria-label="Resumo operacional">
+        <div className="section-label mb-5">Resumo operacional</div>
         <div className="grid grid-cols-2 gap-x-5 gap-y-5 sm:grid-cols-3 xl:grid-cols-7">{kpis.slice(4).map((k, i) => {
           const content = <><k.icon className={k.alert ? "mb-2 h-4 w-4 text-warning" : "mb-2 h-4 w-4 text-muted-foreground"} /><div className="text-xl font-semibold tabular-nums">{isPending ? "—" : k.value}</div><div className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{k.label}</div></>;
           const target = metricTargets[i + 4];
           return target && canAccess(roles, metricModules[i + 4] ?? "") ? <Link key={k.label} to={target} className="min-w-0 rounded-sm transition-colors hover:text-primary">{content}</Link> : <div key={k.label}>{content}</div>;
         })}</div>
       </section>
-      <div className="mt-8 grid gap-x-7 gap-y-6 xl:grid-cols-3">
-        <Card className="panel-section xl:col-span-2">
+      <div className="mt-6 grid gap-5 xl:grid-cols-3">
+        <Card className="panel-section min-w-0 xl:col-span-2">
           <CardHeader className="px-0 pb-5 pt-0"><div className="section-label mb-2">Distribuição da equipe</div><div className="flex flex-wrap items-center justify-between gap-3"><CardTitle className="text-base">Efetivo por posto</CardTitle><div className="flex gap-4 text-[10px] text-muted-foreground"><span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm bg-chart-1" />Alocados</span><span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm bg-chart-2" />Previsto</span></div></div></CardHeader>
           <CardContent className="h-64 p-0">
             {porPosto.length === 0 ? (
@@ -144,7 +144,7 @@ function Painel() {
             )}
           </CardContent>
         </Card>
-        <Card className="panel-section">
+        <Card className="panel-section min-w-0">
           <CardHeader className="px-0 pb-5 pt-0"><div className="section-label mb-2">Últimos 7 dias</div><CardTitle className="text-base">Presenças e faltas</CardTitle><div className="mt-2 flex gap-3 text-[10px] text-muted-foreground"><span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm bg-chart-1" />Presentes</span><span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm bg-chart-4" />Faltas</span></div></CardHeader>
           <CardContent className="h-64 p-0">
             <ResponsiveContainer width="100%" height="100%">

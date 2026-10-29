@@ -162,6 +162,68 @@
 @keyframes workspace-enter { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
 
+/* Paleta e superfícies exclusivas do painel operacional. */
+.painel-dashboard {
+  color-scheme: dark;
+  --background: #09172e;
+  --foreground: #edf4ff;
+  --card: #10233f;
+  --card-foreground: #edf4ff;
+  --popover: #142b4b;
+  --popover-foreground: #edf4ff;
+  --primary: #82b9ff;
+  --primary-foreground: #09172e;
+  --secondary: #1b3456;
+  --secondary-foreground: #edf4ff;
+  --muted: #192f4e;
+  --muted-foreground: #b0c3df;
+  --accent: #1b3b64;
+  --accent-foreground: #edf4ff;
+  --border: #2a4263;
+  --input: #365377;
+  --ring: #82b9ff;
+  --success: #6ee7b7;
+  --warning: #fbbf62;
+  --destructive: #fb8590;
+  --destructive-foreground: #09172e;
+  --chart-1: #82b9ff;
+  --chart-2: #38c9dc;
+  --chart-3: #6ee7b7;
+  --chart-4: #fb8590;
+  --chart-5: #c0a7ff;
+  --workspace-shadow: 0 8px 24px rgb(0 7 20 / 18%);
+}
+.workspace .painel-dashboard .metric {
+  border-radius: 0.875rem;
+  background-image: linear-gradient(145deg, var(--card), var(--background));
+}
+.workspace .painel-dashboard .panel-section {
+  min-width: 0;
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 0.875rem;
+  background: var(--card);
+  box-shadow: var(--workspace-shadow);
+}
+.workspace .painel-dashboard .section-label {
+  color: var(--primary);
+  letter-spacing: 0.1em;
+}
+.workspace .painel-dashboard .chart-tooltip {
+  color: var(--popover-foreground);
+}
+.painel-dashboard .recharts-tooltip-label {
+  color: var(--popover-foreground);
+}
+.painel-dashboard .recharts-tooltip-cursor {
+  fill: var(--accent);
+  fill-opacity: 0.35;
+}
+.painel-dashboard a:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+
 /* Tela de entrada */
 .auth-grid { background-image: linear-gradient(color-mix(in oklab, var(--primary-foreground) 8%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in oklab, var(--primary-foreground) 8%, transparent) 1px, transparent 1px); background-size: 40px 40px; mask-image: radial-gradient(circle at center, black 30%, transparent 80%); }
 .auth-scan { background: linear-gradient(to bottom, transparent, color-mix(in oklab, var(--primary-foreground) 10%, transparent), transparent); animation: auth-scan 6s linear infinite; }

@@ -36,6 +36,7 @@ function Postos() {
   const { data: me } = useMe();
   const canEdit = canEditPostos(me?.roles ?? []);
   const [editing, setEditing] = useState<P | null>(null);
+  const [supervisorFilter, setSupervisorFilter] = useState("todos");
   const { data } = useQuery({
     queryKey: ["postos"],
     queryFn: async () => {
@@ -48,14 +49,36 @@ function Postos() {
     },
   });
   const supName = (id: string | null) => data?.sups.find((s) => s.user_id === id)?.profiles?.nome;
+  const visiblePostos = (data?.postos ?? []).filter((posto) => {
+    if (supervisorFilter === "todos") return true;
+    if (supervisorFilter === "sem-supervisor") return !posto.supervisor_id;
+    return posto.supervisor_id === supervisorFilter;
+  });
 
   return (
     <div>
       <PageHeader title="Postos de serviço" description="Locais atendidos, efetivo e supervisão"
         actions={canEdit && <Button onClick={() => setEditing(EMPTY)}><Plus className="mr-1 h-4 w-4" />Novo posto</Button>} />
-      {!data?.postos.length ? <EmptyState text="Nenhum posto cadastrado." /> : (
+      <div className="mb-5 flex flex-wrap items-end gap-3 rounded-lg border bg-card p-4 text-card-foreground">
+        <div className="w-full space-y-2 sm:w-72">
+          <Label htmlFor="postos-supervisor">Supervisor dos postos</Label>
+          <Select value={supervisorFilter} onValueChange={setSupervisorFilter}>
+            <SelectTrigger id="postos-supervisor" className="w-full"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos os supervisores</SelectItem>
+              <SelectItem value="sem-supervisor">Sem supervisor definido</SelectItem>
+              {(data?.sups ?? []).map((supervisor) => (
+                <SelectItem key={supervisor.user_id} value={supervisor.user_id}>{supervisor.profiles?.nome || "Supervisor sem nome"}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {supervisorFilter !== "todos" && <Button variant="outline" onClick={() => setSupervisorFilter("todos")}>Limpar filtro</Button>}
+        {data && <p role="status" className="py-2 text-sm text-muted-foreground">{visiblePostos.length} de {data.postos.length} posto(s)</p>}
+      </div>
+      {!data?.postos.length ? <EmptyState text="Nenhum posto cadastrado." /> : !visiblePostos.length ? <EmptyState text="Nenhum posto encontrado para o supervisor selecionado." /> : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {data.postos.map((p) => {
+          {visiblePostos.map((p) => {
             const n = data.colabs.filter((c) => c.posto_id === p.id).length;
             const low = n < p.efetivo_previsto;
             return (

@@ -38,6 +38,7 @@ const EMPTY: P = { nome: "", cliente: "", tipo: "Shopping", endereco: "", cidade
 
 const SUPERVISORES_LOCAIS = "confidence:postos:supervisores";
 const SUPERVISORES_EVENTO = "confidence:postos:supervisores-atualizados";
+const JANILSON_LOCAL_ID = "local:janilson-da-paz";
 
 function lerSupervisoresLocais(): Record<string, string[]> {
   const raw = window.localStorage.getItem(SUPERVISORES_LOCAIS);
@@ -128,8 +129,16 @@ function Postos() {
       return { postos: linhas, colabs: colabs ?? [], sups };
     },
   });
+  const supervisores: Supervisor[] = (data?.sups ?? []).map((supervisor) => ({
+    ...supervisor,
+    profiles: { nome: /^janilson(?:\s|$)/i.test(supervisor.profiles.nome.trim()) ? "Janilson da Paz" : supervisor.profiles.nome },
+  }));
+  if (!supervisores.some((supervisor) => supervisor.profiles?.nome === "Janilson da Paz")) {
+    supervisores.push({ user_id: JANILSON_LOCAL_ID, profiles: { nome: "Janilson da Paz" } });
+  }
+  supervisores.sort((a, b) => (a.profiles?.nome || "Supervisor sem nome").localeCompare(b.profiles?.nome || "Supervisor sem nome", "pt-BR"));
   const nomeSupervisor = (id: string | null | undefined) =>
-    (id ? data?.sups.find((s) => s.user_id === id)?.profiles?.nome : "") || undefined;
+    id === JANILSON_LOCAL_ID ? "Janilson da Paz" : (id ? supervisores.find((s) => s.user_id === id)?.profiles?.nome : "") || undefined;
   const nomesSupervisores = (p: PostoRow) =>
     idsSupervisores(p).map((id) => nomeSupervisor(id)).filter((n): n is string => Boolean(n));
   const postosVisiveis = (data?.postos ?? []).map((posto) => {
@@ -154,7 +163,7 @@ function Postos() {
             <SelectContent>
               <SelectItem value="todos">Todos os supervisores</SelectItem>
               <SelectItem value="sem-supervisor">Sem supervisor definido</SelectItem>
-              {(data?.sups ?? []).map((supervisor) => (
+              {supervisores.map((supervisor) => (
                 <SelectItem key={supervisor.user_id} value={supervisor.user_id}>{supervisor.profiles?.nome || "Supervisor sem nome"}</SelectItem>
               ))}
             </SelectContent>
@@ -195,7 +204,7 @@ function Postos() {
           })}
         </div>
       )}
-      {editing && <PostoDialog value={editing} sups={data?.sups ?? []} onClose={() => setEditing(null)} />}
+      {editing && <PostoDialog value={editing} sups={editing.supervisor_ids.includes(JANILSON_LOCAL_ID) ? supervisores.filter((s) => s.profiles?.nome !== "Janilson da Paz").concat({ user_id: JANILSON_LOCAL_ID, profiles: { nome: "Janilson da Paz" } }) : supervisores} onClose={() => setEditing(null)} />}
     </div>
   );
 }
@@ -228,6 +237,10 @@ function PostoDialog({ value, sups, onClose }: { value: P; sups: Supervisor[]; o
     const outrosCamposAlterados = (Object.keys(value) as (keyof P)[]).some((key) =>
       key !== "supervisor_ids" && key !== "supervisor_id" && f[key] !== value[key]
     );
+    if (outrosCamposAlterados && ids.includes(JANILSON_LOCAL_ID)) {
+      toast.error("Janilson da Paz está disponível como opção local. Salve somente a supervisão nesta edição; os demais dados não foram salvos.");
+      return;
+    }
     if (f.id && !outrosCamposAlterados) {
       try {
         const selecoes = lerSupervisoresLocais();

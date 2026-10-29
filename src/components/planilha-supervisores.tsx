@@ -59,7 +59,7 @@ export function PlanilhaSupervisores({ saved, save, ready, storageError, filter,
 }) {
   const [draft, setDraft] = useState(saved);
   useEffect(() => { setDraft(saved); }, [saved]);
-  const names = Array.from(new Set([saved.impar, saved.par, "Janilson"].filter(Boolean))).sort((a, b) => a.localeCompare(b, "pt-BR"));
+  const names = Array.from(new Set([saved.impar, saved.par, "Edvilson", "Janilson da Paz", "William"].filter(Boolean))).sort((a, b) => a.localeCompare(b, "pt-BR"));
   const options = Array.from(new Set([...names, draft.impar.trim(), draft.par.trim()].filter(Boolean))).sort((a, b) => a.localeCompare(b, "pt-BR"));
   const changed = draft.impar.trim() !== saved.impar || draft.par.trim() !== saved.par;
 

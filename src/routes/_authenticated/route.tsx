@@ -20,8 +20,13 @@ import { touchLastAccess } from "@/lib/users.functions";
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: async () => {
-    const { data } = await supabase.auth.getUser();
-    if (!data.user) throw redirect({ to: "/auth" });
+    // Tolerante a falhas de armazenamento/rede (comum no Safari do iPhone):
+    // sem usuário válido, volta para o login em vez de quebrar a página.
+    const user = await supabase.auth.getUser().then(
+      ({ data }) => data.user,
+      () => null,
+    );
+    if (!user) throw redirect({ to: "/auth" });
   },
   component: Layout,
 });

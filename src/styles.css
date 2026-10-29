@@ -99,6 +99,47 @@
   --gradient-brand: linear-gradient(135deg, oklch(0.25 0.09 258), oklch(0.4 0.14 255) 60%, oklch(0.55 0.16 250));
 }
 
+/* Cores de reserva para iPhones/navegadores que ainda não suportam oklch(). */
+@supports not (color: oklch(0 0 0)) {
+  :root {
+    --background: #f7f8fa;
+    --foreground: #232a33;
+    --card: #ffffff;
+    --card-foreground: #1b2531;
+    --popover: #ffffff;
+    --popover-foreground: #1b2531;
+    --primary: #2a5bd7;
+    --primary-foreground: #f8fafc;
+    --secondary: #eceff3;
+    --secondary-foreground: #23303f;
+    --muted: #f0f2f5;
+    --muted-foreground: #64707d;
+    --accent: #e8eef8;
+    --accent-foreground: #1d3a6e;
+    --brand-accent: #2f6fd0;
+    --brand-accent-foreground: #f8fafc;
+    --success: #2f855a;
+    --warning: #b7791f;
+    --destructive: #c0392b;
+    --destructive-foreground: #ffffff;
+    --border: #e2e5ea;
+    --input: #e2e5ea;
+    --ring: #33507a;
+    --chart-1: #33466b;
+    --chart-2: #2f6fd0;
+    --chart-3: #2f855a;
+    --chart-4: #c0392b;
+    --chart-5: #6b7a8c;
+    --sidebar: #ffffff;
+    --sidebar-foreground: #5b6673;
+    --sidebar-accent: #eef2f8;
+    --sidebar-accent-foreground: #2a5bd7;
+    --sidebar-border: #e2e5ea;
+    --sidebar-ring: #2f6fd0;
+    --gradient-brand: linear-gradient(135deg, #102b50, #1e3a5f 60%, #2f6fd0);
+  }
+}
+
 .dark {
   --background: oklch(0.17 0.03 258);
   --foreground: oklch(0.95 0.008 250);
@@ -126,12 +167,18 @@
 
 @layer base {
   * { border-color: var(--color-border); }
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
+    -webkit-tap-highlight-color: transparent;
   }
   h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: 0; }
+  img, svg, video, canvas { max-width: 100%; }
 }
 
 @utility bg-brand { background-image: var(--gradient-brand); }

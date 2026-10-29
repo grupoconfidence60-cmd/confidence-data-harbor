@@ -30,10 +30,30 @@ function AuthPage() {
   const [form, setForm] = useState({ nome: "", email: "", password: "" });
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/painel", replace: true });
-    });
-    supabase.rpc("system_initialized").then(({ data }) => setInitialized(!!data));
+    let active = true;
+    try {
+      supabase.auth
+        .getSession()
+        .then(({ data }) => {
+          if (active && data.session) navigate({ to: "/painel", replace: true });
+        })
+        .catch(() => undefined);
+      // Se a checagem falhar (armazenamento bloqueado no iPhone, rede instável),
+      // libera o login em vez de deixar o botão desabilitado para sempre.
+      supabase
+        .rpc("system_initialized")
+        .then(({ data }) => {
+          if (active) setInitialized(!!data);
+        })
+        .catch(() => {
+          if (active) setInitialized(true);
+        });
+    } catch {
+      setInitialized(true);
+    }
+    return () => {
+      active = false;
+    };
   }, [navigate]);
 
   async function submit(e: React.FormEvent) {

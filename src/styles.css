@@ -139,8 +139,46 @@
 .workspace { --workspace-shadow: 0 4px 18px color-mix(in oklab, var(--foreground) 4%, transparent); }
 .workspace [data-sidebar="sidebar"] { border-right: 1px solid var(--sidebar-border); }
 .workspace [data-sidebar="menu-button"] { height: 37px; gap: 11px; font-size: 12px; font-weight: 500; transition: background 160ms, color 160ms; }
-.workspace [data-sidebar="menu-button"][data-active="true"] { background: var(--primary); color: var(--primary-foreground); }
+.workspace [data-sidebar="menu-button"][data-active="true"] { background: var(--sidebar-primary); color: var(--sidebar-primary-foreground); }
 .workspace [data-sidebar="group-label"] { font-size: 10px; font-weight: 600; }
+
+/* Navegação corporativa, incluindo o menu móvel. */
+[data-sidebar="sidebar"] [data-sidebar="content"] {
+  --sidebar-foreground: #f1f5f9;
+  --sidebar-primary: #2563eb;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1e3a5f;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-ring: #93c5fd;
+  background-color: #102b50;
+  color: var(--sidebar-foreground);
+}
+[data-sidebar="sidebar"] [data-sidebar="content"] [data-sidebar="group-label"] {
+  color: #cbd5e1;
+  font-size: 10px;
+  font-weight: 600;
+}
+[data-sidebar="sidebar"] [data-sidebar="content"] [data-sidebar="menu-button"] {
+  height: 37px;
+  gap: 11px;
+  color: var(--sidebar-foreground);
+  font-size: 12px;
+  font-weight: 500;
+  transition: background 160ms, color 160ms;
+}
+[data-sidebar="sidebar"] [data-sidebar="content"] [data-sidebar="menu-button"]:hover {
+  background-color: var(--sidebar-accent);
+  color: var(--sidebar-accent-foreground);
+}
+[data-sidebar="sidebar"] [data-sidebar="content"] [data-sidebar="menu-button"][data-active="true"] {
+  background-color: var(--sidebar-primary);
+  color: var(--sidebar-primary-foreground);
+  box-shadow: inset 3px 0 0 #cbd5e1;
+}
+[data-sidebar="sidebar"] [data-sidebar="content"] [data-sidebar="menu-button"]:focus-visible {
+  outline: 2px solid var(--sidebar-ring);
+  outline-offset: 2px;
+}
 .workspace main { animation: workspace-enter 250ms ease-out; }
 .workspace main input, .workspace main select, .workspace main textarea { background-color: var(--card); }
 .workspace main thead { background-color: var(--muted); }

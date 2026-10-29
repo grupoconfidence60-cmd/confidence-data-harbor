@@ -120,6 +120,13 @@
       "when": 1793035872783,
       "tag": "0016_material_movimentacoes",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1793035872784,
+      "tag": "0017_posto_multiplos_supervisores",
+      "breakpoints": true
     }
   ]
 }

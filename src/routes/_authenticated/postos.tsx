@@ -188,13 +188,13 @@ function PostoDialog({ value, sups, onClose }: { value: P; sups: Supervisor[]; o
     const gravar = (payload: Record<string, unknown>) => f.id
       ? supabase.from("postos").update(payload as never).eq("id", f.id)
       : supabase.from("postos").insert(payload as never);
-    let { error } = await gravar({ ...base, supervisor_ids: ids });
-    if (error && /supervisor_ids/i.test(error.message)) {
-      const retry = await gravar(base);
-      error = retry.error;
-      if (!error && ids.length > 1) toast.warning("Salvo com apenas um supervisor: a lista de vários supervisores ainda não está disponível no banco.");
+    const { error } = await gravar({ ...base, supervisor_ids: ids });
+    if (error) {
+      toast.error(/supervisor_ids/i.test(error.message)
+        ? "Não foi possível salvar os supervisores. O armazenamento de múltiplos responsáveis precisa ser habilitado. Sua seleção foi mantida neste formulário."
+        : error.message);
+      return;
     }
-    if (error) { toast.error(error.message); return; }
     toast.success("Posto salvo.");
     qc.invalidateQueries();
     onClose();

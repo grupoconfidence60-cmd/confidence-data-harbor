@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -78,7 +77,6 @@ export function PlanilhaSupervisores({ saved, save, ready, storageError, filter,
               {options.map((name) => <SelectItem key={name} value={`nome:${name}`}>{name}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Input id={`supervisor-escala-${type}`} aria-label={`Digitar nome do supervisor da escala ${type === "impar" ? "Ímpar" : "Par"}`} placeholder="Ou digite outro nome" maxLength={120} disabled={!ready || busy} value={draft[type]} onChange={(event) => setDraft({ ...draft, [type]: event.target.value })} />
         </div>
       ))}
       <Button type="button" disabled={!ready || busy || !changed} onClick={() => { save(draft); onFilterChange("todos"); }}>Salvar supervisores</Button>

@@ -57,6 +57,7 @@ function Colaboradores() {
   const [q, setQ] = useState("");
   const [sit, setSit] = useState("todos");
   const [posto, setPosto] = useState("todos");
+  const [funcao, setFuncao] = useState("todos");
   const [editing, setEditing] = useState<ColabForm | null>(null);
   const [importing, setImporting] = useState(false);
   const { data: lk } = useLookups();
@@ -70,7 +71,8 @@ function Colaboradores() {
   });
   const filtered = useMemo(() => rows.filter((r) =>
     (sit === "todos" || r.situacao === sit) && (posto === "todos" || r.posto_id === posto) &&
-    (!q || [r.nome, r.matricula, r.cpf].some((v) => v?.toLowerCase().includes(q.toLowerCase())))), [rows, q, sit, posto]);
+    (funcao === "todos" || r.funcao_id === funcao) &&
+    (!q || [r.nome, r.matricula, r.cpf].some((v) => v?.toLowerCase().includes(q.toLowerCase())))), [rows, q, sit, posto, funcao]);
 
   return (
     <div>
@@ -91,6 +93,11 @@ function Colaboradores() {
           <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
           <SelectContent><SelectItem value="todos">Todos os postos</SelectItem>
             {lk?.postos.map((p) => <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>)}</SelectContent>
+        </Select>
+        <Select value={funcao} onValueChange={setFuncao}>
+          <SelectTrigger className="w-48" aria-label="Filtrar por função"><SelectValue /></SelectTrigger>
+          <SelectContent><SelectItem value="todos">Todas as funções</SelectItem>
+            {lk?.funcoes.map((f) => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}</SelectContent>
         </Select>
       </div>
       {filtered.length === 0 ? <EmptyState text="Nenhum colaborador encontrado." /> : (

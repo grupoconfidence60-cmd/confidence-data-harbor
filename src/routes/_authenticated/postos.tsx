@@ -204,7 +204,7 @@ function PostoDialog({ value, sups, onClose }: { value: P; sups: Supervisor[]; o
   );
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-xl">
+      <DialogContent className="max-h-[85vh] max-w-xl overflow-y-auto">
         <DialogHeader><DialogTitle>{f.id ? "Editar posto" : "Novo posto"}</DialogTitle></DialogHeader>
         <form onSubmit={save} className="grid gap-3 sm:grid-cols-2">
           {inp("nome", "Nome do posto *")}{inp("cliente", "Cliente")}{inp("tipo", "Tipo")}{inp("cidade", "Cidade")}
@@ -223,7 +223,8 @@ function PostoDialog({ value, sups, onClose }: { value: P; sups: Supervisor[]; o
                 );
               })}
             </div>
-            <p className="text-xs text-muted-foreground">Marque um ou mais supervisores. O primeiro marcado é o responsável principal.</p>
+            <p role="status" aria-live="polite" className="text-sm font-medium text-foreground">{f.supervisor_ids.length} supervisor(es) selecionado(s)</p>
+            <p className="text-xs text-muted-foreground">Você pode marcar dois ou mais supervisores para o mesmo posto. Marcar outro nome mantém os anteriores selecionados; o primeiro marcado é o responsável principal. Clique em Salvar para gravar as alterações.</p>
           </div>
           <div className="flex items-center gap-2 pt-6"><Switch checked={f.ativo} onCheckedChange={(v) => setF({ ...f, ativo: v })} /><Label>Posto ativo</Label></div>
           <div className="space-y-1.5"><Label>Raio permitido p/ ponto (metros)</Label>

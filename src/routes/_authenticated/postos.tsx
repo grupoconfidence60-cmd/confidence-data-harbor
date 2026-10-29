@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,8 +30,37 @@ export const Route = createFileRoute("/_authenticated/postos")({
   component: () => <RequireModule module="postos"><Postos /></RequireModule>,
 });
 
-type P = { id?: string; nome: string; cliente: string; tipo: string; endereco: string; cidade: string; efetivo_previsto: number; supervisor_id: string; ativo: boolean; observacoes: string; latitude: number | null; longitude: number | null; raio_metros: number };
-const EMPTY: P = { nome: "", cliente: "", tipo: "Shopping", endereco: "", cidade: "", efetivo_previsto: 0, supervisor_id: "", ativo: true, observacoes: "", latitude: null, longitude: null, raio_metros: 150 };
+type PostoRow = { id: string; nome: string; cliente: string | null; tipo: string | null; endereco: string | null; cidade: string | null; efetivo_previsto: number; supervisor_id: string | null; supervisor_ids?: string[] | null; ativo: boolean; observacoes: string | null; latitude: number | null; longitude: number | null; raio_metros: number };
+type P = { id?: string; nome: string; cliente: string; tipo: string; endereco: string; cidade: string; efetivo_previsto: number; supervisor_id: string; supervisor_ids: string[]; ativo: boolean; observacoes: string; latitude: number | null; longitude: number | null; raio_metros: number };
+type Supervisor = { user_id: string; profiles: { nome: string } | null };
+
+const EMPTY: P = { nome: "", cliente: "", tipo: "Shopping", endereco: "", cidade: "", efetivo_previsto: 0, supervisor_id: "", supervisor_ids: [], ativo: true, observacoes: "", latitude: null, longitude: null, raio_metros: 150 };
+
+function idsSupervisores(p: { supervisor_id: string | null; supervisor_ids?: string[] | null }): string[] {
+  const varios = (p.supervisor_ids ?? []).filter((v): v is string => Boolean(v));
+  if (varios.length) return varios;
+  return p.supervisor_id ? [p.supervisor_id] : [];
+}
+
+function paraFormulario(p: PostoRow): P {
+  return {
+    ...EMPTY,
+    id: p.id,
+    nome: p.nome,
+    cliente: p.cliente ?? "",
+    tipo: p.tipo ?? "",
+    endereco: p.endereco ?? "",
+    cidade: p.cidade ?? "",
+    efetivo_previsto: p.efetivo_previsto ?? 0,
+    supervisor_id: p.supervisor_id ?? "",
+    supervisor_ids: idsSupervisores(p),
+    ativo: p.ativo,
+    observacoes: p.observacoes ?? "",
+    latitude: p.latitude,
+    longitude: p.longitude,
+    raio_metros: p.raio_metros ?? 150,
+  };
+}
 
 function Postos() {
   const { data: me } = useMe();
@@ -45,9 +75,10 @@ function Postos() {
         supabase.from("colaboradores").select("posto_id").eq("arquivado", false).eq("situacao", "ativo"),
         supabase.from("user_roles").select("user_id").eq("role", "supervisor"),
       ]);
+      const linhas = (postos ?? []) as unknown as PostoRow[];
       const ids = Array.from(new Set([
         ...(roles ?? []).map((r) => r.user_id as string),
-        ...(postos ?? []).map((p) => p.supervisor_id as string | null).filter((v): v is string => Boolean(v)),
+        ...linhas.flatMap((p) => idsSupervisores(p)),
       ]));
       const perfis = ids.length
         ? ((await supabase.from("profiles").select("id,nome").in("id", ids)).data ?? [])
@@ -55,14 +86,18 @@ function Postos() {
       const sups = ids
         .map((id) => ({ user_id: id, profiles: { nome: perfis.find((p) => p.id === id)?.nome ?? "" } }))
         .sort((a, b) => (a.profiles.nome || "Supervisor sem nome").localeCompare(b.profiles.nome || "Supervisor sem nome", "pt-BR"));
-      return { postos: postos ?? [], colabs: colabs ?? [], sups };
+      return { postos: linhas, colabs: colabs ?? [], sups };
     },
   });
-  const supName = (id: string | null) => data?.sups.find((s) => s.user_id === id)?.profiles?.nome || undefined;
-  const visiblePostos = (data?.postos ?? []).filter((posto) => {
+  const nomeSupervisor = (id: string | null | undefined) =>
+    (id ? data?.sups.find((s) => s.user_id === id)?.profiles?.nome : "") || undefined;
+  const nomesSupervisores = (p: PostoRow) =>
+    idsSupervisores(p).map((id) => nomeSupervisor(id)).filter((n): n is string => Boolean(n));
+  const postosVisiveis = (data?.postos ?? []).filter((posto) => {
     if (supervisorFilter === "todos") return true;
-    if (supervisorFilter === "sem-supervisor") return !posto.supervisor_id;
-    return posto.supervisor_id === supervisorFilter;
+    const ids = idsSupervisores(posto);
+    if (supervisorFilter === "sem-supervisor") return ids.length === 0;
+    return ids.includes(supervisorFilter);
   });
 
   return (
@@ -84,23 +119,27 @@ function Postos() {
           </Select>
         </div>
         {supervisorFilter !== "todos" && <Button variant="outline" onClick={() => setSupervisorFilter("todos")}>Limpar filtro</Button>}
-        {data && <p role="status" className="py-2 text-sm text-muted-foreground">{visiblePostos.length} de {data.postos.length} posto(s)</p>}
+        {data && <p role="status" className="py-2 text-sm text-muted-foreground">{postosVisiveis.length} de {data.postos.length} posto(s)</p>}
       </div>
-      {!data?.postos.length ? <EmptyState text="Nenhum posto cadastrado." /> : !visiblePostos.length ? <EmptyState text="Nenhum posto encontrado para o supervisor selecionado." /> : (
+      {!data?.postos.length ? <EmptyState text="Nenhum posto cadastrado." /> : !postosVisiveis.length ? <EmptyState text="Nenhum posto encontrado para o supervisor selecionado." /> : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {visiblePostos.map((p) => {
+          {postosVisiveis.map((p) => {
             const n = data.colabs.filter((c) => c.posto_id === p.id).length;
             const low = n < p.efetivo_previsto;
+            const nomes = nomesSupervisores(p);
             return (
               <Card key={p.id} className={!p.ativo ? "opacity-60" : ""}>
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between gap-2">
                     <div><div className="font-display font-semibold">{p.nome}</div><div className="text-sm text-muted-foreground">{p.cliente || "—"} · {p.tipo || "—"}</div></div>
-                    {canEdit && <Button size="icon" variant="ghost" onClick={() => setEditing({ ...EMPTY, ...p, cliente: p.cliente ?? "", tipo: p.tipo ?? "", endereco: p.endereco ?? "", cidade: p.cidade ?? "", supervisor_id: p.supervisor_id ?? "", observacoes: p.observacoes ?? "" })}><Pencil className="h-4 w-4" /></Button>}
+                    {canEdit && <Button size="icon" variant="ghost" onClick={() => setEditing(paraFormulario(p))}><Pencil className="h-4 w-4" /></Button>}
                   </div>
-                  <div className="mt-4 flex items-end justify-between">
-                    <div className="text-sm"><div className="text-muted-foreground">Supervisor</div>{supName(p.supervisor_id) ?? "Não definido"}</div>
-                    <div className={`text-right font-display text-2xl font-semibold ${low ? "text-warning" : ""}`}>{n}<span className="text-sm text-muted-foreground">/{p.efetivo_previsto}</span></div>
+                  <div className="mt-4 flex items-end justify-between gap-3">
+                    <div className="min-w-0 text-sm">
+                      <div className="text-muted-foreground">{nomes.length > 1 ? "Supervisores" : "Supervisor"}</div>
+                      <div className="break-words">{nomes.length ? nomes.join(", ") : "Não definido"}</div>
+                    </div>
+                    <div className={`shrink-0 text-right font-display text-2xl font-semibold ${low ? "text-warning" : ""}`}>{n}<span className="text-sm text-muted-foreground">/{p.efetivo_previsto}</span></div>
                   </div>
                   {!p.ativo && <div className="mt-2 text-xs">Inativo</div>}
                   <div className={`mt-2 text-xs ${p.latitude != null ? "text-muted-foreground" : "text-warning"}`}>
@@ -118,10 +157,18 @@ function Postos() {
   );
 }
 
-function PostoDialog({ value, sups, onClose }: { value: P; sups: { user_id: string; profiles: { nome: string } | null }[]; onClose: () => void }) {
+function PostoDialog({ value, sups, onClose }: { value: P; sups: Supervisor[]; onClose: () => void }) {
   const [f, setF] = useState(value);
   const [localizando, setLocalizando] = useState(false);
   const qc = useQueryClient();
+
+  function marcarSupervisor(id: string, marcado: boolean) {
+    setF((prev) => {
+      const atuais = prev.supervisor_ids ?? [];
+      const proximos = marcado ? Array.from(new Set([...atuais, id])) : atuais.filter((x) => x !== id);
+      return { ...prev, supervisor_ids: proximos, supervisor_id: proximos[0] ?? "" };
+    });
+  }
 
   async function localizar() {
     if (!f.endereco.trim()) { toast.error("Preencha o endereço para localizar."); return; }
@@ -134,10 +181,19 @@ function PostoDialog({ value, sups, onClose }: { value: P; sups: { user_id: stri
   }
   async function save(e: React.FormEvent) {
     e.preventDefault();
-    const payload = { nome: f.nome.trim(), cliente: f.cliente || null, tipo: f.tipo || null, endereco: f.endereco || null, cidade: f.cidade || null,
-      efetivo_previsto: Math.max(0, Number(f.efetivo_previsto) || 0), supervisor_id: f.supervisor_id || null, ativo: f.ativo, observacoes: f.observacoes || null,
+    const ids = f.supervisor_ids ?? [];
+    const base = { nome: f.nome.trim(), cliente: f.cliente || null, tipo: f.tipo || null, endereco: f.endereco || null, cidade: f.cidade || null,
+      efetivo_previsto: Math.max(0, Number(f.efetivo_previsto) || 0), supervisor_id: ids[0] ?? null, ativo: f.ativo, observacoes: f.observacoes || null,
       latitude: f.latitude, longitude: f.longitude, raio_metros: Math.max(20, Number(f.raio_metros) || 150) };
-    const { error } = f.id ? await supabase.from("postos").update(payload).eq("id", f.id) : await supabase.from("postos").insert(payload);
+    const gravar = (payload: Record<string, unknown>) => f.id
+      ? supabase.from("postos").update(payload as never).eq("id", f.id)
+      : supabase.from("postos").insert(payload as never);
+    let { error } = await gravar({ ...base, supervisor_ids: ids });
+    if (error && /supervisor_ids/i.test(error.message)) {
+      const retry = await gravar(base);
+      error = retry.error;
+      if (!error && ids.length > 1) toast.warning("Salvo com apenas um supervisor: a lista de vários supervisores ainda não está disponível no banco.");
+    }
     if (error) { toast.error(error.message); return; }
     toast.success("Posto salvo.");
     qc.invalidateQueries();
@@ -153,11 +209,22 @@ function PostoDialog({ value, sups, onClose }: { value: P; sups: { user_id: stri
         <form onSubmit={save} className="grid gap-3 sm:grid-cols-2">
           {inp("nome", "Nome do posto *")}{inp("cliente", "Cliente")}{inp("tipo", "Tipo")}{inp("cidade", "Cidade")}
           {inp("endereco", "Endereço")}{inp("efetivo_previsto", "Efetivo previsto", "number")}
-          <div className="space-y-1.5"><Label>Supervisor responsável</Label>
-            <Select value={f.supervisor_id || "none"} onValueChange={(v) => setF({ ...f, supervisor_id: v === "none" ? "" : v })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent><SelectItem value="none">Não definido</SelectItem>{sups.map((s) => <SelectItem key={s.user_id} value={s.user_id}>{s.profiles?.nome}</SelectItem>)}</SelectContent>
-            </Select></div>
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label>Supervisores responsáveis</Label>
+            <div className="max-h-44 space-y-1 overflow-y-auto rounded-md border bg-background p-2">
+              {!sups.length && <p className="text-sm text-muted-foreground">Nenhum supervisor cadastrado.</p>}
+              {sups.map((s) => {
+                const marcado = (f.supervisor_ids ?? []).includes(s.user_id);
+                return (
+                  <label key={s.user_id} className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 text-sm hover:bg-muted">
+                    <Checkbox checked={marcado} onCheckedChange={(v) => marcarSupervisor(s.user_id, v === true)} />
+                    <span>{s.profiles?.nome || "Supervisor sem nome"}</span>
+                  </label>
+                );
+              })}
+            </div>
+            <p className="text-xs text-muted-foreground">Marque um ou mais supervisores. O primeiro marcado é o responsável principal.</p>
+          </div>
           <div className="flex items-center gap-2 pt-6"><Switch checked={f.ativo} onCheckedChange={(v) => setF({ ...f, ativo: v })} /><Label>Posto ativo</Label></div>
           <div className="space-y-1.5"><Label>Raio permitido p/ ponto (metros)</Label>
             <Input type="number" min={20} value={f.raio_metros} onChange={(e) => setF({ ...f, raio_metros: Number(e.target.value) })} /></div>

@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, redirect, Link, useNavigate, useLocation } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { LayoutDashboard, Users, MapPin, Briefcase, UserCog, ScrollText, LogOut, Moon, Sun, ClipboardCheck, Palmtree, AlertTriangle, FileBarChart, FolderOpen, Clock, ClipboardList, Search, ChevronRight, Megaphone, Package, ListChecks } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -58,6 +59,7 @@ function Layout() {
   const roles = me?.roles ?? [];
   const [searchOpen, setSearchOpen] = useState(false);
   const [dark, setDark] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const visibleNav = NAV.filter((n) => canAccess(roles, n.mod));
   const currentPage = loc.pathname.startsWith("/posto/") ? "Detalhes do posto" : NAV.find((n) => loc.pathname.startsWith(n.to))?.label ?? "Colaborador";
   const groups = [
@@ -67,7 +69,13 @@ function Layout() {
     { label: "Administração", modules: ["usuarios", "auditoria"] },
   ];
   useEffect(() => {
-    const saved = localStorage.getItem("confidence-theme") === "dark";
+    let saved = document.documentElement.classList.contains("dark");
+    try {
+      const theme = localStorage.getItem("confidence-theme");
+      if (theme !== null) saved = theme === "dark";
+    } catch {
+      // Mantém o tema atual quando o navegador bloqueia o armazenamento.
+    }
     setDark(saved);
     document.documentElement.classList.toggle("dark", saved);
   }, []);
@@ -75,17 +83,33 @@ function Layout() {
   useEffect(() => { touchLastAccess().catch(() => {}); }, []);
 
   async function signOut() {
-    await qc.cancelQueries();
-    qc.clear();
-    await supabase.auth.signOut();
-    navigate({ to: "/auth", replace: true });
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        toast.error("Não foi possível sair da conta. Tente novamente.");
+        return;
+      }
+      await qc.cancelQueries();
+      qc.clear();
+      await navigate({ to: "/auth", replace: true });
+    } catch {
+      toast.error("Não foi possível concluir a saída. Tente novamente.");
+    } finally {
+      setSigningOut(false);
+    }
   }
 
   function toggleDark() {
     const next = !dark;
     setDark(next);
     document.documentElement.classList.toggle("dark", next);
-    localStorage.setItem("confidence-theme", next ? "dark" : "light");
+    try {
+      localStorage.setItem("confidence-theme", next ? "dark" : "light");
+    } catch {
+      toast.info("Tema aplicado nesta página. O navegador não permitiu salvar a preferência.");
+    }
   }
 
   return (
@@ -118,7 +142,7 @@ function Layout() {
               </div>
             </div>
             <SidebarMenu><SidebarMenuItem>
-              <SidebarMenuButton onClick={signOut} tooltip="Sair"><LogOut /><span>Sair da conta</span></SidebarMenuButton>
+              <SidebarMenuButton onClick={signOut} disabled={signingOut} tooltip="Sair"><LogOut /><span>{signingOut ? "Saindo…" : "Sair da conta"}</span></SidebarMenuButton>
             </SidebarMenuItem></SidebarMenu>
           </SidebarFooter>
         </Sidebar>

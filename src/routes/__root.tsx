@@ -66,7 +66,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { title: "Grupo Confidence — Gestão Operacional" },
       { name: "description", content: "Sistema Integrado de Gestão Operacional do Grupo Confidence." },
-      { name: "theme-color", content: "#102b50" },
+      { name: "theme-color", content: "#3676ad" },
       { name: "format-detection", content: "telephone=no" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-title", content: "Confidence" },

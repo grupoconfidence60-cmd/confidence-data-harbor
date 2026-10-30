@@ -127,6 +127,13 @@
       "when": 1793035872784,
       "tag": "0017_posto_multiplos_supervisores",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1793365558254,
+      "tag": "0018_ferias_fim_automatico",
+      "breakpoints": true
     }
   ]
 }

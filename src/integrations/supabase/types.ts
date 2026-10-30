@@ -887,6 +887,7 @@ export type Database = {
           observacoes: string | null
           raio_metros: number
           supervisor_id: string | null
+          supervisor_ids: string[]
           tipo: string | null
           updated_at: string
         }
@@ -904,6 +905,7 @@ export type Database = {
           observacoes?: string | null
           raio_metros?: number
           supervisor_id?: string | null
+          supervisor_ids?: string[]
           tipo?: string | null
           updated_at?: string
         }
@@ -921,6 +923,7 @@ export type Database = {
           observacoes?: string | null
           raio_metros?: number
           supervisor_id?: string | null
+          supervisor_ids?: string[]
           tipo?: string | null
           updated_at?: string
         }
@@ -1125,6 +1128,7 @@ export type Database = {
         Args: { lat1: number; lat2: number; lon1: number; lon2: number }
         Returns: number
       }
+      encerrar_ferias_vencidas: { Args: never; Returns: number }
       has_any_role: {
         Args: {
           _roles: Database["public"]["Enums"]["app_role"][]

@@ -230,10 +230,10 @@ function FeriasDialog({ colabs, fixColabId, informarPeriodo = false, aprovar, me
           )}
           <p className="text-sm text-muted-foreground">Preencha as duas datas reais. Nenhuma data será preenchida automaticamente e a situação cadastral será mantida.</p>
           <div className="grid gap-3 sm:grid-cols-2">
-            <div className="space-y-1.5"><Label htmlFor="ferias-inicio">Início *</Label><Input id="ferias-inicio" type="date" required disabled={saving} value={f.data_inicio} onChange={(e) => setF({ ...f, data_inicio: e.target.value })} /></div>
-            <div className="space-y-1.5"><Label htmlFor="ferias-fim">Fim *</Label><Input id="ferias-fim" type="date" required disabled={saving} min={f.data_inicio || undefined} value={f.data_fim} onChange={(e) => setF({ ...f, data_fim: e.target.value })} /></div>
+            <div className="space-y-1.5"><Label htmlFor="ferias-inicio">Início *</Label><Input id="ferias-inicio" type="date" required disabled={saving} value={f.data_inicio} onChange={(e) => onInicioChange(e.target.value)} /></div>
+            <div className="space-y-1.5"><Label htmlFor="ferias-fim">Fim * <span className="font-normal text-muted-foreground">(automático: {DIAS_FERIAS_PADRAO} dias)</span></Label><Input id="ferias-fim" type="date" required disabled={saving} min={f.data_inicio || undefined} value={f.data_fim} onChange={(e) => { setFimManual(true); setF({ ...f, data_fim: e.target.value }); }} /></div>
           </div>
-          {dias !== null && <p className="text-sm text-muted-foreground" role="status">Total: {dias} {dias === 1 ? "dia" : "dias"}, incluindo início e fim.</p>}
+          {dias !== null && <p className="text-sm text-muted-foreground" role="status">Total: {dias} {dias === 1 ? "dia" : "dias"}, incluindo início e fim.{!fimManual && dias === DIAS_FERIAS_PADRAO ? " Calculado automaticamente." : ""}</p>}
           {f.data_inicio && f.data_fim && !datasValidas && <p className="text-sm text-destructive" role="alert">Informe datas válidas; o fim não pode ser anterior ao início.</p>}
           <div className="space-y-1.5"><Label htmlFor="ferias-observacoes">Observações</Label><Textarea id="ferias-observacoes" disabled={saving} value={f.observacoes} onChange={(e) => setF({ ...f, observacoes: e.target.value })} /></div>
           <DialogFooter><Button type="button" variant="outline" disabled={saving} onClick={onClose}>Cancelar</Button><Button type="submit" disabled={saving || !colaborador || !datasValidas}>{saving ? "Salvando..." : informarPeriodo ? "Salvar período" : "Solicitar"}</Button></DialogFooter>

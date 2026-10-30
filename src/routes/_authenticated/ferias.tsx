@@ -110,12 +110,12 @@ function Ferias() {
           </Table>
         </CardContent></Card>
       )}
-      {open && <FeriasDialog colabs={data?.colabs ?? []} fixColabId={isColab ? meuColabId : undefined} onClose={() => setOpen(false)} />}
+      {open && <FeriasDialog colabs={data?.colabs ?? []} fixColabId={isColab ? meuColabId : undefined} aprovar={canEdit} meId={me?.profile?.id ?? null} onClose={() => setOpen(false)} />}
     </div>
   );
 }
 
-function FeriasDialog({ colabs, fixColabId, onClose }: { colabs: { id: string; nome: string; matricula: string }[]; fixColabId?: string | undefined; onClose: () => void }) {
+function FeriasDialog({ colabs, fixColabId, aprovar, meId, onClose }: { colabs: { id: string; nome: string; matricula: string }[]; fixColabId?: string | undefined; aprovar: boolean; meId: string | null; onClose: () => void }) {
   const [f, setF] = useState({ colaborador_id: fixColabId ?? "", data_inicio: "", dias: 30, observacoes: "" });
   const qc = useQueryClient();
   async function save(e: React.FormEvent) {
@@ -123,11 +123,18 @@ function FeriasDialog({ colabs, fixColabId, onClose }: { colabs: { id: string; n
     const ini = new Date(f.data_inicio + "T00:00:00");
     const fim = new Date(ini);
     fim.setDate(fim.getDate() + Number(f.dias) - 1);
+    const dataFim = `${fim.getFullYear()}-${String(fim.getMonth() + 1).padStart(2, "0")}-${String(fim.getDate()).padStart(2, "0")}`;
     const { error } = await supabase.from("ferias").insert({
       colaborador_id: f.colaborador_id, data_inicio: f.data_inicio,
-      data_fim: fim.toISOString().slice(0, 10), dias: Number(f.dias), observacoes: f.observacoes || null,
+      data_fim: dataFim, dias: Number(f.dias), observacoes: f.observacoes || null,
+      ...(aprovar ? { status: "aprovada" as const, aprovado_por: meId } : {}),
     });
     if (error) { toast.error(error.message); return; }
+    const hoje = new Date().toISOString().slice(0, 10);
+    if (aprovar && f.data_inicio <= hoje && dataFim >= hoje) {
+      await supabase.from("colaboradores").update({ situacao: "ferias" }).eq("id", f.colaborador_id);
+      qc.invalidateQueries({ queryKey: ["colaboradores"] });
+    }
     toast.success("Solicitação registrada.");
     qc.invalidateQueries({ queryKey: ["ferias"] });
     onClose();

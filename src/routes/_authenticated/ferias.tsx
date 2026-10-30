@@ -154,8 +154,15 @@ function Ferias() {
   );
 }
 
+const DIAS_FERIAS_PADRAO = 30;
+const somaDias = (data: string, dias: number) => {
+  const ms = Date.parse(data + "T00:00:00Z");
+  return Number.isFinite(ms) ? new Date(ms + dias * 86400000).toISOString().slice(0, 10) : "";
+};
+
 function FeriasDialog({ colabs, fixColabId, informarPeriodo = false, aprovar, meId, onClose }: { colabs: { id: string; nome: string; matricula: string }[]; fixColabId?: string | undefined; informarPeriodo?: boolean; aprovar: boolean; meId: string | null; onClose: () => void }) {
   const [f, setF] = useState({ colaborador_id: fixColabId ?? "", data_inicio: "", data_fim: "", observacoes: "" });
+  const [fimManual, setFimManual] = useState(false);
   const [saving, setSaving] = useState(false);
   const qc = useQueryClient();
   const colaborador = colabs.find((c) => c.id === f.colaborador_id);
@@ -166,6 +173,15 @@ function FeriasDialog({ colabs, fixColabId, informarPeriodo = false, aprovar, me
     && new Date(inicio).toISOString().slice(0, 10) === f.data_inicio
     && new Date(fim).toISOString().slice(0, 10) === f.data_fim && fim >= inicio;
   const dias = datasValidas ? Math.round((fim - inicio) / 86400000) + 1 : null;
+
+  function onInicioChange(valor: string) {
+    const inicioOk = /^\d{4}-\d{2}-\d{2}$/.test(valor) && Number.isFinite(Date.parse(valor + "T00:00:00Z"));
+    setF((prev) => ({
+      ...prev,
+      data_inicio: valor,
+      data_fim: !fimManual && inicioOk ? somaDias(valor, DIAS_FERIAS_PADRAO - 1) : prev.data_fim,
+    }));
+  }
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -214,10 +230,10 @@ function FeriasDialog({ colabs, fixColabId, informarPeriodo = false, aprovar, me
           )}
           <p className="text-sm text-muted-foreground">Preencha as duas datas reais. Nenhuma data será preenchida automaticamente e a situação cadastral será mantida.</p>
           <div className="grid gap-3 sm:grid-cols-2">
-            <div className="space-y-1.5"><Label htmlFor="ferias-inicio">Início *</Label><Input id="ferias-inicio" type="date" required disabled={saving} value={f.data_inicio} onChange={(e) => setF({ ...f, data_inicio: e.target.value })} /></div>
-            <div className="space-y-1.5"><Label htmlFor="ferias-fim">Fim *</Label><Input id="ferias-fim" type="date" required disabled={saving} min={f.data_inicio || undefined} value={f.data_fim} onChange={(e) => setF({ ...f, data_fim: e.target.value })} /></div>
+            <div className="space-y-1.5"><Label htmlFor="ferias-inicio">Início *</Label><Input id="ferias-inicio" type="date" required disabled={saving} value={f.data_inicio} onChange={(e) => onInicioChange(e.target.value)} /></div>
+            <div className="space-y-1.5"><Label htmlFor="ferias-fim">Fim * <span className="font-normal text-muted-foreground">(automático: {DIAS_FERIAS_PADRAO} dias)</span></Label><Input id="ferias-fim" type="date" required disabled={saving} min={f.data_inicio || undefined} value={f.data_fim} onChange={(e) => { setFimManual(true); setF({ ...f, data_fim: e.target.value }); }} /></div>
           </div>
-          {dias !== null && <p className="text-sm text-muted-foreground" role="status">Total: {dias} {dias === 1 ? "dia" : "dias"}, incluindo início e fim.</p>}
+          {dias !== null && <p className="text-sm text-muted-foreground" role="status">Total: {dias} {dias === 1 ? "dia" : "dias"}, incluindo início e fim.{!fimManual && dias === DIAS_FERIAS_PADRAO ? " Calculado automaticamente." : ""}</p>}
           {f.data_inicio && f.data_fim && !datasValidas && <p className="text-sm text-destructive" role="alert">Informe datas válidas; o fim não pode ser anterior ao início.</p>}
           <div className="space-y-1.5"><Label htmlFor="ferias-observacoes">Observações</Label><Textarea id="ferias-observacoes" disabled={saving} value={f.observacoes} onChange={(e) => setF({ ...f, observacoes: e.target.value })} /></div>
           <DialogFooter><Button type="button" variant="outline" disabled={saving} onClick={onClose}>Cancelar</Button><Button type="submit" disabled={saving || !colaborador || !datasValidas}>{saving ? "Salvando..." : informarPeriodo ? "Salvar período" : "Solicitar"}</Button></DialogFooter>

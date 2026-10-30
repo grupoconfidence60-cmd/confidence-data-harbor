@@ -134,6 +134,13 @@
       "when": 1793365558254,
       "tag": "0018_ferias_fim_automatico",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1793368350697,
+      "tag": "0019_ferias_abono_pecuniario",
+      "breakpoints": true
     }
   ]
 }

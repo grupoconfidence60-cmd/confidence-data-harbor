@@ -17,13 +17,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { PageHeader, RequireModule, EmptyState } from "@/components/page";
 import { useMe } from "@/lib/use-me";
 import { canEditFerias, FERIAS_LABELS } from "@/lib/labels";
+import { DIAS_POR_TIPO, FERIAS_TIPO_LABELS, diasTotais, fimAutomatico, type FeriasTipo } from "@/lib/ferias";
 
 export const Route = createFileRoute("/_authenticated/ferias")({
   head: () => ({ meta: [
-    { title: "Férias — Grupo Confidence" },
-    { name: "description", content: "Solicitações e acompanhamento de férias da equipe Confidence." },
-    { property: "og:title", content: "Férias — Grupo Confidence" },
-    { property: "og:description", content: "Solicitações e acompanhamento de férias da equipe Confidence." },
+    { title: "Férias e abonos — Grupo Confidence" },
+    { name: "description", content: "Solicitações e acompanhamento de férias e abono pecuniário da equipe Confidence." },
+    { property: "og:title", content: "Férias e abonos — Grupo Confidence" },
+    { property: "og:description", content: "Solicitações e acompanhamento de férias e abono pecuniário da equipe Confidence." },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary" },
   ] }),
@@ -31,6 +32,10 @@ export const Route = createFileRoute("/_authenticated/ferias")({
 });
 
 const fmt = (d: string | null) => (d ? new Date(d + "T00:00:00").toLocaleDateString("pt-BR") : "—");
+
+function TipoBadge({ tipo }: { tipo: FeriasTipo }) {
+  return <Badge variant={tipo === "abono" ? "secondary" : "outline"}>{tipo === "abono" ? "Abono" : "Férias"}</Badge>;
+}
 
 function Ferias() {
   const { data: me } = useMe();
@@ -53,10 +58,13 @@ function Ferias() {
   const colabNome = (id: string) => data?.colabs.find((c) => c.id === id)?.nome ?? "—";
   const isColab = (me?.roles ?? []).includes("colaborador") && !canEdit;
   const meuColabId = data?.colabs.find((c) => c.user_id === me?.profile?.id)?.id;
-  const lista = isColab ? (data?.ferias ?? []).filter((f) => f.colaborador_id === meuColabId) : (data?.ferias ?? []);
+  const todas = data?.ferias ?? [];
+  const lista = isColab ? todas.filter((f) => f.colaborador_id === meuColabId) : todas;
+  const soFerias = todas.filter((f) => f.tipo !== "abono");
+  const abonos = todas.filter((f) => f.tipo === "abono");
   const hoje = new Date().toISOString().slice(0, 10);
-  const emFerias = (data?.colabs ?? []).filter((c) => c.situacao === "ferias" || (data?.ferias ?? []).some((f) => f.colaborador_id === c.id && (f.status === "aprovada" || f.status === "em_gozo") && f.data_inicio <= hoje && f.data_fim >= hoje))
-    .map((c) => ({ ...c, periodo: (data?.ferias ?? []).find((f) => f.colaborador_id === c.id && f.status !== "recusada" && f.data_fim >= hoje) }));
+  const emFerias = (data?.colabs ?? []).filter((c) => c.situacao === "ferias" || soFerias.some((f) => f.colaborador_id === c.id && (f.status === "aprovada" || f.status === "em_gozo") && f.data_inicio <= hoje && f.data_fim >= hoje))
+    .map((c) => ({ ...c, periodo: soFerias.find((f) => f.colaborador_id === c.id && f.status !== "recusada" && f.data_fim >= hoje) }));
 
   const semPeriodo = emFerias.filter((c) => !c.periodo);
 
@@ -78,11 +86,12 @@ function Ferias() {
 
   return (
     <div>
-      <PageHeader title="Férias" description="Solicitações, aprovações e períodos de gozo"
+      <PageHeader title="Férias" description="Solicitações, aprovações, períodos de gozo e abono pecuniário"
         actions={<Button onClick={() => { setSelectedColabId(null); setOpen(true); }}><Plus className="mr-1 h-4 w-4" />Solicitar férias</Button>} />
       <Tabs defaultValue="acompanhamento" className="space-y-4">
         <TabsList className="h-auto flex-wrap justify-start">
           <TabsTrigger value="acompanhamento">Acompanhamento</TabsTrigger>
+          {!isColab && <TabsTrigger value="abonos">Abonos pecuniários ({abonos.length})</TabsTrigger>}
           {!isColab && <TabsTrigger value="sem-periodo">Períodos não informados ({semPeriodo.length})</TabsTrigger>}
         </TabsList>
         <TabsContent value="acompanhamento" className="space-y-4">
@@ -101,12 +110,13 @@ function Ferias() {
         <Card><CardContent className="p-0">
           <Table>
             <TableHeader><TableRow>
-              <TableHead>Colaborador</TableHead><TableHead>Período</TableHead><TableHead>Dias</TableHead><TableHead>Status</TableHead>{canEdit && <TableHead className="w-24">Ações</TableHead>}
+              <TableHead>Colaborador</TableHead><TableHead>Tipo</TableHead><TableHead>Período</TableHead><TableHead>Dias</TableHead><TableHead>Status</TableHead>{canEdit && <TableHead className="w-24">Ações</TableHead>}
             </TableRow></TableHeader>
             <TableBody>
               {lista.map((f) => (
                 <TableRow key={f.id}>
                   <TableCell className="font-medium">{colabNome(f.colaborador_id)}</TableCell>
+                  <TableCell><TipoBadge tipo={f.tipo === "abono" ? "abono" : "ferias"} /></TableCell>
                   <TableCell>{fmt(f.data_inicio)} — {fmt(f.data_fim)}</TableCell>
                   <TableCell>{f.dias}</TableCell>
                   <TableCell><Badge variant={f.status === "aprovada" || f.status === "em_gozo" ? "default" : f.status === "recusada" ? "destructive" : "secondary"}>{FERIAS_LABELS[f.status]}</Badge></TableCell>
@@ -127,6 +137,36 @@ function Ferias() {
         </CardContent></Card>
       )}
         </TabsContent>
+        {!isColab && (
+          <TabsContent value="abonos" className="space-y-4">
+            <p className="text-sm text-muted-foreground">Abono pecuniário: dias vendidos, com 20 dias calculados automaticamente. O colaborador continua trabalhando e a situação cadastral dele não muda.</p>
+            {abonos.length === 0 ? <EmptyState text="Nenhum abono pecuniário registrado." /> : (
+              <Card><CardContent className="overflow-x-auto p-0">
+                <Table>
+                  <TableHeader><TableRow><TableHead>Colaborador</TableHead><TableHead>Período</TableHead><TableHead>Dias</TableHead><TableHead>Status</TableHead>{canEdit && <TableHead className="w-24">Ações</TableHead>}</TableRow></TableHeader>
+                  <TableBody>{abonos.map((f) => (
+                    <TableRow key={f.id}>
+                      <TableCell className="font-medium">{colabNome(f.colaborador_id)}</TableCell>
+                      <TableCell>{fmt(f.data_inicio)} — {fmt(f.data_fim)}</TableCell>
+                      <TableCell>{f.dias}</TableCell>
+                      <TableCell><Badge variant={f.status === "aprovada" || f.status === "em_gozo" ? "default" : f.status === "recusada" ? "destructive" : "secondary"}>{FERIAS_LABELS[f.status]}</Badge></TableCell>
+                      {canEdit && (
+                        <TableCell>
+                          {f.status === "solicitada" && (
+                            <div className="flex gap-1">
+                              <Button size="icon" variant="ghost" title="Aprovar" onClick={() => setStatus(f.id, "aprovada")}><Check className="h-4 w-4" /></Button>
+                              <Button size="icon" variant="ghost" title="Recusar" onClick={() => setStatus(f.id, "recusada")}><X className="h-4 w-4" /></Button>
+                            </div>
+                          )}
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  ))}</TableBody>
+                </Table>
+              </CardContent></Card>
+            )}
+          </TabsContent>
+        )}
         {!isColab && (
           <TabsContent value="sem-periodo" className="space-y-4">
             <p className="text-sm text-muted-foreground">Colaboradores exibidos em “Em férias agora” com período não informado. Informe as datas reais; a situação cadastral não será alterada.</p>
@@ -154,33 +194,27 @@ function Ferias() {
   );
 }
 
-const DIAS_FERIAS_PADRAO = 30;
-const somaDias = (data: string, dias: number) => {
-  const ms = Date.parse(data + "T00:00:00Z");
-  return Number.isFinite(ms) ? new Date(ms + dias * 86400000).toISOString().slice(0, 10) : "";
-};
-
 function FeriasDialog({ colabs, fixColabId, informarPeriodo = false, aprovar, meId, onClose }: { colabs: { id: string; nome: string; matricula: string }[]; fixColabId?: string | undefined; informarPeriodo?: boolean; aprovar: boolean; meId: string | null; onClose: () => void }) {
+  const [tipo, setTipo] = useState<FeriasTipo>("ferias");
   const [f, setF] = useState({ colaborador_id: fixColabId ?? "", data_inicio: "", data_fim: "", observacoes: "" });
   const [fimManual, setFimManual] = useState(false);
   const [saving, setSaving] = useState(false);
   const qc = useQueryClient();
   const colaborador = colabs.find((c) => c.id === f.colaborador_id);
-  const inicio = Date.parse(f.data_inicio + "T00:00:00Z");
-  const fim = Date.parse(f.data_fim + "T00:00:00Z");
-  const datasValidas = /^\d{4}-\d{2}-\d{2}$/.test(f.data_inicio) && /^\d{4}-\d{2}-\d{2}$/.test(f.data_fim)
-    && Number.isFinite(inicio) && Number.isFinite(fim)
-    && new Date(inicio).toISOString().slice(0, 10) === f.data_inicio
-    && new Date(fim).toISOString().slice(0, 10) === f.data_fim && fim >= inicio;
-  const dias = datasValidas ? Math.round((fim - inicio) / 86400000) + 1 : null;
+  const dias = diasTotais(f.data_inicio, f.data_fim);
+  const datasValidas = dias !== null;
 
   function onInicioChange(valor: string) {
-    const inicioOk = /^\d{4}-\d{2}-\d{2}$/.test(valor) && Number.isFinite(Date.parse(valor + "T00:00:00Z"));
     setF((prev) => ({
       ...prev,
       data_inicio: valor,
-      data_fim: !fimManual && inicioOk ? somaDias(valor, DIAS_FERIAS_PADRAO - 1) : prev.data_fim,
+      data_fim: !fimManual ? fimAutomatico(valor, tipo) : prev.data_fim,
     }));
+  }
+
+  function onTipoChange(novo: FeriasTipo) {
+    setTipo(novo);
+    setF((prev) => ({ ...prev, data_fim: !fimManual ? fimAutomatico(prev.data_inicio, novo) : prev.data_fim }));
   }
 
   async function save(e: React.FormEvent) {
@@ -195,6 +229,7 @@ function FeriasDialog({ colabs, fixColabId, informarPeriodo = false, aprovar, me
     try {
       const { error } = await supabase.from("ferias").insert({
         colaborador_id: f.colaborador_id,
+        tipo,
         data_inicio: f.data_inicio,
         data_fim: f.data_fim,
         dias,
@@ -202,7 +237,7 @@ function FeriasDialog({ colabs, fixColabId, informarPeriodo = false, aprovar, me
         ...(aprovar ? { status: "aprovada" as const, aprovado_por: meId } : {}),
       });
       if (error) throw error;
-      toast.success(informarPeriodo ? "Período registrado. Situação do colaborador preservada." : "Solicitação registrada.");
+      toast.success(informarPeriodo ? "Período registrado. Situação do colaborador preservada." : tipo === "abono" ? "Abono pecuniário registrado." : "Solicitação registrada.");
       await qc.invalidateQueries({ queryKey: ["ferias"] });
       onClose();
     } catch (error) {
@@ -214,7 +249,7 @@ function FeriasDialog({ colabs, fixColabId, informarPeriodo = false, aprovar, me
   return (
     <Dialog open onOpenChange={(o) => !o && !saving && onClose()}>
       <DialogContent>
-        <DialogHeader><DialogTitle>{informarPeriodo ? "Informar período de férias" : "Solicitar férias"}</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{informarPeriodo ? "Informar período de férias" : "Solicitar férias ou abono"}</DialogTitle></DialogHeader>
         <form onSubmit={save} className="grid gap-3">
           {fixColabId ? (
             <div className="rounded-lg border bg-muted/40 p-3 text-sm text-foreground">
@@ -228,15 +263,27 @@ function FeriasDialog({ colabs, fixColabId, informarPeriodo = false, aprovar, me
                 <SelectContent>{colabs.map((c) => <SelectItem key={c.id} value={c.id}>{c.nome} ({c.matricula})</SelectItem>)}</SelectContent>
               </Select></div>
           )}
-          <p className="text-sm text-muted-foreground">Preencha as duas datas reais. Nenhuma data será preenchida automaticamente e a situação cadastral será mantida.</p>
+          <div className="space-y-1.5">
+            <Label>Tipo *</Label>
+            <div className="grid grid-cols-2 gap-2">
+              {(["ferias", "abono"] as FeriasTipo[]).map((t) => (
+                <Button key={t} type="button" variant={tipo === t ? "default" : "outline"} aria-pressed={tipo === t} disabled={saving}
+                  onClick={() => onTipoChange(t)} className="h-auto flex-col items-start gap-0.5 py-2 text-left">
+                  <span className="font-medium">{FERIAS_TIPO_LABELS[t]}</span>
+                  <span className="text-xs opacity-80">{DIAS_POR_TIPO[t]} dias automáticos</span>
+                </Button>
+              ))}
+            </div>
+          </div>
+          <p className="text-sm text-muted-foreground">Escolhendo o tipo, a data de fim e o total de dias saem calculados sozinhos. Para um período diferente, digite a data de fim manualmente.</p>
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5"><Label htmlFor="ferias-inicio">Início *</Label><Input id="ferias-inicio" type="date" required disabled={saving} value={f.data_inicio} onChange={(e) => onInicioChange(e.target.value)} /></div>
-            <div className="space-y-1.5"><Label htmlFor="ferias-fim">Fim * <span className="font-normal text-muted-foreground">(automático: {DIAS_FERIAS_PADRAO} dias)</span></Label><Input id="ferias-fim" type="date" required disabled={saving} min={f.data_inicio || undefined} value={f.data_fim} onChange={(e) => { setFimManual(true); setF({ ...f, data_fim: e.target.value }); }} /></div>
+            <div className="space-y-1.5"><Label htmlFor="ferias-fim">Fim * <span className="font-normal text-muted-foreground">(automático: {DIAS_POR_TIPO[tipo]} dias)</span></Label><Input id="ferias-fim" type="date" required disabled={saving} min={f.data_inicio || undefined} value={f.data_fim} onChange={(e) => { setFimManual(true); setF({ ...f, data_fim: e.target.value }); }} /></div>
           </div>
-          {dias !== null && <p className="text-sm text-muted-foreground" role="status">Total: {dias} {dias === 1 ? "dia" : "dias"}, incluindo início e fim.{!fimManual && dias === DIAS_FERIAS_PADRAO ? " Calculado automaticamente." : ""}</p>}
+          {dias !== null && <p className="text-sm text-muted-foreground" role="status">Total: {dias} {dias === 1 ? "dia" : "dias"}, incluindo início e fim.{!fimManual && dias === DIAS_POR_TIPO[tipo] ? " Calculado automaticamente." : ""}</p>}
           {f.data_inicio && f.data_fim && !datasValidas && <p className="text-sm text-destructive" role="alert">Informe datas válidas; o fim não pode ser anterior ao início.</p>}
           <div className="space-y-1.5"><Label htmlFor="ferias-observacoes">Observações</Label><Textarea id="ferias-observacoes" disabled={saving} value={f.observacoes} onChange={(e) => setF({ ...f, observacoes: e.target.value })} /></div>
-          <DialogFooter><Button type="button" variant="outline" disabled={saving} onClick={onClose}>Cancelar</Button><Button type="submit" disabled={saving || !colaborador || !datasValidas}>{saving ? "Salvando..." : informarPeriodo ? "Salvar período" : "Solicitar"}</Button></DialogFooter>
+          <DialogFooter><Button type="button" variant="outline" disabled={saving} onClick={onClose}>Cancelar</Button><Button type="submit" disabled={saving || !colaborador || !datasValidas}>{saving ? "Salvando..." : informarPeriodo ? "Salvar período" : tipo === "abono" ? "Registrar abono" : "Solicitar"}</Button></DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

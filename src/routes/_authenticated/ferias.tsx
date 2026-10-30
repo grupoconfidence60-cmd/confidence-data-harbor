@@ -41,7 +41,7 @@ function Ferias() {
     queryFn: async () => {
       const [{ data: ferias }, { data: colabs }] = await Promise.all([
         supabase.from("ferias").select("*").order("data_inicio", { ascending: false }),
-        supabase.from("colaboradores").select("id, nome, matricula, user_id").eq("arquivado", false).order("nome"),
+        supabase.from("colaboradores").select("id, nome, matricula, user_id, situacao").eq("arquivado", false).order("nome"),
       ]);
       return { ferias: ferias ?? [], colabs: colabs ?? [] };
     },
@@ -50,10 +50,18 @@ function Ferias() {
   const isColab = (me?.roles ?? []).includes("colaborador") && !canEdit;
   const meuColabId = data?.colabs.find((c) => c.user_id === me?.profile?.id)?.id;
   const lista = isColab ? (data?.ferias ?? []).filter((f) => f.colaborador_id === meuColabId) : (data?.ferias ?? []);
+  const hoje = new Date().toISOString().slice(0, 10);
+  const emFerias = (data?.colabs ?? []).filter((c) => c.situacao === "ferias" || (data?.ferias ?? []).some((f) => f.colaborador_id === c.id && (f.status === "aprovada" || f.status === "em_gozo") && f.data_inicio <= hoje && f.data_fim >= hoje))
+    .map((c) => ({ ...c, periodo: (data?.ferias ?? []).find((f) => f.colaborador_id === c.id && f.status !== "recusada" && f.data_fim >= hoje) }));
 
   async function setStatus(id: string, status: "aprovada" | "recusada") {
     const { error } = await supabase.from("ferias").update({ status, aprovado_por: me?.profile?.id ?? null }).eq("id", id);
     if (error) { toast.error(error.message); return; }
+    const f = data?.ferias.find((x) => x.id === id);
+    if (status === "aprovada" && f && f.data_inicio <= hoje && f.data_fim >= hoje) {
+      await supabase.from("colaboradores").update({ situacao: "ferias" }).eq("id", f.colaborador_id);
+      qc.invalidateQueries({ queryKey: ["colaboradores"] });
+    }
     toast.success(status === "aprovada" ? "Férias aprovadas." : "Solicitação recusada.");
     qc.invalidateQueries({ queryKey: ["ferias"] });
   }
@@ -62,6 +70,17 @@ function Ferias() {
     <div>
       <PageHeader title="Férias" description="Solicitações, aprovações e períodos de gozo"
         actions={<Button onClick={() => setOpen(true)}><Plus className="mr-1 h-4 w-4" />Solicitar férias</Button>} />
+      {!isColab && (
+        <Card className="mb-4"><CardContent className="p-4">
+          <h2 className="mb-2 font-semibold">Em férias agora ({emFerias.length})</h2>
+          {emFerias.length === 0 ? <p className="text-sm text-muted-foreground">Nenhum colaborador em férias no momento.</p> : (
+            <ul className="grid gap-1 text-sm">{emFerias.map((c) => (
+              <li key={c.id} className="flex justify-between border-b py-1 last:border-0"><span className="font-medium">{c.nome} <span className="text-muted-foreground">({c.matricula})</span></span>
+                <span className="text-muted-foreground">{c.periodo ? `${fmt(c.periodo.data_inicio)} — ${fmt(c.periodo.data_fim)}` : "Período não informado"}</span></li>
+            ))}</ul>
+          )}
+        </CardContent></Card>
+      )}
       {lista.length === 0 ? <EmptyState text="Nenhuma solicitação de férias." /> : (
         <Card><CardContent className="p-0">
           <Table>

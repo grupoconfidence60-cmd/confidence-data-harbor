@@ -44,8 +44,7 @@ function AuthPage() {
         .rpc("system_initialized")
         .then(({ data }) => {
           if (active) setInitialized(!!data);
-        })
-        .catch(() => {
+        }, () => {
           if (active) setInitialized(true);
         });
     } catch {

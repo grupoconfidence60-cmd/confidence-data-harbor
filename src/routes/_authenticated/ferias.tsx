@@ -263,7 +263,7 @@ function FeriasDialog({ colabs, fixColabId, informarPeriodo = false, aprovar, me
                 <SelectContent>{colabs.map((c) => <SelectItem key={c.id} value={c.id}>{c.nome} ({c.matricula})</SelectItem>)}</SelectContent>
               </Select></div>
           )}
-          <div className="space-y-1.5">
+          <div className={informarPeriodo ? "hidden" : "space-y-1.5"}>
             <Label>Tipo *</Label>
             <div className="grid grid-cols-2 gap-2">
               {(["ferias", "abono"] as FeriasTipo[]).map((t) => (

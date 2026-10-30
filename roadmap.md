@@ -12,6 +12,7 @@
 - [x] Aplicar referência enviada: listas Ímpar/Par com matrícula, nome, posição e horário; diurno/noturno, mover colaboradores, edição e Excel correspondente. Inclusão, edição na linha, arrastar para Par/Noturno, persistência, retirada, celular e Excel verificados com conta conectada.
 - [x] Planilha com arrastar e trocar plantões, escalas além de par/ímpar e seleção de escala no cadastro; inclusão, troca por arrastar, persistência após recarga, retirada e Excel verificados com conta conectada.
 - [x] Planilha mensal dentro de cada posto: escalas pares/ímpares, inclusão e retirada de colaboradores, ajustes por dia e download Excel para supervisores, gestores, administração e RH; inclusão, edição, persistência, retirada e arquivo baixado verificados.
+- [x] Férias: abono pecuniário (20 dias automáticos) ao lado de férias completas (30 dias automáticos), aba própria de abonos e fim automático valendo só para férias; cálculo e gravação testados com conta conectada.
 
 ## Próximas etapas do planejamento
 - [x] Etapa 1: estoque e movimentações de materiais (16 itens cadastrados)

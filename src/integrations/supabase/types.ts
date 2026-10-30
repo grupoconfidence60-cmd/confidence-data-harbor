@@ -416,6 +416,7 @@ export type Database = {
           periodo_aquisitivo_fim: string | null
           periodo_aquisitivo_inicio: string | null
           status: Database["public"]["Enums"]["ferias_status"]
+          tipo: string
           updated_at: string
         }
         Insert: {
@@ -430,6 +431,7 @@ export type Database = {
           periodo_aquisitivo_fim?: string | null
           periodo_aquisitivo_inicio?: string | null
           status?: Database["public"]["Enums"]["ferias_status"]
+          tipo?: string
           updated_at?: string
         }
         Update: {
@@ -444,6 +446,7 @@ export type Database = {
           periodo_aquisitivo_fim?: string | null
           periodo_aquisitivo_inicio?: string | null
           status?: Database["public"]["Enums"]["ferias_status"]
+          tipo?: string
           updated_at?: string
         }
         Relationships: [

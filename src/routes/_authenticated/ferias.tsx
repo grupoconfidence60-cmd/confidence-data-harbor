@@ -154,8 +154,15 @@ function Ferias() {
   );
 }
 
+const DIAS_FERIAS_PADRAO = 30;
+const somaDias = (data: string, dias: number) => {
+  const ms = Date.parse(data + "T00:00:00Z");
+  return Number.isFinite(ms) ? new Date(ms + dias * 86400000).toISOString().slice(0, 10) : "";
+};
+
 function FeriasDialog({ colabs, fixColabId, informarPeriodo = false, aprovar, meId, onClose }: { colabs: { id: string; nome: string; matricula: string }[]; fixColabId?: string | undefined; informarPeriodo?: boolean; aprovar: boolean; meId: string | null; onClose: () => void }) {
   const [f, setF] = useState({ colaborador_id: fixColabId ?? "", data_inicio: "", data_fim: "", observacoes: "" });
+  const [fimManual, setFimManual] = useState(false);
   const [saving, setSaving] = useState(false);
   const qc = useQueryClient();
   const colaborador = colabs.find((c) => c.id === f.colaborador_id);
@@ -166,6 +173,15 @@ function FeriasDialog({ colabs, fixColabId, informarPeriodo = false, aprovar, me
     && new Date(inicio).toISOString().slice(0, 10) === f.data_inicio
     && new Date(fim).toISOString().slice(0, 10) === f.data_fim && fim >= inicio;
   const dias = datasValidas ? Math.round((fim - inicio) / 86400000) + 1 : null;
+
+  function onInicioChange(valor: string) {
+    const inicioOk = /^\d{4}-\d{2}-\d{2}$/.test(valor) && Number.isFinite(Date.parse(valor + "T00:00:00Z"));
+    setF((prev) => ({
+      ...prev,
+      data_inicio: valor,
+      data_fim: !fimManual && inicioOk ? somaDias(valor, DIAS_FERIAS_PADRAO - 1) : prev.data_fim,
+    }));
+  }
 
   async function save(e: React.FormEvent) {
     e.preventDefault();

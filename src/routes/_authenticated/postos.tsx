@@ -179,7 +179,7 @@ function Postos() {
             const low = n < p.efetivo_previsto;
             const nomes = nomesSupervisores(p);
             return (
-              <Card key={p.id} className={!p.ativo ? "opacity-60" : ""}>
+              <Card key={p.id} className={`border-blue-800 bg-[#102b50] text-white [--background:#1e3a5f] [--muted-foreground:#cbd5e1] [--accent:#24466d] [--accent-foreground:#ffffff] [--border:#365575] [--input:#365575] [--ring:#93c5fd] [--warning:#fbbf24] ${!p.ativo ? "opacity-60" : ""}`}>
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between gap-2">
                     <div><div className="font-display font-semibold">{p.nome}</div><div className="text-sm text-muted-foreground">{p.cliente || "—"} · {p.tipo || "—"}</div></div>
@@ -197,7 +197,7 @@ function Postos() {
                   <div className={`mt-2 text-xs ${p.latitude != null ? "text-muted-foreground" : "text-warning"}`}>
                     {p.latitude != null ? `Ponto por GPS: raio de ${p.raio_metros} m` : "Ponto por GPS não configurado"}
                   </div>
-                  <Button asChild variant="outline" className="mt-4 w-full"><Link to="/posto/$id" params={{ id: p.id }}><Table2 className="h-4 w-4" />Planilha de colaboradores</Link></Button>
+                  <Button asChild variant="outline" className="mt-4 w-full border-blue-500 bg-blue-800 text-white hover:bg-blue-700 hover:text-white dark:bg-blue-800 dark:hover:bg-blue-700"><Link to="/posto/$id" params={{ id: p.id }}><Table2 className="h-4 w-4" />Planilha de colaboradores</Link></Button>
                 </CardContent>
               </Card>
             );

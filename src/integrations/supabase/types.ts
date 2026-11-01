@@ -1132,6 +1132,7 @@ export type Database = {
         Returns: number
       }
       encerrar_ferias_vencidas: { Args: never; Returns: number }
+      gerar_planilha_mes: { Args: { _mes?: string }; Returns: number }
       has_any_role: {
         Args: {
           _roles: Database["public"]["Enums"]["app_role"][]

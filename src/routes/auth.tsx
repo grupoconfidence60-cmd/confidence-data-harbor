@@ -42,8 +42,9 @@ function AuthPage() {
       // libera o login em vez de deixar o botão desabilitado para sempre.
       supabase
         .rpc("system_initialized")
-        .then(({ data }) => {
-          if (active) setInitialized(!!data);
+        .then(({ data, error }) => {
+          // Se a checagem falhar, libera o login em vez de pedir para criar administrador.
+          if (active) setInitialized(error ? true : !!data);
         }, () => {
           if (active) setInitialized(true);
         });

@@ -59,9 +59,16 @@ function Presenca() {
         supabase.from("postos").select("id, nome").eq("ativo", true).order("nome"),
         supabase.from("colaboradores").select("id, nome, matricula, posto_id, funcoes(nome)").eq("arquivado", false).eq("situacao", "ativo").order("nome"),
         supabase.from("presencas").select("*").eq("data", data),
-        supabase.from("posto_planilha").select("colaborador_id,posto_id,paridade,escala_tipo,ajustes,hora_inicio,hora_fim,turno").eq("mes", `${data.slice(0, 7)}-01`).eq("removido", false),
+        supabase.from("posto_planilha").select("colaborador_id,posto_id,paridade,escala_tipo,ajustes,hora_inicio,hora_fim,turno,mes").lte("mes", `${data.slice(0, 7)}-01`).eq("removido", false).order("mes", { ascending: false }),
       ]);
-      return { postos: postos ?? [], colabs: colabs ?? [], pres: pres ?? [], plan: plan ?? [] };
+      // Usa a planilha do mês; se o mês ainda não foi montado, repete a última escala do colaborador (sem os ajustes de dias do mês anterior).
+      const mesAtual = `${data.slice(0, 7)}-01`;
+      const porColab = new Map<string, NonNullable<typeof plan>[number]>();
+      for (const p of plan ?? []) {
+        if (porColab.has(p.colaborador_id)) continue;
+        porColab.set(p.colaborador_id, p.mes === mesAtual ? p : { ...p, ajustes: {} });
+      }
+      return { postos: postos ?? [], colabs: colabs ?? [], pres: pres ?? [], plan: [...porColab.values()] };
     },
     refetchInterval: 60_000,
   });

@@ -32,7 +32,7 @@ function Index() {
       <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-8">
         <BrandMark />
         <div className="flex flex-1 flex-col justify-center py-16">
-          <p className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-brand-accent/40 px-3 py-1 text-xs text-brand-accent">
+          <p className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-primary-foreground/30 bg-primary-foreground/10 px-3 py-1 text-xs text-primary-foreground">
             <span className="live-dot live-ao_vivo" aria-hidden /> <ShieldCheck className="h-3.5 w-3.5" /> Acesso restrito a usuários autorizados
           </p>
           <h1 className="max-w-3xl text-4xl font-semibold leading-tight md:text-6xl">

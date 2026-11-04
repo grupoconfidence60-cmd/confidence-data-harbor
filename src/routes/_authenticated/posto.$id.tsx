@@ -23,7 +23,7 @@ function Posto() {
   const { id } = Route.useParams();
   const [tab, setTab] = useState("geral");
   const { data, isPending, isError } = useQuery({ queryKey: ["posto", id], queryFn: async () => {
-    const result = await supabase.from("postos").select("id,nome,cliente,endereco,cidade,supervisor_id,ativo").eq("id", id).maybeSingle();
+    const result = await supabase.from("postos").select("id,nome,cliente,endereco,cidade,supervisor_id,supervisor_ids,ativo").eq("id", id).maybeSingle();
     if (result.error) throw result.error;
     return result.data;
   } });

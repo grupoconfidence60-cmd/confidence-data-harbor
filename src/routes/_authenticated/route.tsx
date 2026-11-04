@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { BrandMark } from "@/components/brand";
 import { NotificacoesBell } from "@/components/notificacoes";
+import { LiveIndicator } from "@/components/live-sync";
 import { useMe } from "@/lib/use-me";
 import { canAccess, ROLE_LABELS } from "@/lib/labels";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -136,11 +137,12 @@ function Layout() {
           </SidebarFooter>
         </Sidebar>
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-10 flex h-[72px] items-center gap-3 border-b bg-card/95 px-4 backdrop-blur md:px-7">
+          <header className="tech-header sticky top-0 z-10 flex h-[72px] items-center gap-3 border-b bg-card/90 px-4 backdrop-blur md:px-7">
             <SidebarTrigger aria-label="Abrir ou recolher menu" />
             <div className="hidden items-center gap-2 text-xs text-muted-foreground lg:flex"><span>Confidence</span><ChevronRight className="h-3 w-3" /><span className="font-medium text-foreground">{currentPage}</span></div>
             <div className="flex-1" />
             <Button variant="outline" className="h-9 gap-2 text-muted-foreground sm:w-48 sm:justify-start" onClick={() => setSearchOpen(true)} aria-label="Buscar módulo"><Search /><span className="hidden sm:inline">Buscar módulo</span></Button>
+            <LiveIndicator />
             <div className="mx-1 hidden h-5 border-l sm:block" />
             <NotificacoesBell />
             <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={toggleDark} aria-label="Alternar tema" aria-pressed={dark}>
@@ -156,7 +158,7 @@ function Layout() {
               </CommandList></Command>
             </DialogContent>
           </Dialog>
-          <main className="mx-auto w-full max-w-[1600px] flex-1 p-4 md:p-7 lg:p-8">
+          <main className="tech-main mx-auto w-full max-w-[1600px] flex-1 p-4 md:p-7 lg:p-8">
             {me && roles.length === 0 ? (
               <div className="mx-auto mt-20 max-w-md text-center">
                 <h1 className="text-xl font-semibold">Acesso pendente</h1>

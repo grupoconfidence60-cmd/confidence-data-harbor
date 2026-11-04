@@ -14,6 +14,7 @@
 - [x] Planilha mensal dentro de cada posto: escalas pares/ímpares, inclusão e retirada de colaboradores, ajustes por dia e download Excel para supervisores, gestores, administração e RH; inclusão, edição, persistência, retirada e arquivo baixado verificados.
 - [x] Férias: abono pecuniário (20 dias automáticos) ao lado de férias completas (30 dias automáticos), aba própria de abonos e fim automático valendo só para férias; cálculo e gravação testados com conta conectada.
 - [x] Aplicativo instalável no celular e no computador: ícone e tela própria (Android, iPhone, Windows e Mac) a partir do próprio site, sem loja; manifesto e ícones verificados no navegador.
+- [x] Aplicativo de computador para baixar: pacotes do Windows (x64), Mac Apple Silicon e Mac Intel gerados com ícone próprio, sessão salva e tela de aviso sem conexão; entregues em Files.
 
 ## Próximas etapas do planejamento
 - [x] Etapa 1: estoque e movimentações de materiais (16 itens cadastrados)

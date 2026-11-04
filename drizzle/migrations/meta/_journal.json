@@ -148,6 +148,13 @@
       "when": 1793547463138,
       "tag": "0020_planilha_mes_automatico",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1793753942769,
+      "tag": "0021_realtime_todas_telas",
+      "breakpoints": true
     }
   ]
 }

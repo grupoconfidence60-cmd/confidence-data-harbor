@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { queryOptions, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Download, Plus } from "lucide-react";
+import { Download, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,6 +31,7 @@ const movQuery = queryOptions({
 });
 
 export function MaterialEstoque({ items, people, posts, canFull }: { items: Item[]; people: Person[]; posts: Opt[]; canFull: boolean }) {
+  const qc = useQueryClient();
   const { data } = useQuery(movQuery);
   const movs = data?.movs ?? [];
   const profiles = data?.profiles ?? [];

@@ -179,7 +179,7 @@ function Postos() {
             const low = n < p.efetivo_previsto;
             const nomes = nomesSupervisores(p);
             return (
-              <Card key={p.id} className={`border-blue-300 bg-[#3676ad] text-white [--background:#3676ad] [--muted-foreground:#ffffff] [--accent:#326ba6] [--accent-foreground:#ffffff] [--border:#85baff] [--input:#85baff] [--ring:#c4e3ff] [--warning:#fef08a] ${!p.ativo ? "opacity-60" : ""}`}>
+              <Card key={p.id} className={`border-blue-300 bg-[#1c4677] text-white [--background:#1c4677] [--muted-foreground:#ffffff] [--accent:#1a4a80] [--accent-foreground:#ffffff] [--border:#85baff] [--input:#85baff] [--ring:#c4e3ff] [--warning:#fef08a] ${!p.ativo ? "opacity-60" : ""}`}>
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between gap-2">
                     <div><div className="font-display font-semibold">{p.nome}</div><div className="text-sm text-muted-foreground">{p.cliente || "—"} · {p.tipo || "—"}</div></div>

@@ -1,0 +1,56 @@
+{
+  "name": "Grupo Confidence — Gestão Operacional",
+  "short_name": "Confidence",
+  "description": "Sistema Integrado de Gestão Operacional do Grupo Confidence: escalas por posto, presença, solicitações, comunicados e controle de uniformes e equipamentos.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "theme_color": "#1f4e8c",
+  "background_color": "#1f4e8c",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Meu ponto",
+      "short_name": "Ponto",
+      "url": "/ponto",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Solicitações",
+      "short_name": "Solicitações",
+      "url": "/ocorrencias",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Comunicados",
+      "short_name": "Comunicados",
+      "url": "/comunicados",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}

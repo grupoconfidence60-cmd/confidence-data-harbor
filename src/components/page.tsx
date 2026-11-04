@@ -6,8 +6,9 @@ import { Inbox } from "lucide-react";
 
 export function PageHeader({ title, description, actions }: { title: string; description?: string; actions?: ReactNode }) {
   return (
-    <div className="page-heading mb-7 flex flex-wrap items-end justify-between gap-4 border-b pb-6">
+    <div className="page-heading tech-heading relative mb-7 flex flex-wrap items-end justify-between gap-4 border-b pb-6">
       <div>
+        <div className="tech-kicker mb-2 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-primary"><span className="live-dot live-ao_vivo" aria-hidden />Sistema Confidence</div>
         <h1 className="text-2xl font-semibold md:text-3xl">{title}</h1>
         {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
       </div>

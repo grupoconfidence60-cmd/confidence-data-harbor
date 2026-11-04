@@ -95,6 +95,7 @@ function AuthPage() {
       <div className="auth-panel relative hidden flex-col justify-between overflow-hidden bg-brand p-10 text-primary-foreground md:flex">
         <div className="auth-grid pointer-events-none absolute inset-0" />
         <div className="auth-scan pointer-events-none absolute inset-x-0 h-24" />
+        <div className="tech-orb pointer-events-none absolute -left-32 bottom-0 h-96 w-96 rounded-full" />
         <div className="relative font-display text-sm font-semibold tracking-[0.25em] opacity-90">GRUPO CONFIDENCE</div>
         <div className="relative flex flex-col items-center text-center">
           <div className="relative">

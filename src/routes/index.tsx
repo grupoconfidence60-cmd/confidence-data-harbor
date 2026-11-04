@@ -24,15 +24,19 @@ function Index() {
     { icon: ClipboardCheck, t: "Auditoria", d: "Rastreabilidade total" },
   ];
   return (
-    <div className="min-h-screen bg-brand text-primary-foreground">
-      <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-8">
+    <div className="relative min-h-screen overflow-hidden bg-brand text-primary-foreground">
+      <div className="auth-grid pointer-events-none absolute inset-0" />
+      <div className="auth-scan pointer-events-none absolute inset-x-0 h-32" />
+      <div className="tech-orb pointer-events-none absolute -right-40 top-1/4 h-[520px] w-[520px] rounded-full" />
+      <div className="auth-ring-2 pointer-events-none absolute -right-24 top-[30%] h-[400px] w-[400px] rounded-full border border-dashed border-primary-foreground/15" />
+      <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-8">
         <BrandMark />
         <div className="flex flex-1 flex-col justify-center py-16">
-          <p className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-brand-accent/40 px-3 py-1 text-xs text-brand-accent">
-            <ShieldCheck className="h-3.5 w-3.5" /> Acesso restrito a usuários autorizados
+          <p className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-primary-foreground/30 bg-primary-foreground/10 px-3 py-1 text-xs text-primary-foreground">
+            <span className="live-dot live-ao_vivo" aria-hidden /> <ShieldCheck className="h-3.5 w-3.5" /> Acesso restrito a usuários autorizados
           </p>
           <h1 className="max-w-3xl text-4xl font-semibold leading-tight md:text-6xl">
-            Sistema Integrado de <span className="text-brand-accent">Gestão Operacional</span>
+            Sistema Integrado de <span className="tech-gradient-text">Gestão Operacional</span>
           </h1>
           <p className="mt-5 max-w-xl text-base opacity-80 md:text-lg">
             Colaboradores, postos de serviço, supervisão e controle em um único ambiente seguro.
@@ -44,7 +48,7 @@ function Index() {
           </div>
           <div className="mt-16 grid gap-4 sm:grid-cols-3">
             {items.map((i) => (
-              <div key={i.t} className="rounded-lg border border-primary-foreground/10 bg-primary-foreground/5 p-5">
+              <div key={i.t} className="tech-card rounded-lg border border-primary-foreground/15 bg-primary-foreground/5 p-5 backdrop-blur">
                 <i.icon className="h-5 w-5 text-brand-accent" />
                 <div className="mt-3 font-semibold">{i.t}</div>
                 <div className="text-sm opacity-70">{i.d}</div>

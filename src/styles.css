@@ -11,8 +11,8 @@
   --color-blue-200: #d3e9ff;
   --color-blue-300: #afd5ff;
   --color-blue-400: #85baff;
-  --color-blue-500: #5999eb;
-  --color-blue-600: #397ac5;
+  --color-blue-500: #3d74b8;
+  --color-blue-600: #2b5f9e;
   --color-blue-700: #3473b9;
   --color-blue-800: #326baa;
   --color-blue-900: #2e6099;
@@ -77,28 +77,28 @@
   --card-foreground: oklch(0.2 0.03 255);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.2 0.03 255);
-  --primary: #3374bd;
+  --primary: #1f4e8c;
   --primary-foreground: #ffffff;
   --secondary: oklch(0.94 0.01 250);
   --secondary-foreground: #304f72;
   --muted: oklch(0.95 0.006 250);
   --muted-foreground: oklch(0.5 0.025 255);
   --accent: #edf6ff;
-  --accent-foreground: #326ba6;
-  --brand-accent: #397ac5;
+  --accent-foreground: #1a4a80;
+  --brand-accent: #2b5f9e;
   --brand-accent-foreground: #ffffff;
   --success: oklch(0.6 0.14 155);
   --funcao-vigia: oklch(0.55 0.01 260);
   --funcao-intermitente: oklch(0.7 0.17 55);
-  --funcao-vigilante: #3374bd;
+  --funcao-vigilante: #1f4e8c;
   --funcao-bombeiro: oklch(0.57 0.22 27);
   --warning: oklch(0.72 0.16 65);
   --destructive: oklch(0.58 0.22 27);
   --destructive-foreground: oklch(0.98 0 0);
   --border: oklch(0.9 0.01 250);
   --input: oklch(0.9 0.01 250);
-  --ring: #5999eb;
-  --chart-1: #397ac5;
+  --ring: #3d74b8;
+  --chart-1: #2b5f9e;
   --chart-2: #78adeb;
   --chart-3: oklch(0.6 0.14 155);
   --chart-4: oklch(0.58 0.22 27);
@@ -111,7 +111,7 @@
   --sidebar-accent-foreground: var(--primary);
   --sidebar-border: var(--border);
   --sidebar-ring: #85baff;
-  --gradient-brand: linear-gradient(135deg, #315f94, #3676ad 60%, #397ac5);
+  --gradient-brand: linear-gradient(135deg, #142f52, #1c4677 60%, #2b5f9e);
 }
 
 /* Cores de reserva para iPhones/navegadores que ainda não suportam oklch(). */
@@ -123,15 +123,15 @@
     --card-foreground: #1b2531;
     --popover: #ffffff;
     --popover-foreground: #1b2531;
-    --primary: #3374bd;
+    --primary: #1f4e8c;
     --primary-foreground: #ffffff;
     --secondary: #eceff3;
     --secondary-foreground: #304f72;
     --muted: #f0f2f5;
     --muted-foreground: #64707d;
     --accent: #edf6ff;
-    --accent-foreground: #326ba6;
-    --brand-accent: #397ac5;
+    --accent-foreground: #1a4a80;
+    --brand-accent: #2b5f9e;
     --brand-accent-foreground: #ffffff;
     --success: #2f855a;
     --warning: #b7791f;
@@ -139,8 +139,8 @@
     --destructive-foreground: #ffffff;
     --border: #e2e5ea;
     --input: #e2e5ea;
-    --ring: #5999eb;
-    --chart-1: #397ac5;
+    --ring: #3d74b8;
+    --chart-1: #2b5f9e;
     --chart-2: #78adeb;
     --chart-3: #2f855a;
     --chart-4: #c0392b;
@@ -148,10 +148,10 @@
     --sidebar: #ffffff;
     --sidebar-foreground: #5b6673;
     --sidebar-accent: #edf6ff;
-    --sidebar-accent-foreground: #3374bd;
+    --sidebar-accent-foreground: #1f4e8c;
     --sidebar-border: #e2e5ea;
     --sidebar-ring: #85baff;
-    --gradient-brand: linear-gradient(135deg, #315f94, #3676ad 60%, #397ac5);
+    --gradient-brand: linear-gradient(135deg, #142f52, #1c4677 60%, #2b5f9e);
   }
 }
 
@@ -214,11 +214,11 @@
 [data-sidebar="sidebar"] [data-sidebar="content"] {
   --sidebar-foreground: #ffffff;
   --sidebar-primary: #d3e9ff;
-  --sidebar-primary-foreground: #285782;
-  --sidebar-accent: #326ba6;
+  --sidebar-primary-foreground: #163a63;
+  --sidebar-accent: #1a4a80;
   --sidebar-accent-foreground: #ffffff;
   --sidebar-ring: #c4e3ff;
-  background-color: #3676ad;
+  background-color: #1c4677;
   color: var(--sidebar-foreground);
 }
 [data-sidebar="sidebar"] [data-sidebar="content"] [data-sidebar="group-label"] {
@@ -269,20 +269,20 @@
   --card-foreground: #304f72;
   --popover: #ffffff;
   --popover-foreground: #304f72;
-  --primary: #3374bd;
+  --primary: #1f4e8c;
   --primary-foreground: #ffffff;
   --secondary: #e2e8f0;
   --secondary-foreground: #304f72;
   --muted: #f1f5f9;
   --muted-foreground: #526175;
   --accent: #edf6ff;
-  --accent-foreground: #326ba6;
+  --accent-foreground: #1a4a80;
   --border: #cbd5e1;
   --input: #cbd5e1;
-  --ring: #5999eb;
-  --warning: #3374bd;
-  --success: #3374bd;
-  --chart-1: #397ac5;
+  --ring: #3d74b8;
+  --warning: #1f4e8c;
+  --success: #1f4e8c;
+  --chart-1: #2b5f9e;
   --chart-2: #94a3b8;
   --chart-3: #5d91bf;
   --chart-4: #64748b;
@@ -316,16 +316,16 @@
   --chart-5: #ffffff;
 }
 .confidence-panel .painel-heading {
-  --background: #3676ad;
+  --background: #1c4677;
   --foreground: #ffffff;
   --primary: #d3e9ff;
   --muted-foreground: #ffffff;
-  --accent: #326ba6;
+  --accent: #1a4a80;
   --accent-foreground: #ffffff;
   --border: #85baff;
   --input: #85baff;
   --ring: #c4e3ff;
-  background: linear-gradient(120deg, #315f94, #3676ad);
+  background: linear-gradient(120deg, #142f52, #1c4677);
   color: #ffffff;
 }
 .workspace .confidence-panel .panel-section {
@@ -411,3 +411,11 @@
 [data-sidebar="sidebar"] [data-sidebar="content"] [data-sidebar="menu-button"]:hover svg { transform: scale(1.15) translateX(2px); }
 [data-sidebar="sidebar"] [data-sidebar="content"] [data-sidebar="menu-button"][data-active="true"] { box-shadow: inset 3px 0 0 #ffffff, 0 0 18px rgb(211 233 255 / 45%); }
 @media (prefers-reduced-motion: reduce) { .tech-header::after, .live-dot::after, .workspace main .metric, .tech-heading h1 { animation: none !important; } }
+/* Capa e entrada: brilho, cartões e texto luminoso */
+.tech-orb { background: radial-gradient(circle, rgb(133 186 255 / 28%), transparent 65%); filter: blur(10px); animation: auth-float 8s ease-in-out infinite; }
+.tech-card { transition: transform 220ms, border-color 220ms, box-shadow 220ms; }
+.tech-card:hover { transform: translateY(-4px); border-color: rgb(211 233 255 / 55%); box-shadow: 0 0 28px rgb(133 186 255 / 30%); }
+.tech-gradient-text { background: linear-gradient(90deg, #ffffff, #a6d5ff, #cbd5e1, #ffffff); background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: tech-text 6s linear infinite; }
+@keyframes tech-text { to { background-position: 300% 0; } }
+.bg-brand .live-dot { background: #a6d5ff; } .bg-brand .live-dot::after { border-color: #a6d5ff; }
+@media (prefers-reduced-motion: reduce) { .tech-orb, .tech-gradient-text { animation: none; } }

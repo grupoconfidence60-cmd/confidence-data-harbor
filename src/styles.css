@@ -403,7 +403,7 @@
 .workspace main thead th { text-transform: uppercase; letter-spacing: .06em; }
 /* Abas e botões com brilho */
 .workspace main [role="tab"][data-state="active"] { box-shadow: 0 0 0 1px color-mix(in oklab, var(--primary) 40%, transparent), 0 4px 14px -6px var(--primary); }
-.workspace main button[data-slot="button"]:not([data-variant="ghost"]):hover { box-shadow: 0 6px 18px -8px var(--primary); }
+.workspace main button.bg-primary:hover { box-shadow: 0 6px 18px -8px var(--primary); }
 .workspace main input:focus-visible, .workspace main textarea:focus-visible { box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 20%, transparent); }
 /* Menu lateral: grade técnica e item ativo luminoso */
 [data-sidebar="sidebar"] [data-sidebar="content"] { background-image: linear-gradient(rgb(255 255 255 / 5%) 1px, transparent 1px), linear-gradient(90deg, rgb(255 255 255 / 5%) 1px, transparent 1px); background-size: 24px 24px; }

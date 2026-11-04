@@ -162,6 +162,13 @@
       "when": 1793798374952,
       "tag": "0022_supervisores_multiplos_acesso",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1793799356349,
+      "tag": "0023_supervisor_ve_sem_posto",
+      "breakpoints": true
     }
   ]
 }

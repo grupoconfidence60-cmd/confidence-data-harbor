@@ -1,6 +1,7 @@
 {
   "name": "tanstack_start_ts",
   "private": true,
+  "version": "1.0.0",
   "productName": "Confidence",
   "main": "electron/main.cjs",
   "sideEffects": false,

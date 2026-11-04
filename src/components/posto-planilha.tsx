@@ -20,9 +20,9 @@ type Person = PlanilhaPerson & { posto_id: string | null; jornada: string | null
 type Form = { id?: string; colaborador_id: string; paridade: string; escala_tipo?: string | null | undefined; turno: string; hora_inicio: string; hora_fim: string; observacoes: string; posicao?: string };
 const empty: Form = { colaborador_id: "", paridade: "impar", escala_tipo: "livre", turno: "diurno", hora_inicio: "06:00", hora_fim: "18:00", observacoes: "", posicao: "" };
 
-export function PostoPlanilha({ posto }: { posto: { id: string; nome: string; supervisor_id: string | null } }) {
+export function PostoPlanilha({ posto }: { posto: { id: string; nome: string; supervisor_id: string | null; supervisor_ids?: string[] | null } }) {
   const { data: me } = useMe();
-  const allowed = canManagePlanilha(me?.roles ?? [], me?.id, posto.supervisor_id);
+  const allowed = canManagePlanilha(me?.roles ?? [], me?.id, posto.supervisor_id, posto.supervisor_ids ?? []);
   const [month, setMonth] = useState(new Date().toISOString().slice(0, 7));
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("todos");

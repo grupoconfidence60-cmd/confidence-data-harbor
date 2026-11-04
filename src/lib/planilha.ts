@@ -42,8 +42,8 @@ export function rosterWorkbook(post: string, month: string, rows: PlanilhaRow[],
   return workbook;
 }
 
-export function canManagePlanilha(roles: AppRole[], userId: string | undefined, supervisorId: string | null) {
-  return roles.some((r) => ["admin", "gestor", "rh"].includes(r)) || (roles.includes("supervisor") && Boolean(userId) && userId === supervisorId);
+export function canManagePlanilha(roles: AppRole[], userId: string | undefined, supervisorId: string | null, supervisorIds: string[] = []) {
+  return roles.some((r) => ["admin", "gestor", "rh"].includes(r)) || (roles.includes("supervisor") && Boolean(userId) && (userId === supervisorId || supervisorIds.includes(userId!)));
 }
 export function monthDays(month: string) {
   const [year, m] = month.split("-").map(Number);

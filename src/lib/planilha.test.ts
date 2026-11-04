@@ -56,6 +56,7 @@ describe("planilha mensal por posto", () => {
     for (const role of ["admin", "gestor", "rh"] as const) expect(canManagePlanilha([role], "u", "outro")).toBe(true);
     expect(canManagePlanilha(["supervisor"], "u", "u")).toBe(true);
     expect(canManagePlanilha(["supervisor"], "u", "outro")).toBe(false);
+    expect(canManagePlanilha(["supervisor"], "u", "outro", ["u"])).toBe(true);
     expect(canManagePlanilha(["colaborador"], "u", "u")).toBe(false);
   });
   it("Excel identifica posto, matrícula, colaborador, mês e todos os dias", () => {

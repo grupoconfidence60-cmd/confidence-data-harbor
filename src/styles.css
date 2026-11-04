@@ -411,3 +411,11 @@
 [data-sidebar="sidebar"] [data-sidebar="content"] [data-sidebar="menu-button"]:hover svg { transform: scale(1.15) translateX(2px); }
 [data-sidebar="sidebar"] [data-sidebar="content"] [data-sidebar="menu-button"][data-active="true"] { box-shadow: inset 3px 0 0 #ffffff, 0 0 18px rgb(211 233 255 / 45%); }
 @media (prefers-reduced-motion: reduce) { .tech-header::after, .live-dot::after, .workspace main .metric, .tech-heading h1 { animation: none !important; } }
+/* Capa e entrada: brilho, cartões e texto luminoso */
+.tech-orb { background: radial-gradient(circle, rgb(133 186 255 / 28%), transparent 65%); filter: blur(10px); animation: auth-float 8s ease-in-out infinite; }
+.tech-card { transition: transform 220ms, border-color 220ms, box-shadow 220ms; }
+.tech-card:hover { transform: translateY(-4px); border-color: rgb(211 233 255 / 55%); box-shadow: 0 0 28px rgb(133 186 255 / 30%); }
+.tech-gradient-text { background: linear-gradient(90deg, #ffffff, #a6d5ff, #cbd5e1, #ffffff); background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: tech-text 6s linear infinite; }
+@keyframes tech-text { to { background-position: 300% 0; } }
+.bg-brand .live-dot { background: #a6d5ff; } .bg-brand .live-dot::after { border-color: #a6d5ff; }
+@media (prefers-reduced-motion: reduce) { .tech-orb, .tech-gradient-text { animation: none; } }

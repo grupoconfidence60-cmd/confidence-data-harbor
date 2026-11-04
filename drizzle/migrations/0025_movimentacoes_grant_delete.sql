@@ -1,0 +1,1 @@
+GRANT DELETE ON public.material_movimentacoes TO authenticated;

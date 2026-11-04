@@ -176,6 +176,13 @@
       "when": 1793822684122,
       "tag": "0024_movimentacoes_excluir_gestao",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1793822697974,
+      "tag": "0025_movimentacoes_grant_delete",
+      "breakpoints": true
     }
   ]
 }

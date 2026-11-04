@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { queryOptions, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Download, Plus } from "lucide-react";
+import { Download, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,6 +31,7 @@ const movQuery = queryOptions({
 });
 
 export function MaterialEstoque({ items, people, posts, canFull }: { items: Item[]; people: Person[]; posts: Opt[]; canFull: boolean }) {
+  const qc = useQueryClient();
   const { data } = useQuery(movQuery);
   const movs = data?.movs ?? [];
   const profiles = data?.profiles ?? [];
@@ -44,6 +45,15 @@ export function MaterialEstoque({ items, people, posts, canFull }: { items: Item
   const day = (iso: string) => iso.slice(0, 10);
   const hist = movs.filter((m) => (fPost === "todos" || m.posto_id === fPost) && (fPerson === "todos" || m.colaborador_id === fPerson) && (fSup === "todos" || m.supervisor_id === fSup) && (!from || day(m.created_at) >= from) && (!to || day(m.created_at) <= to));
   const fmt = (iso: string) => new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+
+  async function excluir(m: (typeof movs)[number]) {
+    const desc = `${MOV_LABELS[m.tipo]} · ${name(items, m.material_id)} · ${m.quantidade} un. · ${fmt(m.created_at)}`;
+    if (!window.confirm(`Excluir esta movimentação do histórico?\n\n${desc}\n\nO estoque será recalculado sem este lançamento.`)) return;
+    const { error } = await supabase.from("material_movimentacoes").delete().eq("id", m.id);
+    if (error) { toast.error("Não foi possível excluir. Confira seu acesso."); return; }
+    await qc.invalidateQueries({ queryKey: ["materiais"] });
+    toast.success("Movimentação excluída do histórico.");
+  }
 
   function exportar() {
     const book = XLSX.utils.book_new();
@@ -61,7 +71,7 @@ export function MaterialEstoque({ items, people, posts, canFull }: { items: Item
     <div className="overflow-x-auto border bg-card"><table className="w-full min-w-[560px]"><thead><tr>{["Material", "Tamanho", "Em estoque", "Entregues (pendentes de devolução)"].map((h) => <th key={h} className="px-3 text-left">{h}</th>)}</tr></thead><tbody>{items.map((i) => { const s = saldo(movs, i.id); return <tr key={i.id} className="border-t"><td className="px-3 py-2 font-medium">{i.nome}</td><td className="px-3">{i.tamanho || "—"}</td><td className="px-3"><Badge variant={s > 0 ? "secondary" : "destructive"}>{s}</Badge></td><td className="px-3">{pendentes(movs, i.id)}</td></tr>; })}</tbody></table></div>
     <div><h2 className="mb-3 font-semibold">Histórico de movimentações</h2>
       <div className="mb-3 flex flex-wrap gap-3">{sel("Filtrar posto", fPost, setFPost, posts, "Todos os postos")}{sel("Filtrar colaborador", fPerson, setFPerson, people, "Todos os colaboradores")}{sel("Filtrar supervisor", fSup, setFSup, profiles, "Todos os supervisores")}<Input type="date" aria-label="De" className="w-full sm:w-40" value={from} onChange={(e) => setFrom(e.target.value)} /><Input type="date" aria-label="Até" className="w-full sm:w-40" value={to} onChange={(e) => setTo(e.target.value)} /></div>
-      {!hist.length ? <EmptyState text="Nenhuma movimentação encontrada." /> : <div className="overflow-x-auto border bg-card"><table className="w-full min-w-[900px]"><thead><tr>{["Data/hora", "Tipo", "Material", "Qtd.", "Colaborador", "Posto", "Supervisor", "Lançado por"].map((h) => <th key={h} className="px-3 text-left">{h}</th>)}</tr></thead><tbody>{hist.map((m) => <tr key={m.id} className="border-t"><td className="px-3 py-2 whitespace-nowrap">{fmt(m.created_at)}</td><td className="px-3"><Badge variant="outline">{MOV_LABELS[m.tipo]}</Badge>{m.motivo && <p className="text-xs text-muted-foreground">{m.motivo}</p>}</td><td className="px-3">{name(items, m.material_id)}</td><td className="px-3">{m.quantidade}</td><td className="px-3">{name(people, m.colaborador_id)}</td><td className="px-3">{name(posts, m.posto_id)}</td><td className="px-3">{name(profiles, m.supervisor_id)}</td><td className="px-3">{name(profiles, m.registrado_por)}</td></tr>)}</tbody></table></div>}
+      {!hist.length ? <EmptyState text="Nenhuma movimentação encontrada." /> : <div className="overflow-x-auto border bg-card"><table className="w-full min-w-[900px]"><thead><tr>{["Data/hora", "Tipo", "Material", "Qtd.", "Colaborador", "Posto", "Supervisor", "Lançado por", ...(canFull ? ["Ações"] : [])].map((h) => <th key={h} className="px-3 text-left">{h}</th>)}</tr></thead><tbody>{hist.map((m) => <tr key={m.id} className="border-t"><td className="px-3 py-2 whitespace-nowrap">{fmt(m.created_at)}</td><td className="px-3"><Badge variant="outline">{MOV_LABELS[m.tipo]}</Badge>{m.motivo && <p className="text-xs text-muted-foreground">{m.motivo}</p>}</td><td className="px-3">{name(items, m.material_id)}</td><td className="px-3">{m.quantidade}</td><td className="px-3">{name(people, m.colaborador_id)}</td><td className="px-3">{name(posts, m.posto_id)}</td><td className="px-3">{name(profiles, m.supervisor_id)}</td><td className="px-3">{name(profiles, m.registrado_por)}</td>{canFull && <td className="px-3"><Button variant="ghost" size="icon" aria-label="Excluir movimentação" onClick={() => excluir(m)}><Trash2 className="text-destructive" /></Button></td>}</tr>)}</tbody></table></div>}
     </div>
     {open && <MovDialog items={items} people={people} posts={posts} profiles={profiles} canFull={canFull} onClose={() => setOpen(false)} />}
   </div>;

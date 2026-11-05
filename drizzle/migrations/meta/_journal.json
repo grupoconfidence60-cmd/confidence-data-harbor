@@ -197,6 +197,13 @@
       "when": 1793881508985,
       "tag": "0027_uniformes_multiplos_tamanhos",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1793897810052,
+      "tag": "0028_materiais_grupo_minimo",
+      "breakpoints": true
     }
   ]
 }

@@ -1,3 +1,4 @@
+import { GRUPOS_ESTOQUE } from "@/lib/estoque";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -18,6 +19,7 @@ export function MateriaisDialog({ mode, id, minimumDate, initialMaterialId, item
   const [busy, setBusy] = useState(false);
   const [name, setName] = useState("");
   const [category, setCategory] = useState("equipamento");
+  const [grupo, setGrupo] = useState("Outros");
   const [uniformType, setUniformType] = useState("outro");
   const uniformPreset = tiposUniforme.find((t) => t.id === uniformType);
   const [size, setSize] = useState("");
@@ -43,13 +45,14 @@ export function MateriaisDialog({ mode, id, minimumDate, initialMaterialId, item
           tamanhos: tamanhos.length ? tamanhos : [""],
           identificacao: identification.trim(),
         });
+        await supabase.from("materiais").update({ grupo }).ilike("nome", name.trim()).eq("grupo", "");
         await qc.invalidateQueries({ queryKey: ["materiais"] });
         toast.success(resumoTamanhos(result));
         onClose();
         return;
       }
       const result = mode === "item"
-        ? await supabase.from("materiais").insert({ nome: name.trim(), categoria: category, tamanho: size.trim(), identificacao: identification.trim() }).select("id").single()
+        ? await supabase.from("materiais").insert({ nome: name.trim(), categoria: category, grupo, tamanho: size.trim(), identificacao: identification.trim() }).select("id").single()
         : mode === "entrega"
           ? await supabase.from("material_entregas").insert({ material_id: item, colaborador_id: person, posto_id: post, quantidade: Number(quantity), data_entrega: date, observacoes: notes.trim() }).select("id").single()
           : await supabase.from("material_entregas").update({ data_devolucao: date, condicao_devolucao: condition }).eq("id", id ?? "").select("id").single();
@@ -66,7 +69,8 @@ export function MateriaisDialog({ mode, id, minimumDate, initialMaterialId, item
       {mode === "item" ? <>
         <div className="space-y-3 rounded-lg border bg-muted/20 p-3">
           <p className="text-xs font-semibold text-muted-foreground">1. Identifique o material</p>
-          {selector("Categoria", category, (value) => { setCategory(value); setUniformType("outro"); setSize(""); }, [{ id: "equipamento", nome: "Equipamento" }, { id: "uniforme", nome: "Uniforme" }])}
+          {selector("Categoria", category, (value) => { setCategory(value); setUniformType("outro"); setSize(""); }, [{ id: "equipamento", nome: "Equipamento" }, { id: "uniforme", nome: "Uniforme" }, { id: "escritorio", nome: "Material de escritório" }, { id: "manutencao", nome: "Manutenção eletrônica" }])}
+          {selector("Grupo no estoque", grupo, setGrupo, GRUPOS_ESTOQUE.map((g) => ({ id: g, nome: g })))}
           {ehUniforme(category) && selector("Modelo de preenchimento (opcional)", uniformType, (value) => {
             setUniformType(value);
             const preset = tiposUniforme.find((t) => t.id === value);

@@ -21,3 +21,4 @@
 - Inspection checklists: templates in checklist_modelos (archived, never deleted); inspecoes are insert-only with post-scoped RLS via can_manage_planilha so audit history stays immutable.
 - Attendance status is derived client-side from the month's posto_planilha schedule plus presencas (ponto), refreshed via Realtime; manual records override and auto faltas are persisted only by explicit confirmation. Function colors map by function name in src/lib/funcao-cores.ts.
 - Live updates: a single app-wide Realtime channel (src/components/live-sync.tsx, mounted in the authenticated layout header) invalidates queries on changes; new tables shown in screens must join the supabase_realtime publication and that table list, so every screen stays current without per-page channels.
+- Stock items carry a display group and a per-size minimum; "Comprar" is derived (stock below minimum), never stored, so it stays correct as movements change.

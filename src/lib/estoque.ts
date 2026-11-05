@@ -11,3 +11,13 @@ export function saldo(movs: Mov[], materialId: string) {
 export function pendentes(movs: Mov[], materialId: string, colaboradorId?: string) {
   return movs.filter((m) => m.material_id === materialId && (!colaboradorId || m.colaborador_id === colaboradorId)).reduce((s, m) => s + (m.tipo === "entrega" ? m.quantidade : m.tipo === "devolucao" ? -m.quantidade : 0), 0);
 }
+
+export const CATEGORIA_LABELS: Record<string, string> = { uniforme: "Uniforme", equipamento: "Equipamento", escritorio: "Material de escritório", manutencao: "Manutenção eletrônica" };
+
+/** Display order of stock groups, matching the company's stock workbook. */
+export const GRUPOS_ESTOQUE = ["Vigia", "Vigilante", "Bombeiro civil", "Calçados e complementos", "Outros", "Administrativo", "Manutenção eletrônica"];
+
+/** An item must be bought when a minimum is set and the stock on hand is below it. */
+export function precisaComprar(emEstoque: number, minimo: number) {
+  return minimo > 0 && emEstoque < minimo;
+}

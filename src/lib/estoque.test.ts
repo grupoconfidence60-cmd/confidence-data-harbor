@@ -12,3 +12,10 @@ describe("estoque", () => {
   it("saldo soma entradas e devoluções e subtrai entregas e baixas", () => expect(saldo(movs, "a")).toBe(6));
   it("pendentes de devolução por colaborador", () => expect(pendentes(movs, "a", "c1")).toBe(2));
 });
+
+import { precisaComprar } from "./estoque";
+describe("precisaComprar", () => {
+  it("flags stock below the minimum", () => expect(precisaComprar(1, 2)).toBe(true));
+  it("does not flag stock equal to the minimum", () => expect(precisaComprar(2, 2)).toBe(false));
+  it("does not flag items without a minimum", () => expect(precisaComprar(0, 0)).toBe(false));
+});

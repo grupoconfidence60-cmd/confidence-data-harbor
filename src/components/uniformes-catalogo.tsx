@@ -21,10 +21,10 @@ export function UniformesCatalogo({ items, canManage, onArchive, busy = false }:
     grupo.push(item);
     grupos.set(key, grupo);
   }
-  const uniformes = [...grupos.values()].sort((a, b) => a[0].nome.localeCompare(b[0].nome, "pt-BR"));
+  const uniformes = [...grupos.values()].sort((a, b) => a[0]!.nome.localeCompare(b[0]!.nome, "pt-BR"));
   const secoes = [
-    { titulo: "Calças", items: uniformes.filter((grupo) => tipoUniforme(grupo[0].nome) === "calca") },
-    { titulo: "Demais uniformes", items: uniformes.filter((grupo) => tipoUniforme(grupo[0].nome) !== "calca") },
+    { titulo: "Calças", items: uniformes.filter((grupo) => tipoUniforme(grupo[0]!.nome) === "calca") },
+    { titulo: "Demais uniformes", items: uniformes.filter((grupo) => tipoUniforme(grupo[0]!.nome) !== "calca") },
   ].filter((secao) => secao.items.length > 0);
 
   return <section className="overflow-hidden rounded-lg border bg-card text-card-foreground" aria-label="Uniformes e tamanhos">
@@ -35,7 +35,7 @@ export function UniformesCatalogo({ items, canManage, onArchive, busy = false }:
     {!uniformes.length ? <EmptyState text="Nenhum uniforme encontrado com a busca atual." /> : secoes.map((secao) => <div key={secao.titulo}>
       <h3 className="border-b bg-muted/20 px-4 py-2 text-xs font-semibold text-muted-foreground">{secao.titulo}</h3>
       <div className="divide-y">{secao.items.map((grupo) => {
-        const item = grupo[0];
+        const item = grupo[0]!;
         const tamanhos = [...new Map(grupo.map((i) => [normalizarUniforme(i.tamanho), i.tamanho.trim()])).values()]
           .sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true }));
         return <article key={normalizarUniforme(item.nome)} className="space-y-2 px-4 py-3">

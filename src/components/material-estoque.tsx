@@ -15,14 +15,17 @@ import { EmptyState } from "@/components/page";
 import { MaterialTamanho } from "@/components/material-tamanho";
 import { UniformeTamanhos } from "@/components/uniforme-tamanhos";
 import { ehUniforme, normalizarUniforme } from "@/lib/uniformes";
-import { MOV_LABELS, saldo, pendentes, type Mov } from "@/lib/estoque";
+import { MOV_LABELS, saldo, pendentes, precisaComprar, CATEGORIA_LABELS, GRUPOS_ESTOQUE, type Mov } from "@/lib/estoque";
 
 type Opt = { id: string; nome: string };
-type Item = Opt & { tamanho: string; categoria: string; identificacao?: string };
+type Item = Opt & { tamanho: string; categoria: string; identificacao?: string; grupo?: string; estoque_minimo?: number };
+const grupoDe = (i: Item) => i.grupo?.trim() || "Outros";
+const rank = (g: string) => { const i = GRUPOS_ESTOQUE.indexOf(g); return i < 0 ? 99 : i; };
+const catLabel = (c: string) => CATEGORIA_LABELS[c] ?? c;
 type Person = Opt & { matricula: string; posto_id: string | null };
 
 function chaveMaterial(item: Item) {
-  return JSON.stringify([ehUniforme(item.categoria) ? "uniforme" : normalizarUniforme(item.categoria), normalizarUniforme(item.nome)]);
+  return JSON.stringify([grupoDe(item), ehUniforme(item.categoria) ? "uniforme" : normalizarUniforme(item.categoria), normalizarUniforme(item.nome)]);
 }
 
 const movQuery = queryOptions({
@@ -45,6 +48,7 @@ export function MaterialEstoque({ items, people, posts, canFull, filterMaterialI
   const [open, setOpen] = useState(false);
   const [initialMaterialId, setInitialMaterialId] = useState("");
   const [categoria, setCategoria] = useState("todos");
+  const [soComprar, setSoComprar] = useState(false);
   function abrirMovimentacao(id = "") {
     setInitialMaterialId(id);
     setOpen(true);
@@ -54,10 +58,13 @@ export function MaterialEstoque({ items, people, posts, canFull, filterMaterialI
   const [fSup, setFSup] = useState("todos");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
+  const comprarItem = (i: Item) => precisaComprar(saldo(movs, i.id), i.estoque_minimo ?? 0);
+  const paraComprar = items.filter(comprarItem);
+  const gruposDisponiveis = [...new Set(items.map(grupoDe))].sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
   const grupos = new Map<string, Item[]>();
-  for (const item of items) {
-    if (categoria === "uniformes" && !ehUniforme(item.categoria)) continue;
-    if (categoria === "equipamentos" && ehUniforme(item.categoria)) continue;
+  for (const item of [...items].sort((a, b) => gruposDisponiveis.indexOf(grupoDe(a)) - gruposDisponiveis.indexOf(grupoDe(b)))) {
+    if (categoria !== "todos" && grupoDe(item) !== categoria) continue;
+    if (soComprar && !comprarItem(item)) continue;
     const key = chaveMaterial(item);
     const grupo = grupos.get(key) ?? [];
     grupo.push(item);
@@ -79,7 +86,8 @@ export function MaterialEstoque({ items, people, posts, canFull, filterMaterialI
 
   function exportar() {
     const book = XLSX.utils.book_new();
-    const est = XLSX.utils.aoa_to_sheet([["Grupo Confidence — Estoque"], ["Material", "Categoria", "Tamanho", "Em estoque", "Entregues pendentes"], ...items.map((i) => [i.nome, i.categoria, i.tamanho, saldo(movs, i.id), pendentes(movs, i.id)])]);
+    const est = XLSX.utils.aoa_to_sheet([["Grupo Confidence — Estoque"], ["Grupo", "Material", "Categoria", "Tamanho", "Em estoque", "Estoque mínimo", "Situação", "Entregues pendentes"], ...[...items].sort((a, b) => gruposDisponiveis.indexOf(grupoDe(a)) - gruposDisponiveis.indexOf(grupoDe(b)) || a.nome.localeCompare(b.nome) || a.tamanho.localeCompare(b.tamanho, "pt-BR", { numeric: true })).map((i) => [grupoDe(i), i.nome, catLabel(i.categoria), i.tamanho, saldo(movs, i.id), i.estoque_minimo ?? 0, comprarItem(i) ? "Comprar" : "Ok", pendentes(movs, i.id)])]);
+    est["!cols"] = [24, 34, 22, 14, 12, 14, 12, 18].map((wch) => ({ wch }));
     const mov = XLSX.utils.aoa_to_sheet([["Grupo Confidence — Movimentações"], ["Data/hora", "Tipo", "Material", "Qtd.", "Colaborador", "Posto", "Supervisor", "Lançado por", "Motivo"], ...hist.map((m) => [fmt(m.created_at), MOV_LABELS[m.tipo], name(items, m.material_id), m.quantidade, name(people, m.colaborador_id), name(posts, m.posto_id), name(profiles, m.supervisor_id), name(profiles, m.registrado_por), m.motivo])]);
     XLSX.utils.book_append_sheet(book, est, "Estoque");
     XLSX.utils.book_append_sheet(book, mov, "Movimentações");
@@ -95,12 +103,12 @@ export function MaterialEstoque({ items, people, posts, canFull, filterMaterialI
         <div className="flex shrink-0 flex-wrap gap-2"><Button onClick={() => abrirMovimentacao()} disabled={!items.length}><Plus />Novo lançamento</Button><Button variant="outline" onClick={exportar}><Download />Exportar</Button></div>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3 border-b bg-muted/20 px-4 py-3">
-        <div className="flex flex-wrap gap-1" role="group" aria-label="Filtrar categoria do estoque">
-          {[{ id: "todos", nome: "Todos" }, { id: "uniformes", nome: "Uniformes" }, { id: "equipamentos", nome: "Equipamentos" }].map((opcao) => <Button key={opcao.id} type="button" size="sm" variant={categoria === opcao.id ? "secondary" : "ghost"} aria-pressed={categoria === opcao.id} onClick={() => setCategoria(opcao.id)}>{opcao.nome}</Button>)}
+        <div className="flex flex-wrap gap-1" role="group" aria-label="Filtrar grupo do estoque">
+          {[{ id: "todos", nome: "Todos" }, ...gruposDisponiveis.map((g) => ({ id: g, nome: g }))].map((opcao) => <Button key={opcao.id} type="button" size="sm" variant={categoria === opcao.id ? "secondary" : "ghost"} aria-pressed={categoria === opcao.id} onClick={() => setCategoria(opcao.id)}>{opcao.nome}</Button>)}
         </div>
-        <span className="text-xs text-muted-foreground">{grupos.size} material(is) na lista</span>
+        <div className="flex items-center gap-3"><Button type="button" size="sm" variant={soComprar ? "destructive" : "outline"} aria-pressed={soComprar} onClick={() => setSoComprar((v) => !v)}>Precisa comprar ({paraComprar.length})</Button><span className="text-xs text-muted-foreground">{grupos.size} material(is)</span></div>
       </div>
-      {!grupos.size ? <EmptyState text="Nenhum material encontrado. Ajuste a busca ou a categoria." /> : <div className="overflow-x-auto"><table className="w-full min-w-[660px]"><thead><tr>{["Material", "Tamanho", "Disponível", "A devolver", "Ação"].map((h) => <th key={h} className="px-4 text-left">{h}</th>)}</tr></thead><tbody>{[...grupos.entries()].map(([key, grupo]) => <EstoqueLinha key={key} items={grupo} movs={movs} canEditSizes={canEditSizes} onMovimentar={abrirMovimentacao} />)}</tbody></table></div>}
+      {!grupos.size ? <EmptyState text="Nenhum material encontrado. Ajuste a busca ou a categoria." /> : <div className="overflow-x-auto"><table className="w-full min-w-[760px]"><thead><tr>{["Material", "Tamanho", "Disponível", "Situação", "A devolver", "Ação"].map((h) => <th key={h} className="px-4 text-left">{h}</th>)}</tr></thead><tbody>{[...grupos.entries()].map(([key, grupo], idx, all) => <EstoqueGrupo key={key} first={idx === 0 || grupoDe(all[idx - 1]![1][0]!) !== grupoDe(grupo[0]!)} items={grupo} movs={movs} canEditSizes={canEditSizes} onMovimentar={abrirMovimentacao} />)}</tbody></table></div>}
       <p className="border-t bg-muted/10 px-4 py-3 text-xs text-muted-foreground">As quantidades correspondem ao tamanho selecionado. O cadastro de tamanhos não acrescenta unidades ao estoque.</p>
     </section>
     <details className="rounded-lg border bg-card p-4">
@@ -113,9 +121,27 @@ export function MaterialEstoque({ items, people, posts, canFull, filterMaterialI
   </div>;
 }
 
+function EstoqueGrupo({ first, ...props }: { first: boolean; items: Item[]; movs: Mov[]; canEditSizes: boolean; onMovimentar: (id: string) => void }) {
+  return <>{first && <tr className="bg-muted/40"><td colSpan={6} className="px-4 py-2 text-xs font-semibold uppercase tracking-wide text-primary">{grupoDe(props.items[0]!)}</td></tr>}<EstoqueLinha {...props} /></>;
+}
+
+function MinimoInput({ item }: { item: Item }) {
+  const qc = useQueryClient();
+  const [v, setV] = useState(String(item.estoque_minimo ?? 0));
+  async function salvar() {
+    const n = Math.max(0, Math.floor(Number(v) || 0));
+    if (n === (item.estoque_minimo ?? 0)) return;
+    const { error } = await supabase.from("materiais").update({ estoque_minimo: n }).eq("id", item.id);
+    if (error) { toast.error("Não foi possível salvar o estoque mínimo."); return; }
+    await qc.invalidateQueries({ queryKey: ["materiais"] });
+    toast.success("Estoque mínimo atualizado.");
+  }
+  return <label className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">Mínimo<Input type="number" min={0} className="h-7 w-16 px-2 text-xs" value={v} onChange={(e) => setV(e.target.value)} onBlur={salvar} onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }} /></label>;
+}
+
 function EstoqueLinha({ items, movs, canEditSizes, onMovimentar }: { items: Item[]; movs: Mov[]; canEditSizes: boolean; onMovimentar: (id: string) => void }) {
   const [selectedId, setSelectedId] = useState("");
-  const item = items[0];
+  const item = items[0]!;
   const uniforme = ehUniforme(item.categoria);
   const tamanhos = new Map<string, Item[]>();
   for (const registro of items) {
@@ -124,22 +150,23 @@ function EstoqueLinha({ items, movs, canEditSizes, onMovimentar }: { items: Item
     grupo.push(registro);
     tamanhos.set(key, grupo);
   }
-  const opcoes = [...tamanhos.values()].sort((a, b) => a[0].tamanho.localeCompare(b[0].tamanho, "pt-BR", { numeric: true }));
-  const selecionados = opcoes.find((grupo) => grupo[0].id === selectedId) ?? opcoes[0];
-  const selecionado = selecionados[0];
+  const opcoes = [...tamanhos.values()].sort((a, b) => a[0]!.tamanho.localeCompare(b[0]!.tamanho, "pt-BR", { numeric: true }));
+  const selecionados = opcoes.find((grupo) => grupo[0]!.id === selectedId) ?? opcoes[0]!;
+  const selecionado = selecionados[0]!;
   const emEstoque = selecionados.reduce((total, registro) => total + saldo(movs, registro.id), 0);
   const aDevolver = selecionados.reduce((total, registro) => total + pendentes(movs, registro.id), 0);
 
   return <tr className="border-t text-foreground">
-    <td className="px-4 py-3 align-top"><p className="font-semibold">{item.nome}</p><p className="mt-1 text-xs text-muted-foreground">{uniforme ? "Uniforme" : item.categoria}</p></td>
+    <td className="px-4 py-3 align-top"><p className="font-semibold">{item.nome}</p><p className="mt-1 text-xs text-muted-foreground">{catLabel(item.categoria)}</p></td>
     <td className="px-4 py-3 align-top">
       <Select value={selecionado.id} onValueChange={setSelectedId}>
         <SelectTrigger className="w-44 bg-background" aria-label={`Selecionar tamanho de ${item.nome}`}><SelectValue /></SelectTrigger>
-        <SelectContent>{opcoes.map((grupo) => <SelectItem key={grupo[0].id} value={grupo[0].id}>{grupo[0].tamanho.trim() || "Sem tamanho informado"}</SelectItem>)}</SelectContent>
+        <SelectContent>{opcoes.map((grupo) => <SelectItem key={grupo[0]!.id} value={grupo[0]!.id}>{grupo[0]!.tamanho.trim() || "Sem tamanho informado"}</SelectItem>)}</SelectContent>
       </Select>
       {canEditSizes && <details className="mt-2 text-xs"><summary className="w-fit cursor-pointer rounded text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Gerenciar tamanhos</summary><div className="mt-2">{uniforme ? <UniformeTamanhos item={selecionado} label="Adicionar tamanhos" /> : <MaterialTamanho key={selecionado.id} item={selecionado} />}</div></details>}
     </td>
     <td className="px-4 py-3 align-top"><p className={`text-lg font-semibold tabular-nums ${emEstoque < 0 ? "text-destructive" : "text-foreground"}`}>{emEstoque}<span className="ml-1 text-xs font-normal text-muted-foreground">un.</span></p><p className="text-xs text-muted-foreground">{emEstoque > 0 ? "Em estoque" : emEstoque === 0 ? "Sem estoque" : "Saldo negativo"}</p></td>
+    <td className="px-4 py-3 align-top">{precisaComprar(emEstoque, selecionado.estoque_minimo ?? 0) ? <Badge variant="destructive">Comprar</Badge> : <Badge variant="secondary">Ok</Badge>}{canEditSizes ? <MinimoInput key={selecionado.id} item={selecionado} /> : <p className="mt-1 text-xs text-muted-foreground">Mínimo: {selecionado.estoque_minimo ?? 0}</p>}</td>
     <td className="px-4 py-3 align-top"><p className="text-lg font-semibold tabular-nums">{aDevolver}<span className="ml-1 text-xs font-normal text-muted-foreground">un.</span></p></td>
     <td className="px-4 py-3 align-top"><Button type="button" size="sm" variant="outline" aria-label={`Movimentar ${item.nome}, ${selecionado.tamanho || "sem tamanho"}`} onClick={() => onMovimentar(selecionado.id)}><Plus className="h-4 w-4" />Movimentar</Button></td>
   </tr>;
@@ -184,7 +211,7 @@ function MovDialog({ items, people, posts, profiles, canFull, initialMaterialId,
     <form className="space-y-4" onSubmit={save}>
       {s("Tipo de movimentação", tipo, setTipo, tipos)}
       <div className="space-y-4 rounded-lg border bg-muted/20 p-3">
-        {s("Material", grupoSelecionado, (chave) => setItem(grupos.get(chave)?.[0].id ?? ""), [...grupos.entries()].map(([chave, grupo]) => ({ id: chave, nome: `${grupo[0].nome} · ${ehUniforme(grupo[0].categoria) ? "Uniforme" : grupo[0].categoria}` })))}
+        {s("Material", grupoSelecionado, (chave) => setItem(grupos.get(chave)?.[0]?.id ?? ""), [...grupos.entries()].map(([chave, grupo]) => ({ id: chave, nome: `${grupo[0]!.nome} · ${grupoDe(grupo[0]!)}` })))}
         {selecionado ? s("Tamanho / identificação", item, setItem, variacoes.map((registro) => ({ id: registro.id, nome: `${registro.tamanho.trim() || "Sem tamanho informado"}${registro.identificacao ? ` · ${registro.identificacao}` : ""}` }))) : <p className="text-xs text-muted-foreground">Escolha o material para visualizar seus tamanhos cadastrados.</p>}
       </div>
       <div className="space-y-2"><Label htmlFor="mov-qtd">Quantidade de unidades</Label><Input id="mov-qtd" type="number" min={1} step={1} value={qtd} onChange={(e) => setQtd(e.target.value)} /></div>

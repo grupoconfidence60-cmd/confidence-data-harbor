@@ -190,6 +190,13 @@
       "when": 1793881508984,
       "tag": "0026_desligados_ordem_cobertura",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1793881508985,
+      "tag": "0027_uniformes_multiplos_tamanhos",
+      "breakpoints": true
     }
   ]
 }

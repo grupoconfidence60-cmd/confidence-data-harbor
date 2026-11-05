@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogD
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { tiposUniforme } from "@/components/material-tipos";
+import { cadastrarTamanhosUniforme, ehUniforme, separarTamanhos, resumoTamanhos } from "@/lib/uniformes";
 
 type Option = { id: string; nome: string };
 type Props = { mode: "item" | "entrega" | "devolucao"; id?: string; minimumDate?: string; initialMaterialId?: string; items: Option[]; people: (Option & { posto_id: string | null })[]; posts: Option[]; onClose: () => void };
@@ -34,6 +35,20 @@ export function MateriaisDialog({ mode, id, minimumDate, initialMaterialId, item
     if (busy) return;
     setBusy(true);
     try {
+      if (mode === "item" && ehUniforme(category)) {
+        const tamanhos = separarTamanhos(size);
+        if (size.trim() && !tamanhos.length) throw new Error("Informe um tamanho válido ou deixe o campo vazio.");
+        const result = await cadastrarTamanhosUniforme({
+          nome: name.trim(),
+          categoria: category,
+          tamanhos: tamanhos.length ? tamanhos : [""],
+          identificacao: identification.trim(),
+        });
+        await qc.invalidateQueries({ queryKey: ["materiais"] });
+        toast.success(resumoTamanhos(result));
+        onClose();
+        return;
+      }
       const result = mode === "item"
         ? await supabase.from("materiais").insert({ nome: name.trim(), categoria: category, tamanho: size.trim(), identificacao: identification.trim() }).select("id").single()
         : mode === "entrega"
@@ -68,10 +83,21 @@ export function MateriaisDialog({ mode, id, minimumDate, initialMaterialId, item
         <div className="space-y-2"><Label htmlFor="material-nome">Nome do material</Label><Input id="material-nome" required maxLength={160} value={name} onChange={(e) => setName(e.target.value)} /></div>
         {selector("Categoria", category, setCategory, [{ id: "equipamento", nome: "Equipamento" }, { id: "uniforme", nome: "Uniforme" }])}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {uniformPreset && uniformPreset.tamanhos.length > 0 ? selector("Tamanho", size || "sem", (value) => setSize(value === "sem" ? "" : value), [...uniformPreset.tamanhos.map((value) => ({ id: value, nome: `Tamanho ${value}` })), { id: "sem", nome: "Sem tamanho informado" }]) : <div className="space-y-2"><Label htmlFor="material-tamanho">Tamanho</Label><Input id="material-tamanho" placeholder="Informe se houver" value={size} onChange={(e) => setSize(e.target.value)} /></div>}
+          <div className="space-y-2"><Label htmlFor="material-tamanho">{ehUniforme(category) ? "Tamanhos" : "Tamanho"}</Label><Input id="material-tamanho" placeholder={ehUniforme(category) ? "Ex.: P, M, G ou 38, 40, 42" : "Informe se houver"} value={size} onChange={(e) => setSize(e.target.value)} /></div>
           <div className="space-y-2"><Label htmlFor="material-identificacao">Identificação / patrimônio</Label><Input id="material-identificacao" value={identification} onChange={(e) => setIdentification(e.target.value)} /></div>
         </div>
-        {uniformPreset && <p className="text-xs text-muted-foreground">Cadastre cada tamanho separadamente. Deixe sem tamanho informado quando o item não tiver essa informação.</p>}
+        {ehUniforme(category) && <div className="space-y-2">
+          {uniformPreset && uniformPreset.tamanhos.length > 0 && <div className="flex flex-wrap gap-1" role="group" aria-label="Sugestões de tamanhos">
+            {uniformPreset.tamanhos.map((value) => {
+              const selected = separarTamanhos(size).includes(value);
+              return <Button key={value} type="button" size="sm" variant={selected ? "default" : "outline"} aria-pressed={selected} onClick={() => setSize((current) => {
+                const values = separarTamanhos(current);
+                return (values.includes(value) ? values.filter((v) => v !== value) : [...values, value]).join(", ");
+              })}>{value}</Button>;
+            })}
+          </div>}
+          <p className="text-xs text-muted-foreground">Digite vários tamanhos separados por vírgula ou ponto e vírgula. Cada combinação de nome e tamanho será um registro separado. Equivalentes serão reaproveitados e arquivados serão reativados. Deixe vazio para cadastrar sem tamanho informado. Todos os uniformes podem ser usados por qualquer função.</p>
+        </div>}
       </> : mode === "entrega" ? <>
         {selector("Material", item, setItem, items)}
         {selector("Colaborador", person, (v) => { setPerson(v); const p = people.find((c) => c.id === v)?.posto_id; if (p && posts.some((s) => s.id === p)) setPost(p); }, people)}

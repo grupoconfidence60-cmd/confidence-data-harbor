@@ -8,8 +8,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { tiposUniforme, tipoUniforme } from "@/components/material-tipos";
+import { UniformeTamanhos } from "@/components/uniforme-tamanhos";
+import { ehUniforme } from "@/lib/uniformes";
 
-export function MaterialTamanho({ item }: { item: { id: string; nome: string; tamanho: string; categoria: string } }) {
+type Props = { item: { id: string; nome: string; tamanho: string; categoria: string; identificacao?: string } };
+
+export function MaterialTamanho({ item }: Props) {
+  return ehUniforme(item.categoria) ? <UniformeTamanhos item={item} /> : <EditarTamanho item={item} />;
+}
+
+function EditarTamanho({ item }: Props) {
   const qc = useQueryClient();
   const inputId = useId();
   const saving = useRef(false);

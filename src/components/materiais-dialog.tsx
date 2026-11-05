@@ -45,8 +45,7 @@ export function MateriaisDialog({ mode, id, minimumDate, initialMaterialId, item
           tamanhos: tamanhos.length ? tamanhos : [""],
           identificacao: identification.trim(),
         });
-        const ids = (result as unknown as { materiais?: { id: string }[] }).materiais?.map((m) => m.id) ?? [];
-        if (ids.length) await supabase.from("materiais").update({ grupo }).in("id", ids);
+        await supabase.from("materiais").update({ grupo }).ilike("nome", name.trim()).eq("grupo", "");
         await qc.invalidateQueries({ queryKey: ["materiais"] });
         toast.success(resumoTamanhos(result));
         onClose();

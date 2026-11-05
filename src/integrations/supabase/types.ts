@@ -573,6 +573,57 @@ export type Database = {
         }
         Relationships: []
       }
+      materiais_historico_planilha: {
+        Row: {
+          cargo: string | null
+          colaborador_id: string | null
+          created_at: string
+          data: string | null
+          data_devolucao: string | null
+          fornecedor: string | null
+          id: string
+          itens: string
+          nome: string | null
+          observacoes: string | null
+          posto: string | null
+          quantidade: number | null
+          tipo: string
+          valor: number | null
+        }
+        Insert: {
+          cargo?: string | null
+          colaborador_id?: string | null
+          created_at?: string
+          data?: string | null
+          data_devolucao?: string | null
+          fornecedor?: string | null
+          id?: string
+          itens: string
+          nome?: string | null
+          observacoes?: string | null
+          posto?: string | null
+          quantidade?: number | null
+          tipo: string
+          valor?: number | null
+        }
+        Update: {
+          cargo?: string | null
+          colaborador_id?: string | null
+          created_at?: string
+          data?: string | null
+          data_devolucao?: string | null
+          fornecedor?: string | null
+          id?: string
+          itens?: string
+          nome?: string | null
+          observacoes?: string | null
+          posto?: string | null
+          quantidade?: number | null
+          tipo?: string
+          valor?: number | null
+        }
+        Relationships: []
+      }
       material_entregas: {
         Row: {
           colaborador_id: string

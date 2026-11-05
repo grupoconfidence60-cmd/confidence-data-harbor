@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { tiposUniforme } from "@/components/material-tipos";
 import { cadastrarTamanhosUniforme, ehUniforme, separarTamanhos, resumoTamanhos } from "@/lib/uniformes";
 
@@ -62,26 +61,21 @@ export function MateriaisDialog({ mode, id, minimumDate, initialMaterialId, item
     finally { setBusy(false); }
   }
   const selector = (label: string, value: string, change: (v: string) => void, options: Option[]) => <div className="space-y-2"><Label>{label}</Label><Select value={value} onValueChange={change}><SelectTrigger className="w-full" aria-label={label}><SelectValue placeholder="Selecione" /></SelectTrigger><SelectContent>{options.map((o) => <SelectItem key={o.id} value={o.id}>{o.nome}</SelectItem>)}</SelectContent></Select></div>;
-  return <Dialog open onOpenChange={(open) => { if (!open && !busy) onClose(); }}><DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-lg"><DialogHeader><DialogTitle>{mode === "item" ? "Cadastrar material" : mode === "entrega" ? "Registrar entrega" : "Registrar devolução"}</DialogTitle><DialogDescription>Equipamentos e uniformes · Confidence</DialogDescription></DialogHeader>
+  return <Dialog open onOpenChange={(open) => { if (!open && !busy) onClose(); }}><DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-lg"><DialogHeader><DialogTitle>{mode === "item" ? "Cadastrar material" : mode === "entrega" ? "Registrar entrega" : "Registrar devolução"}</DialogTitle><DialogDescription>{mode === "item" ? "Escolha a categoria, informe o nome e depois os tamanhos. Quantidades são lançadas na aba Estoque." : mode === "entrega" ? "Selecione o material e o colaborador que recebeu. Confira o posto, a quantidade e a data." : "Informe a data e a condição do material devolvido. A entrega original será preservada."}</DialogDescription></DialogHeader>
     <form className="space-y-4" onSubmit={save}>
       {mode === "item" ? <>
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-foreground">Tipo de material</p>
-          <Tabs value={uniformType} onValueChange={(value) => {
+        <div className="space-y-3 rounded-lg border bg-muted/20 p-3">
+          <p className="text-xs font-semibold text-muted-foreground">1. Identifique o material</p>
+          {selector("Categoria", category, (value) => { setCategory(value); setUniformType("outro"); setSize(""); }, [{ id: "equipamento", nome: "Equipamento" }, { id: "uniforme", nome: "Uniforme" }])}
+          {ehUniforme(category) && selector("Modelo de preenchimento (opcional)", uniformType, (value) => {
             setUniformType(value);
             const preset = tiposUniforme.find((t) => t.id === value);
-            setName(preset?.nome ?? "");
-            setCategory(preset ? "uniforme" : "equipamento");
+            if (preset) setName(preset.nome);
             setSize("");
-          }}>
-            <TabsList className="h-auto w-full flex-wrap justify-start gap-1">
-              <TabsTrigger value="outro">Outro material</TabsTrigger>
-              {tiposUniforme.map((t) => <TabsTrigger key={t.id} value={t.id}>{t.nome}</TabsTrigger>)}
-            </TabsList>
-          </Tabs>
+          }, [{ id: "outro", nome: "Informar o nome manualmente" }, ...tiposUniforme.map((t) => ({ id: t.id, nome: t.nome }))])}
+          <div className="space-y-2"><Label htmlFor="material-nome">Nome do material</Label><Input id="material-nome" required maxLength={160} placeholder={ehUniforme(category) ? "Ex.: Calça de Vigia ou Calça de Vigilante" : "Informe o nome do equipamento"} value={name} onChange={(e) => setName(e.target.value)} /></div>
         </div>
-        <div className="space-y-2"><Label htmlFor="material-nome">Nome do material</Label><Input id="material-nome" required maxLength={160} value={name} onChange={(e) => setName(e.target.value)} /></div>
-        {selector("Categoria", category, setCategory, [{ id: "equipamento", nome: "Equipamento" }, { id: "uniforme", nome: "Uniforme" }])}
+        <p className="text-xs font-semibold text-muted-foreground">2. Informe os detalhes</p>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="space-y-2"><Label htmlFor="material-tamanho">{ehUniforme(category) ? "Tamanhos" : "Tamanho"}</Label><Input id="material-tamanho" placeholder={ehUniforme(category) ? "Ex.: P, M, G ou 38, 40, 42" : "Informe se houver"} value={size} onChange={(e) => setSize(e.target.value)} /></div>
           <div className="space-y-2"><Label htmlFor="material-identificacao">Identificação / patrimônio</Label><Input id="material-identificacao" value={identification} onChange={(e) => setIdentification(e.target.value)} /></div>
@@ -96,7 +90,7 @@ export function MateriaisDialog({ mode, id, minimumDate, initialMaterialId, item
               })}>{value}</Button>;
             })}
           </div>}
-          <p className="text-xs text-muted-foreground">Digite vários tamanhos separados por vírgula ou ponto e vírgula. Cada combinação de nome e tamanho será um registro separado. Equivalentes serão reaproveitados e arquivados serão reativados. Deixe vazio para cadastrar sem tamanho informado. Todos os uniformes podem ser usados por qualquer função.</p>
+          <div className="space-y-1 rounded-md bg-muted/50 p-3 text-xs text-muted-foreground"><p>Separe os tamanhos por vírgula. Exemplo: 38, 40, 42.</p><p>Deixe vazio quando o tamanho não estiver informado. O cadastro não aumenta o estoque.</p><details className="pt-1"><summary className="cursor-pointer rounded font-medium text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Como os tamanhos são salvos?</summary><p className="mt-2">Cada nome e tamanho forma um registro separado. Equivalentes são reaproveitados e registros arquivados são reativados. Não há restrição por função do colaborador.</p></details></div>
         </div>}
       </> : mode === "entrega" ? <>
         {selector("Material", item, setItem, items)}

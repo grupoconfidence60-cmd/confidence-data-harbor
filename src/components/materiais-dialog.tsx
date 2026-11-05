@@ -10,15 +10,15 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogD
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type Option = { id: string; nome: string };
-type Props = { mode: "item" | "entrega" | "devolucao"; id?: string; minimumDate?: string; items: Option[]; people: (Option & { posto_id: string | null })[]; posts: Option[]; onClose: () => void };
-export function MateriaisDialog({ mode, id, minimumDate, items, people, posts, onClose }: Props) {
+type Props = { mode: "item" | "entrega" | "devolucao"; id?: string; minimumDate?: string; initialMaterialId?: string; items: Option[]; people: (Option & { posto_id: string | null })[]; posts: Option[]; onClose: () => void };
+export function MateriaisDialog({ mode, id, minimumDate, initialMaterialId, items, people, posts, onClose }: Props) {
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
   const [name, setName] = useState("");
   const [category, setCategory] = useState("equipamento");
   const [size, setSize] = useState("");
   const [identification, setIdentification] = useState("");
-  const [item, setItem] = useState("");
+  const [item, setItem] = useState(initialMaterialId ?? "");
   const [person, setPerson] = useState("");
   const [post, setPost] = useState("");
   const [quantity, setQuantity] = useState("1");

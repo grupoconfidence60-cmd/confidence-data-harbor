@@ -406,6 +406,7 @@ export type Database = {
       ferias: {
         Row: {
           aprovado_por: string | null
+          cobertura: string | null
           colaborador_id: string
           created_at: string
           data_fim: string
@@ -421,6 +422,7 @@ export type Database = {
         }
         Insert: {
           aprovado_por?: string | null
+          cobertura?: string | null
           colaborador_id: string
           created_at?: string
           data_fim: string
@@ -436,6 +438,7 @@ export type Database = {
         }
         Update: {
           aprovado_por?: string | null
+          cobertura?: string | null
           colaborador_id?: string
           created_at?: string
           data_fim?: string
@@ -817,6 +820,7 @@ export type Database = {
           id: string
           mes: string
           observacoes: string
+          ordem: number
           paridade: string
           posicao: string
           posto_id: string
@@ -834,6 +838,7 @@ export type Database = {
           id?: string
           mes: string
           observacoes?: string
+          ordem?: number
           paridade?: string
           posicao?: string
           posto_id: string
@@ -851,6 +856,7 @@ export type Database = {
           id?: string
           mes?: string
           observacoes?: string
+          ordem?: number
           paridade?: string
           posicao?: string
           posto_id?: string
@@ -1126,6 +1132,10 @@ export type Database = {
       colaborador_no_posto: {
         Args: { _posto_id: string; _user_id: string }
         Returns: boolean
+      }
+      definir_cobertura: {
+        Args: { _ferias_id: string; _nome: string }
+        Returns: undefined
       }
       distancia_metros: {
         Args: { lat1: number; lat2: number; lon1: number; lon2: number }

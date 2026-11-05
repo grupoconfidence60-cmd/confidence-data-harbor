@@ -18,8 +18,12 @@ import { ehUniforme, normalizarUniforme } from "@/lib/uniformes";
 import { MOV_LABELS, saldo, pendentes, type Mov } from "@/lib/estoque";
 
 type Opt = { id: string; nome: string };
-type Item = Opt & { tamanho: string; categoria: string };
+type Item = Opt & { tamanho: string; categoria: string; identificacao?: string };
 type Person = Opt & { matricula: string; posto_id: string | null };
+
+function chaveMaterial(item: Item) {
+  return JSON.stringify([ehUniforme(item.categoria) ? "uniforme" : normalizarUniforme(item.categoria), normalizarUniforme(item.nome)]);
+}
 
 const movQuery = queryOptions({
   queryKey: ["materiais", "movimentacoes"],
@@ -39,6 +43,12 @@ export function MaterialEstoque({ items, people, posts, canFull, filterMaterialI
   const movs = data?.movs ?? [];
   const profiles = data?.profiles ?? [];
   const [open, setOpen] = useState(false);
+  const [initialMaterialId, setInitialMaterialId] = useState("");
+  const [categoria, setCategoria] = useState("todos");
+  function abrirMovimentacao(id = "") {
+    setInitialMaterialId(id);
+    setOpen(true);
+  }
   const [fPost, setFPost] = useState("todos");
   const [fPerson, setFPerson] = useState("todos");
   const [fSup, setFSup] = useState("todos");
@@ -46,7 +56,9 @@ export function MaterialEstoque({ items, people, posts, canFull, filterMaterialI
   const [to, setTo] = useState("");
   const grupos = new Map<string, Item[]>();
   for (const item of items) {
-    const key = JSON.stringify([ehUniforme(item.categoria) ? "uniforme" : normalizarUniforme(item.categoria), normalizarUniforme(item.nome)]);
+    if (categoria === "uniformes" && !ehUniforme(item.categoria)) continue;
+    if (categoria === "equipamentos" && ehUniforme(item.categoria)) continue;
+    const key = chaveMaterial(item);
     const grupo = grupos.get(key) ?? [];
     grupo.push(item);
     grupos.set(key, grupo);
@@ -78,8 +90,18 @@ export function MaterialEstoque({ items, people, posts, canFull, filterMaterialI
 
   return <div className="space-y-4 text-foreground">
     <section className="overflow-hidden rounded-lg border bg-card" aria-label="Saldo por material">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b p-4"><div><h3 className="text-sm font-semibold">Estoque por material</h3><p className="mt-1 text-xs text-muted-foreground">Equipamentos e uniformes agrupados por nome e categoria. Selecione o tamanho ao lado para consultar seu saldo e suas pendências.</p></div><div className="flex flex-wrap gap-2"><Button onClick={() => setOpen(true)} disabled={!items.length}><Plus />Nova movimentação</Button><Button variant="outline" onClick={exportar}><Download />Exportar estoque</Button></div></div>
-      {!items.length ? <EmptyState text="Nenhum material encontrado para esta busca." /> : <div className="overflow-x-auto"><table className="w-full min-w-[560px]"><thead><tr>{["Material", "Tamanho", "Em estoque", "A devolver"].map((h) => <th key={h} className="px-3 text-left">{h}</th>)}</tr></thead><tbody>{[...grupos.entries()].map(([key, grupo]) => <EstoqueLinha key={key} items={grupo} movs={movs} canEditSizes={canEditSizes} />)}</tbody></table></div>}
+      <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div><h3 className="text-base font-semibold">Consultar estoque</h3><p className="mt-1 text-xs text-muted-foreground">Escolha o tamanho e veja as quantidades. Para lançar uma entrada ou saída, use Movimentar na linha.</p></div>
+        <div className="flex shrink-0 flex-wrap gap-2"><Button onClick={() => abrirMovimentacao()} disabled={!items.length}><Plus />Novo lançamento</Button><Button variant="outline" onClick={exportar}><Download />Exportar</Button></div>
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b bg-muted/20 px-4 py-3">
+        <div className="flex flex-wrap gap-1" role="group" aria-label="Filtrar categoria do estoque">
+          {[{ id: "todos", nome: "Todos" }, { id: "uniformes", nome: "Uniformes" }, { id: "equipamentos", nome: "Equipamentos" }].map((opcao) => <Button key={opcao.id} type="button" size="sm" variant={categoria === opcao.id ? "secondary" : "ghost"} aria-pressed={categoria === opcao.id} onClick={() => setCategoria(opcao.id)}>{opcao.nome}</Button>)}
+        </div>
+        <span className="text-xs text-muted-foreground">{grupos.size} material(is) na lista</span>
+      </div>
+      {!grupos.size ? <EmptyState text="Nenhum material encontrado. Ajuste a busca ou a categoria." /> : <div className="overflow-x-auto"><table className="w-full min-w-[660px]"><thead><tr>{["Material", "Tamanho", "Disponível", "A devolver", "Ação"].map((h) => <th key={h} className="px-4 text-left">{h}</th>)}</tr></thead><tbody>{[...grupos.entries()].map(([key, grupo]) => <EstoqueLinha key={key} items={grupo} movs={movs} canEditSizes={canEditSizes} onMovimentar={abrirMovimentacao} />)}</tbody></table></div>}
+      <p className="border-t bg-muted/10 px-4 py-3 text-xs text-muted-foreground">As quantidades correspondem ao tamanho selecionado. O cadastro de tamanhos não acrescenta unidades ao estoque.</p>
     </section>
     <details className="rounded-lg border bg-card p-4">
       <summary className="cursor-pointer rounded text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Histórico de movimentações <span className="ml-2 font-normal text-muted-foreground">({hist.length})</span></summary>
@@ -87,11 +109,11 @@ export function MaterialEstoque({ items, people, posts, canFull, filterMaterialI
       <div className="mb-3 flex flex-wrap gap-3">{sel("Filtrar posto", fPost, setFPost, posts, "Todos os postos")}{sel("Filtrar colaborador", fPerson, setFPerson, people, "Todos os colaboradores")}{sel("Filtrar supervisor", fSup, setFSup, profiles, "Todos os supervisores")}<Input type="date" aria-label="De" className="w-full sm:w-40" value={from} onChange={(e) => setFrom(e.target.value)} /><Input type="date" aria-label="Até" className="w-full sm:w-40" value={to} onChange={(e) => setTo(e.target.value)} /></div>
       {!hist.length ? <EmptyState text="Nenhuma movimentação encontrada." /> : <div className="overflow-x-auto border bg-card"><table className="w-full min-w-[900px]"><thead><tr>{["Data/hora", "Tipo", "Material", "Qtd.", "Colaborador", "Posto", "Supervisor", "Lançado por", ...(canFull ? ["Ações"] : [])].map((h) => <th key={h} className="px-3 text-left">{h}</th>)}</tr></thead><tbody>{hist.map((m) => <tr key={m.id} className="border-t"><td className="px-3 py-2 whitespace-nowrap">{fmt(m.created_at)}</td><td className="px-3"><Badge variant="outline">{MOV_LABELS[m.tipo]}</Badge>{m.motivo && <p className="text-xs text-muted-foreground">{m.motivo}</p>}</td><td className="px-3">{name(items, m.material_id)}</td><td className="px-3">{m.quantidade}</td><td className="px-3">{name(people, m.colaborador_id)}</td><td className="px-3">{name(posts, m.posto_id)}</td><td className="px-3">{name(profiles, m.supervisor_id)}</td><td className="px-3">{name(profiles, m.registrado_por)}</td>{canFull && <td className="px-3"><Button variant="ghost" size="icon" aria-label="Excluir movimentação" onClick={() => excluir(m)}><Trash2 className="text-destructive" /></Button></td>}</tr>)}</tbody></table></div>}
     </details>
-    {open && <MovDialog items={items} people={people} posts={posts} profiles={profiles} canFull={canFull} onClose={() => setOpen(false)} />}
+    {open && <MovDialog items={items} people={people} posts={posts} profiles={profiles} canFull={canFull} initialMaterialId={initialMaterialId} onClose={() => setOpen(false)} />}
   </div>;
 }
 
-function EstoqueLinha({ items, movs, canEditSizes }: { items: Item[]; movs: Mov[]; canEditSizes: boolean }) {
+function EstoqueLinha({ items, movs, canEditSizes, onMovimentar }: { items: Item[]; movs: Mov[]; canEditSizes: boolean; onMovimentar: (id: string) => void }) {
   const [selectedId, setSelectedId] = useState("");
   const item = items[0];
   const uniforme = ehUniforme(item.categoria);
@@ -109,25 +131,34 @@ function EstoqueLinha({ items, movs, canEditSizes }: { items: Item[]; movs: Mov[
   const aDevolver = selecionados.reduce((total, registro) => total + pendentes(movs, registro.id), 0);
 
   return <tr className="border-t text-foreground">
-    <td className="px-3 py-3 font-medium">{item.nome}</td>
-    <td className="px-3 py-2">
-      <div className="flex flex-wrap items-center gap-2">
-        <Select value={selecionado.id} onValueChange={setSelectedId}>
-          <SelectTrigger className="w-44 bg-background" aria-label={`Selecionar tamanho de ${item.nome}`}><SelectValue /></SelectTrigger>
-          <SelectContent>{opcoes.map((grupo) => <SelectItem key={grupo[0].id} value={grupo[0].id}>{grupo[0].tamanho.trim() || "Sem tamanho informado"}</SelectItem>)}</SelectContent>
-        </Select>
-        {canEditSizes && (uniforme ? <UniformeTamanhos item={selecionado} label="Adicionar tamanhos" /> : <MaterialTamanho key={selecionado.id} item={selecionado} />)}
-      </div>
+    <td className="px-4 py-3 align-top"><p className="font-semibold">{item.nome}</p><p className="mt-1 text-xs text-muted-foreground">{uniforme ? "Uniforme" : item.categoria}</p></td>
+    <td className="px-4 py-3 align-top">
+      <Select value={selecionado.id} onValueChange={setSelectedId}>
+        <SelectTrigger className="w-44 bg-background" aria-label={`Selecionar tamanho de ${item.nome}`}><SelectValue /></SelectTrigger>
+        <SelectContent>{opcoes.map((grupo) => <SelectItem key={grupo[0].id} value={grupo[0].id}>{grupo[0].tamanho.trim() || "Sem tamanho informado"}</SelectItem>)}</SelectContent>
+      </Select>
+      {canEditSizes && <details className="mt-2 text-xs"><summary className="w-fit cursor-pointer rounded text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Gerenciar tamanhos</summary><div className="mt-2">{uniforme ? <UniformeTamanhos item={selecionado} label="Adicionar tamanhos" /> : <MaterialTamanho key={selecionado.id} item={selecionado} />}</div></details>}
     </td>
-    <td className="px-3 tabular-nums"><Badge variant={emEstoque > 0 ? "secondary" : "destructive"}>{emEstoque}</Badge></td>
-    <td className="px-3 tabular-nums">{aDevolver}</td>
+    <td className="px-4 py-3 align-top"><p className={`text-lg font-semibold tabular-nums ${emEstoque < 0 ? "text-destructive" : "text-foreground"}`}>{emEstoque}<span className="ml-1 text-xs font-normal text-muted-foreground">un.</span></p><p className="text-xs text-muted-foreground">{emEstoque > 0 ? "Em estoque" : emEstoque === 0 ? "Sem estoque" : "Saldo negativo"}</p></td>
+    <td className="px-4 py-3 align-top"><p className="text-lg font-semibold tabular-nums">{aDevolver}<span className="ml-1 text-xs font-normal text-muted-foreground">un.</span></p></td>
+    <td className="px-4 py-3 align-top"><Button type="button" size="sm" variant="outline" aria-label={`Movimentar ${item.nome}, ${selecionado.tamanho || "sem tamanho"}`} onClick={() => onMovimentar(selecionado.id)}><Plus className="h-4 w-4" />Movimentar</Button></td>
   </tr>;
 }
 
-function MovDialog({ items, people, posts, profiles, canFull, onClose }: { items: Item[]; people: Person[]; posts: Opt[]; profiles: Opt[]; canFull: boolean; onClose: () => void }) {
+function MovDialog({ items, people, posts, profiles, canFull, initialMaterialId, onClose }: { items: Item[]; people: Person[]; posts: Opt[]; profiles: Opt[]; canFull: boolean; initialMaterialId: string; onClose: () => void }) {
   const qc = useQueryClient();
   const [tipo, setTipo] = useState(canFull ? "entrada" : "entrega");
-  const [item, setItem] = useState("");
+  const [item, setItem] = useState(initialMaterialId);
+  const grupos = new Map<string, Item[]>();
+  for (const registro of items) {
+    const chave = chaveMaterial(registro);
+    const grupo = grupos.get(chave) ?? [];
+    grupo.push(registro);
+    grupos.set(chave, grupo);
+  }
+  const selecionado = items.find((registro) => registro.id === item);
+  const grupoSelecionado = selecionado ? chaveMaterial(selecionado) : "";
+  const variacoes = [...(grupos.get(grupoSelecionado) ?? [])].sort((a, b) => a.tamanho.localeCompare(b.tamanho, "pt-BR", { numeric: true }));
   const [qtd, setQtd] = useState("1");
   const [person, setPerson] = useState("");
   const [post, setPost] = useState("");
@@ -151,9 +182,12 @@ function MovDialog({ items, people, posts, profiles, canFull, onClose }: { items
   const s = (label: string, v: string, set: (v: string) => void, opts: Opt[]) => <div className="space-y-2"><Label>{label}</Label><Select value={v} onValueChange={set}><SelectTrigger className="w-full" aria-label={label}><SelectValue placeholder="Selecione" /></SelectTrigger><SelectContent>{opts.map((o) => <SelectItem key={o.id} value={o.id}>{o.nome}</SelectItem>)}</SelectContent></Select></div>;
   return <Dialog open onOpenChange={(o) => { if (!o && !busy) onClose(); }}><DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-lg"><DialogHeader><DialogTitle>Nova movimentação</DialogTitle><DialogDescription>O lançamento fica registrado com seu nome, data e horário.</DialogDescription></DialogHeader>
     <form className="space-y-4" onSubmit={save}>
-      {s("Tipo", tipo, setTipo, tipos)}
-      {s("Material", item, setItem, items.map((i) => ({ id: i.id, nome: `${i.nome}${i.tamanho ? ` · ${i.tamanho}` : ""}` })))}
-      <div className="space-y-2"><Label htmlFor="mov-qtd">Quantidade</Label><Input id="mov-qtd" type="number" min={1} step={1} value={qtd} onChange={(e) => setQtd(e.target.value)} /></div>
+      {s("Tipo de movimentação", tipo, setTipo, tipos)}
+      <div className="space-y-4 rounded-lg border bg-muted/20 p-3">
+        {s("Material", grupoSelecionado, (chave) => setItem(grupos.get(chave)?.[0].id ?? ""), [...grupos.entries()].map(([chave, grupo]) => ({ id: chave, nome: `${grupo[0].nome} · ${ehUniforme(grupo[0].categoria) ? "Uniforme" : grupo[0].categoria}` })))}
+        {selecionado ? s("Tamanho / identificação", item, setItem, variacoes.map((registro) => ({ id: registro.id, nome: `${registro.tamanho.trim() || "Sem tamanho informado"}${registro.identificacao ? ` · ${registro.identificacao}` : ""}` }))) : <p className="text-xs text-muted-foreground">Escolha o material para visualizar seus tamanhos cadastrados.</p>}
+      </div>
+      <div className="space-y-2"><Label htmlFor="mov-qtd">Quantidade de unidades</Label><Input id="mov-qtd" type="number" min={1} step={1} value={qtd} onChange={(e) => setQtd(e.target.value)} /></div>
       {needsPerson && s("Colaborador", person, (v) => { setPerson(v); const p = people.find((c) => c.id === v)?.posto_id; if (p && posts.some((x) => x.id === p)) setPost(p); }, people.map((p) => ({ id: p.id, nome: `${p.matricula} · ${p.nome}` })))}
       {s(needsPerson ? "Posto" : "Posto (opcional)", post, setPost, posts)}
       {s("Supervisor que autorizou", sup, setSup, profiles)}

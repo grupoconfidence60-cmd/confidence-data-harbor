@@ -141,7 +141,7 @@ function MinimoInput({ item }: { item: Item }) {
 
 function EstoqueLinha({ items, movs, canEditSizes, onMovimentar }: { items: Item[]; movs: Mov[]; canEditSizes: boolean; onMovimentar: (id: string) => void }) {
   const [selectedId, setSelectedId] = useState("");
-  const item = items[0];
+  const item = items[0]!;
   const uniforme = ehUniforme(item.categoria);
   const tamanhos = new Map<string, Item[]>();
   for (const registro of items) {
@@ -150,9 +150,9 @@ function EstoqueLinha({ items, movs, canEditSizes, onMovimentar }: { items: Item
     grupo.push(registro);
     tamanhos.set(key, grupo);
   }
-  const opcoes = [...tamanhos.values()].sort((a, b) => a[0].tamanho.localeCompare(b[0].tamanho, "pt-BR", { numeric: true }));
-  const selecionados = opcoes.find((grupo) => grupo[0].id === selectedId) ?? opcoes[0];
-  const selecionado = selecionados[0];
+  const opcoes = [...tamanhos.values()].sort((a, b) => a[0]!.tamanho.localeCompare(b[0]!.tamanho, "pt-BR", { numeric: true }));
+  const selecionados = opcoes.find((grupo) => grupo[0]!.id === selectedId) ?? opcoes[0]!;
+  const selecionado = selecionados[0]!;
   const emEstoque = selecionados.reduce((total, registro) => total + saldo(movs, registro.id), 0);
   const aDevolver = selecionados.reduce((total, registro) => total + pendentes(movs, registro.id), 0);
 
@@ -161,7 +161,7 @@ function EstoqueLinha({ items, movs, canEditSizes, onMovimentar }: { items: Item
     <td className="px-4 py-3 align-top">
       <Select value={selecionado.id} onValueChange={setSelectedId}>
         <SelectTrigger className="w-44 bg-background" aria-label={`Selecionar tamanho de ${item.nome}`}><SelectValue /></SelectTrigger>
-        <SelectContent>{opcoes.map((grupo) => <SelectItem key={grupo[0].id} value={grupo[0].id}>{grupo[0].tamanho.trim() || "Sem tamanho informado"}</SelectItem>)}</SelectContent>
+        <SelectContent>{opcoes.map((grupo) => <SelectItem key={grupo[0]!.id} value={grupo[0]!.id}>{grupo[0]!.tamanho.trim() || "Sem tamanho informado"}</SelectItem>)}</SelectContent>
       </Select>
       {canEditSizes && <details className="mt-2 text-xs"><summary className="w-fit cursor-pointer rounded text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Gerenciar tamanhos</summary><div className="mt-2">{uniforme ? <UniformeTamanhos item={selecionado} label="Adicionar tamanhos" /> : <MaterialTamanho key={selecionado.id} item={selecionado} />}</div></details>}
     </td>
@@ -211,7 +211,7 @@ function MovDialog({ items, people, posts, profiles, canFull, initialMaterialId,
     <form className="space-y-4" onSubmit={save}>
       {s("Tipo de movimentação", tipo, setTipo, tipos)}
       <div className="space-y-4 rounded-lg border bg-muted/20 p-3">
-        {s("Material", grupoSelecionado, (chave) => setItem(grupos.get(chave)?.[0].id ?? ""), [...grupos.entries()].map(([chave, grupo]) => ({ id: chave, nome: `${grupo[0].nome} · ${grupoDe(grupo[0]!)}` })))}
+        {s("Material", grupoSelecionado, (chave) => setItem(grupos.get(chave)?.[0]?.id ?? ""), [...grupos.entries()].map(([chave, grupo]) => ({ id: chave, nome: `${grupo[0]!.nome} · ${grupoDe(grupo[0]!)}` })))}
         {selecionado ? s("Tamanho / identificação", item, setItem, variacoes.map((registro) => ({ id: registro.id, nome: `${registro.tamanho.trim() || "Sem tamanho informado"}${registro.identificacao ? ` · ${registro.identificacao}` : ""}` }))) : <p className="text-xs text-muted-foreground">Escolha o material para visualizar seus tamanhos cadastrados.</p>}
       </div>
       <div className="space-y-2"><Label htmlFor="mov-qtd">Quantidade de unidades</Label><Input id="mov-qtd" type="number" min={1} step={1} value={qtd} onChange={(e) => setQtd(e.target.value)} /></div>

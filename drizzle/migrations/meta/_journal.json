@@ -211,6 +211,13 @@
       "when": 1793898373835,
       "tag": "0029_materiais_historico_planilha",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1793898979818,
+      "tag": "0030_entregas_movimentam_estoque",
+      "breakpoints": true
     }
   ]
 }

@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { EmptyState } from "@/components/page";
 import { canManagePlanilha, dayStatus, downloadSchedule, monthDays, rosterMove, type PlanilhaRow, type PlanilhaPerson } from "@/lib/planilha";
 import { RosterLists, type RosterEdit } from "@/components/roster-lists";
+import { PlanilhaFerias } from "@/components/planilha-ferias";
 import { ESCALA_OPTIONS, escalaLabel, escalaFromJornada } from "@/lib/escala-options";
 import { useMe } from "@/lib/use-me";
 
@@ -103,6 +104,7 @@ export function PostoPlanilha({ posto }: { posto: { id: string; nome: string; su
       <div className="relative w-full sm:w-72"><Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" /><Input className="pl-9" aria-label="Buscar colaborador na planilha" placeholder="Nome ou matrícula" value={search} onChange={(e) => setSearch(e.target.value)} /></div>
       <Button variant="outline" className="self-end" aria-pressed={view === "dias"} onClick={() => setView(view === "listas" ? "dias" : "listas")}>{view === "listas" ? "Ver dias do mês" : "Ver colaboradores · Par / Ímpar"}</Button>
     </div>
+    {!isPending && !isError && <PlanilhaFerias key={`${posto.id}:${month}`} postoId={posto.id} month={month} rows={rows} people={data?.people ?? []} />}
     {isPending ? <p className="text-muted-foreground">Carregando planilha…</p> : isError ? <p className="text-destructive" role="alert">Não foi possível carregar a planilha.</p> : view === "listas" ? <RosterLists key={`${me?.id ?? ""}:${posto.id}:${month}`} supervisorScope={`${me?.id ?? ""}:${posto.id}:${month}`} post={posto.nome} rows={visible} people={people} busy={busy} save={update} reorder={(ids) => { void reorder(ids); }} move={(id, type, turno) => { void update(id, rosterMove(type, turno)); }} add={(type, turno) => setEditing({ ...empty, ...rosterMove(type, turno), hora_inicio: turno === "noturno" ? "18:00" : "06:00", hora_fim: turno === "noturno" ? "06:00" : "18:00" })} edit={(row) => setEditing({ ...row, hora_inicio: row.hora_inicio.slice(0, 5), hora_fim: row.hora_fim.slice(0, 5) })} /> : visible.length === 0 ? <EmptyState text="Nenhum colaborador nesta planilha." /> : <div className="max-w-full overflow-x-auto rounded-lg border bg-card">
       <table className="w-max min-w-full border-collapse text-xs">
         <thead><tr><th className="sticky left-0 z-20 w-64 min-w-64 border-b border-r bg-muted px-4 text-left">Colaborador / matrícula</th><th className="min-w-28 border-b px-3 text-left">Função</th><th className="min-w-32 border-b px-3 text-left">Escala / turno</th>{days.map((day) => <th key={day} className="w-10 min-w-10 border-b px-1 text-center"><div>{day.toString().padStart(2, "0")}</div><div className="mt-1 text-[10px] font-normal text-muted-foreground">{new Date(`${month}-${String(day).padStart(2, "0")}T12:00:00`).toLocaleDateString("pt-BR", { weekday: "short" }).slice(0, 3)}</div></th>)}<th className="min-w-20 border-b px-3">Plantões</th><th className="min-w-24 border-b px-3">Ações</th></tr></thead>

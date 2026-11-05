@@ -67,6 +67,14 @@ function Ferias() {
     .map((c) => ({ ...c, periodo: soFerias.find((f) => f.colaborador_id === c.id && f.status !== "recusada" && f.data_fim >= hoje) }));
 
   const semPeriodo = emFerias.filter((c) => !c.periodo);
+  const canCobertura = canEdit || (me?.roles ?? []).includes("supervisor");
+  const coberturas = emFerias.filter((c) => c.periodo);
+  async function salvarCobertura(feriasId: string, nome: string) {
+    const { error } = await supabase.rpc("definir_cobertura", { _ferias_id: feriasId, _nome: nome });
+    if (error) { toast.error("Não foi possível salvar a cobertura."); return; }
+    toast.success("Cobertura salva.");
+    qc.invalidateQueries({ queryKey: ["ferias"] });
+  }
 
   async function setStatus(id: string, status: "aprovada" | "recusada") {
     if (!canEdit) return;
@@ -92,6 +100,7 @@ function Ferias() {
         <TabsList className="h-auto flex-wrap justify-start">
           <TabsTrigger value="acompanhamento">Acompanhamento</TabsTrigger>
           {!isColab && <TabsTrigger value="abonos">Abonos pecuniários ({abonos.length})</TabsTrigger>}
+          {!isColab && <TabsTrigger value="coberturas">Coberturas ({coberturas.length})</TabsTrigger>}
           {!isColab && <TabsTrigger value="sem-periodo">Períodos não informados ({semPeriodo.length})</TabsTrigger>}
         </TabsList>
         <TabsContent value="acompanhamento" className="space-y-4">
@@ -168,6 +177,25 @@ function Ferias() {
           </TabsContent>
         )}
         {!isColab && (
+          <TabsContent value="coberturas" className="space-y-4">
+            <p className="text-sm text-muted-foreground">Quem está cobrindo cada colaborador em férias. Apenas para consulta: não altera a escala de serviço.</p>
+            {coberturas.length === 0 ? <EmptyState text="Nenhum colaborador em férias com período informado." /> : (
+              <Card><CardContent className="overflow-x-auto p-0">
+                <Table>
+                  <TableHeader><TableRow><TableHead>Colaborador em férias</TableHead><TableHead>Período</TableHead><TableHead>Vigia na cobertura</TableHead></TableRow></TableHeader>
+                  <TableBody>{coberturas.map((c) => (
+                    <TableRow key={c.id}>
+                      <TableCell className="font-medium">{c.nome} <span className="text-muted-foreground">({c.matricula})</span></TableCell>
+                      <TableCell>{fmt(c.periodo!.data_inicio)} — {fmt(c.periodo!.data_fim)}</TableCell>
+                      <TableCell>{canCobertura ? <CoberturaInput key={`${c.periodo!.id}-${c.periodo!.cobertura ?? ""}`} inicial={c.periodo!.cobertura ?? ""} onSave={(n) => salvarCobertura(c.periodo!.id, n)} /> : (c.periodo!.cobertura || "—")}</TableCell>
+                    </TableRow>
+                  ))}</TableBody>
+                </Table>
+              </CardContent></Card>
+            )}
+          </TabsContent>
+        )}
+        {!isColab && (
           <TabsContent value="sem-periodo" className="space-y-4">
             <p className="text-sm text-muted-foreground">Colaboradores exibidos em “Em férias agora” com período não informado. Informe as datas reais; a situação cadastral não será alterada.</p>
             {semPeriodo.length === 0 ? <EmptyState text="Nenhum colaborador com período não informado nesta lista." /> : (
@@ -192,6 +220,15 @@ function Ferias() {
       {open && <FeriasDialog colabs={data?.colabs ?? []} fixColabId={selectedColabId ?? (isColab ? meuColabId : undefined)} informarPeriodo={selectedColabId !== null} aprovar={canEdit} meId={me?.profile?.id ?? null} onClose={() => { setOpen(false); setSelectedColabId(null); }} />}
     </div>
   );
+}
+
+function CoberturaInput({ inicial, onSave }: { inicial: string; onSave: (nome: string) => Promise<void> }) {
+  const [nome, setNome] = useState(inicial);
+  const [saving, setSaving] = useState(false);
+  return <form className="flex min-w-64 gap-2" onSubmit={async (e) => { e.preventDefault(); setSaving(true); await onSave(nome); setSaving(false); }}>
+    <Input aria-label="Nome do vigia na cobertura" placeholder="Nome do vigia" maxLength={120} value={nome} onChange={(e) => setNome(e.target.value)} />
+    <Button type="submit" size="sm" variant="outline" disabled={saving || nome.trim() === inicial.trim()}>Salvar</Button>
+  </form>;
 }
 
 function FeriasDialog({ colabs, fixColabId, informarPeriodo = false, aprovar, meId, onClose }: { colabs: { id: string; nome: string; matricula: string }[]; fixColabId?: string | undefined; informarPeriodo?: boolean; aprovar: boolean; meId: string | null; onClose: () => void }) {

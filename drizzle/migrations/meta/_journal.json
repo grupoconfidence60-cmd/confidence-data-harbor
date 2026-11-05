@@ -183,6 +183,13 @@
       "when": 1793822697974,
       "tag": "0025_movimentacoes_grant_delete",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1793881508984,
+      "tag": "0026_desligados_ordem_cobertura",
+      "breakpoints": true
     }
   ]
 }

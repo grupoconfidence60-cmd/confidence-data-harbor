@@ -22,3 +22,10 @@
 - [ ] Etapa 3: cursos e treinamentos
 - [ ] Etapa 4: avaliação de desempenho
 
+
+## Pedido de 05/11
+- [x] Desligado sai sozinho da planilha de escala
+- [x] Supervisores solicitam férias
+- [x] Ordem manual das linhas da escala (subir/descer)
+- [x] Aba Coberturas em Férias (nome do vigia na cobertura, só consulta)
+- [ ] Ligar o efetivo ao supervisor para o dia da escala mudar sozinho — aguardando explicação do usuário

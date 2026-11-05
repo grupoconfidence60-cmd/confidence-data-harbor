@@ -30,7 +30,7 @@ const movQuery = queryOptions({
   },
 });
 
-export function MaterialEstoque({ items, people, posts, canFull }: { items: Item[]; people: Person[]; posts: Opt[]; canFull: boolean }) {
+export function MaterialEstoque({ items, people, posts, canFull, filterMaterialIds }: { items: Item[]; people: Person[]; posts: Opt[]; canFull: boolean; filterMaterialIds?: string[] }) {
   const qc = useQueryClient();
   const { data } = useQuery(movQuery);
   const movs = data?.movs ?? [];
@@ -43,7 +43,7 @@ export function MaterialEstoque({ items, people, posts, canFull }: { items: Item
   const [to, setTo] = useState("");
   const name = (list: Opt[], id: string | null) => (id ? list.find((x) => x.id === id)?.nome ?? "—" : "—");
   const day = (iso: string) => iso.slice(0, 10);
-  const hist = movs.filter((m) => (fPost === "todos" || m.posto_id === fPost) && (fPerson === "todos" || m.colaborador_id === fPerson) && (fSup === "todos" || m.supervisor_id === fSup) && (!from || day(m.created_at) >= from) && (!to || day(m.created_at) <= to));
+  const hist = movs.filter((m) => (!filterMaterialIds || filterMaterialIds.includes(m.material_id)) && (fPost === "todos" || m.posto_id === fPost) && (fPerson === "todos" || m.colaborador_id === fPerson) && (fSup === "todos" || m.supervisor_id === fSup) && (!from || day(m.created_at) >= from) && (!to || day(m.created_at) <= to));
   const fmt = (iso: string) => new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
 
   async function excluir(m: (typeof movs)[number]) {

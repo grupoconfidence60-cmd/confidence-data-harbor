@@ -99,7 +99,7 @@ export function MaterialEstoque({ items, people, posts, canFull, filterMaterialI
   return <div className="space-y-4 text-foreground">
     <section className="overflow-hidden rounded-lg border bg-card" aria-label="Saldo por material">
       <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center sm:justify-between">
-        <div><h3 className="text-base font-semibold">Consultar estoque</h3><p className="mt-1 text-xs text-muted-foreground">Escolha o tamanho e veja as quantidades. Para lançar uma entrada ou saída, use Movimentar na linha.</p></div>
+        <div><h3 className="text-base font-semibold">Consultar estoque</h3><p className="mt-1 text-xs text-muted-foreground">Cada tamanho mostra a quantidade em estoque. Entregas e devoluções atualizam o saldo automaticamente.</p></div>
         <div className="flex shrink-0 flex-wrap gap-2"><Button onClick={() => abrirMovimentacao()} disabled={!items.length}><Plus />Novo lançamento</Button><Button variant="outline" onClick={exportar}><Download />Exportar</Button></div>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3 border-b bg-muted/20 px-4 py-3">
@@ -108,10 +108,10 @@ export function MaterialEstoque({ items, people, posts, canFull, filterMaterialI
         </div>
         <div className="flex items-center gap-3"><Button type="button" size="sm" variant={soComprar ? "destructive" : "outline"} aria-pressed={soComprar} onClick={() => setSoComprar((v) => !v)}>Precisa comprar ({paraComprar.length})</Button><span className="text-xs text-muted-foreground">{grupos.size} material(is)</span></div>
       </div>
-      {!grupos.size ? <EmptyState text="Nenhum material encontrado. Ajuste a busca ou a categoria." /> : <div className="overflow-x-auto"><table className="w-full min-w-[760px]"><thead><tr>{["Material", "Tamanho", "Disponível", "Situação", "A devolver", "Ação"].map((h) => <th key={h} className="px-4 text-left">{h}</th>)}</tr></thead><tbody>{[...grupos.entries()].map(([key, grupo], idx, all) => <EstoqueGrupo key={key} first={idx === 0 || grupoDe(all[idx - 1]![1][0]!) !== grupoDe(grupo[0]!)} items={grupo} movs={movs} canEditSizes={canEditSizes} onMovimentar={abrirMovimentacao} />)}</tbody></table></div>}
+      {!grupos.size ? <EmptyState text="Nenhum material encontrado. Ajuste a busca ou a categoria." /> : <div className="overflow-x-auto"><table className="w-full min-w-[760px]"><thead><tr>{["Material", "Tamanhos e quantidades", "Tamanho selecionado", "Situação", "A devolver", "Ação"].map((h) => <th key={h} className="px-4 text-left">{h}</th>)}</tr></thead><tbody>{[...grupos.entries()].map(([key, grupo], idx, all) => <EstoqueGrupo key={key} first={idx === 0 || grupoDe(all[idx - 1]![1][0]!) !== grupoDe(grupo[0]!)} items={grupo} movs={movs} canEditSizes={canEditSizes} onMovimentar={abrirMovimentacao} />)}</tbody></table></div>}
       <p className="border-t bg-muted/10 px-4 py-3 text-xs text-muted-foreground">As quantidades correspondem ao tamanho selecionado. O cadastro de tamanhos não acrescenta unidades ao estoque.</p>
     </section>
-    <details className="rounded-lg border bg-card p-4">
+    <details open className="rounded-lg border bg-card p-4">
       <summary className="cursor-pointer rounded text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Histórico de movimentações <span className="ml-2 font-normal text-muted-foreground">({hist.length})</span></summary>
       <p className="mb-3 mt-2 text-xs text-muted-foreground">Consulte os lançamentos de estoque usando os filtros abaixo. A busca acima filtra somente o quadro de saldos; este histórico possui filtros próprios.</p>
       <div className="mb-3 flex flex-wrap gap-3">{sel("Filtrar posto", fPost, setFPost, posts, "Todos os postos")}{sel("Filtrar colaborador", fPerson, setFPerson, people, "Todos os colaboradores")}{sel("Filtrar supervisor", fSup, setFSup, profiles, "Todos os supervisores")}<Input type="date" aria-label="De" className="w-full sm:w-40" value={from} onChange={(e) => setFrom(e.target.value)} /><Input type="date" aria-label="Até" className="w-full sm:w-40" value={to} onChange={(e) => setTo(e.target.value)} /></div>
@@ -159,10 +159,8 @@ function EstoqueLinha({ items, movs, canEditSizes, onMovimentar }: { items: Item
   return <tr className="border-t text-foreground">
     <td className="px-4 py-3 align-top"><p className="font-semibold">{item.nome}</p><p className="mt-1 text-xs text-muted-foreground">{catLabel(item.categoria)}</p></td>
     <td className="px-4 py-3 align-top">
-      <Select value={selecionado.id} onValueChange={setSelectedId}>
-        <SelectTrigger className="w-44 bg-background" aria-label={`Selecionar tamanho de ${item.nome}`}><SelectValue /></SelectTrigger>
-        <SelectContent>{opcoes.map((grupo) => <SelectItem key={grupo[0]!.id} value={grupo[0]!.id}>{grupo[0]!.tamanho.trim() || "Sem tamanho informado"}</SelectItem>)}</SelectContent>
-      </Select>
+      <div className="flex max-w-md flex-wrap gap-1.5" role="group" aria-label={`Tamanhos de ${item.nome}`}>{opcoes.map((grupo) => { const q = grupo.reduce((t, r) => t + saldo(movs, r.id), 0); const ativo = grupo[0]!.id === selecionado.id; const falta = precisaComprar(q, grupo[0]!.estoque_minimo ?? 0); return <button key={grupo[0]!.id} type="button" aria-pressed={ativo} onClick={() => setSelectedId(grupo[0]!.id)} className={`flex min-w-14 flex-col items-center rounded-md border px-2 py-1 text-xs transition-colors ${ativo ? "border-primary bg-primary text-primary-foreground" : falta ? "border-destructive/50 bg-destructive/10 hover:bg-destructive/20" : "bg-background hover:bg-muted"}`}><span className="font-medium">{grupo[0]!.tamanho.trim() || "Único"}</span><span className="text-sm font-semibold tabular-nums">{q}</span></button>; })}</div>
+      <p className="mt-1 text-xs text-muted-foreground">Total: {opcoes.reduce((t, g) => t + g.reduce((u, r) => u + saldo(movs, r.id), 0), 0)} un. · vermelho = comprar</p>
       {canEditSizes && <details className="mt-2 text-xs"><summary className="w-fit cursor-pointer rounded text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Gerenciar tamanhos</summary><div className="mt-2">{uniforme ? <UniformeTamanhos item={selecionado} label="Adicionar tamanhos" /> : <MaterialTamanho key={selecionado.id} item={selecionado} />}</div></details>}
     </td>
     <td className="px-4 py-3 align-top"><p className={`text-lg font-semibold tabular-nums ${emEstoque < 0 ? "text-destructive" : "text-foreground"}`}>{emEstoque}<span className="ml-1 text-xs font-normal text-muted-foreground">un.</span></p><p className="text-xs text-muted-foreground">{emEstoque > 0 ? "Em estoque" : emEstoque === 0 ? "Sem estoque" : "Saldo negativo"}</p></td>

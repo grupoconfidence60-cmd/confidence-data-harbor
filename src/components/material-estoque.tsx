@@ -20,6 +20,7 @@ import { MOV_LABELS, saldo, pendentes, precisaComprar, CATEGORIA_LABELS, GRUPOS_
 type Opt = { id: string; nome: string };
 type Item = Opt & { tamanho: string; categoria: string; identificacao?: string; grupo?: string; estoque_minimo?: number };
 const grupoDe = (i: Item) => i.grupo?.trim() || "Outros";
+const rank = (g: string) => { const i = GRUPOS_ESTOQUE.indexOf(g); return i < 0 ? 99 : i; };
 const catLabel = (c: string) => CATEGORIA_LABELS[c] ?? c;
 type Person = Opt & { matricula: string; posto_id: string | null };
 
@@ -59,7 +60,7 @@ export function MaterialEstoque({ items, people, posts, canFull, filterMaterialI
   const [to, setTo] = useState("");
   const comprarItem = (i: Item) => precisaComprar(saldo(movs, i.id), i.estoque_minimo ?? 0);
   const paraComprar = items.filter(comprarItem);
-  const gruposDisponiveis = [...new Set(items.map(grupoDe))].sort((a, b) => (GRUPOS_ESTOQUE.indexOf(a) + 99) % 99 - (GRUPOS_ESTOQUE.indexOf(b) + 99) % 99 || a.localeCompare(b));
+  const gruposDisponiveis = [...new Set(items.map(grupoDe))].sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
   const grupos = new Map<string, Item[]>();
   for (const item of [...items].sort((a, b) => gruposDisponiveis.indexOf(grupoDe(a)) - gruposDisponiveis.indexOf(grupoDe(b)))) {
     if (categoria !== "todos" && grupoDe(item) !== categoria) continue;

@@ -1128,6 +1128,29 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cadastrar_tamanhos_uniforme: {
+        Args: {
+          p_categoria: string
+          p_identificacao: string
+          p_nome: string
+          p_tamanhos: string[]
+        }
+        Returns: {
+          arquivado: boolean
+          categoria: string
+          created_at: string
+          id: string
+          identificacao: string
+          nome: string
+          tamanho: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "materiais"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       can_manage_planilha: { Args: { _posto_id: string }; Returns: boolean }
       colaborador_no_posto: {
         Args: { _posto_id: string; _user_id: string }

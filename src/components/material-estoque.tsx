@@ -108,7 +108,7 @@ export function MaterialEstoque({ items, people, posts, canFull, filterMaterialI
         </div>
         <div className="flex items-center gap-3"><Button type="button" size="sm" variant={soComprar ? "destructive" : "outline"} aria-pressed={soComprar} onClick={() => setSoComprar((v) => !v)}>Precisa comprar ({paraComprar.length})</Button><span className="text-xs text-muted-foreground">{grupos.size} material(is)</span></div>
       </div>
-      {!grupos.size ? <EmptyState text="Nenhum material encontrado. Ajuste a busca ou a categoria." /> : <div className="overflow-x-auto"><table className="w-full min-w-[760px]"><thead><tr>{["Material", "Tamanho", "Disponível", "Situação", "A devolver", "Ação"].map((h) => <th key={h} className="px-4 text-left">{h}</th>)}</tr></thead><tbody>{[...grupos.entries()].map(([key, grupo], idx, all) => <EstoqueGrupo key={key} first={idx === 0 || grupoDe(all[idx - 1][1][0]) !== grupoDe(grupo[0])} items={grupo} movs={movs} canEditSizes={canEditSizes} onMovimentar={abrirMovimentacao} />)}</tbody></table></div>}
+      {!grupos.size ? <EmptyState text="Nenhum material encontrado. Ajuste a busca ou a categoria." /> : <div className="overflow-x-auto"><table className="w-full min-w-[760px]"><thead><tr>{["Material", "Tamanho", "Disponível", "Situação", "A devolver", "Ação"].map((h) => <th key={h} className="px-4 text-left">{h}</th>)}</tr></thead><tbody>{[...grupos.entries()].map(([key, grupo], idx, all) => <EstoqueGrupo key={key} first={idx === 0 || grupoDe(all[idx - 1]![1][0]!) !== grupoDe(grupo[0]!)} items={grupo} movs={movs} canEditSizes={canEditSizes} onMovimentar={abrirMovimentacao} />)}</tbody></table></div>}
       <p className="border-t bg-muted/10 px-4 py-3 text-xs text-muted-foreground">As quantidades correspondem ao tamanho selecionado. O cadastro de tamanhos não acrescenta unidades ao estoque.</p>
     </section>
     <details className="rounded-lg border bg-card p-4">
@@ -122,7 +122,7 @@ export function MaterialEstoque({ items, people, posts, canFull, filterMaterialI
 }
 
 function EstoqueGrupo({ first, ...props }: { first: boolean; items: Item[]; movs: Mov[]; canEditSizes: boolean; onMovimentar: (id: string) => void }) {
-  return <>{first && <tr className="bg-muted/40"><td colSpan={6} className="px-4 py-2 text-xs font-semibold uppercase tracking-wide text-primary">{grupoDe(props.items[0])}</td></tr>}<EstoqueLinha {...props} /></>;
+  return <>{first && <tr className="bg-muted/40"><td colSpan={6} className="px-4 py-2 text-xs font-semibold uppercase tracking-wide text-primary">{grupoDe(props.items[0]!)}</td></tr>}<EstoqueLinha {...props} /></>;
 }
 
 function MinimoInput({ item }: { item: Item }) {
@@ -211,7 +211,7 @@ function MovDialog({ items, people, posts, profiles, canFull, initialMaterialId,
     <form className="space-y-4" onSubmit={save}>
       {s("Tipo de movimentação", tipo, setTipo, tipos)}
       <div className="space-y-4 rounded-lg border bg-muted/20 p-3">
-        {s("Material", grupoSelecionado, (chave) => setItem(grupos.get(chave)?.[0].id ?? ""), [...grupos.entries()].map(([chave, grupo]) => ({ id: chave, nome: `${grupo[0].nome} · ${grupoDe(grupo[0])}` })))}
+        {s("Material", grupoSelecionado, (chave) => setItem(grupos.get(chave)?.[0].id ?? ""), [...grupos.entries()].map(([chave, grupo]) => ({ id: chave, nome: `${grupo[0].nome} · ${grupoDe(grupo[0]!)}` })))}
         {selecionado ? s("Tamanho / identificação", item, setItem, variacoes.map((registro) => ({ id: registro.id, nome: `${registro.tamanho.trim() || "Sem tamanho informado"}${registro.identificacao ? ` · ${registro.identificacao}` : ""}` }))) : <p className="text-xs text-muted-foreground">Escolha o material para visualizar seus tamanhos cadastrados.</p>}
       </div>
       <div className="space-y-2"><Label htmlFor="mov-qtd">Quantidade de unidades</Label><Input id="mov-qtd" type="number" min={1} step={1} value={qtd} onChange={(e) => setQtd(e.target.value)} /></div>

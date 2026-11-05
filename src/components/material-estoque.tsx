@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EmptyState } from "@/components/page";
+import { MaterialTamanho } from "@/components/material-tamanho";
 import { MOV_LABELS, saldo, pendentes } from "@/lib/estoque";
 
 type Opt = { id: string; nome: string };
@@ -30,7 +31,7 @@ const movQuery = queryOptions({
   },
 });
 
-export function MaterialEstoque({ items, people, posts, canFull, filterMaterialIds }: { items: Item[]; people: Person[]; posts: Opt[]; canFull: boolean; filterMaterialIds?: string[] }) {
+export function MaterialEstoque({ items, people, posts, canFull, filterMaterialIds, canEditSizes = false }: { items: Item[]; people: Person[]; posts: Opt[]; canFull: boolean; filterMaterialIds?: string[]; canEditSizes?: boolean }) {
   const qc = useQueryClient();
   const { data } = useQuery(movQuery);
   const movs = data?.movs ?? [];
@@ -68,7 +69,7 @@ export function MaterialEstoque({ items, people, posts, canFull, filterMaterialI
 
   return <div className="space-y-6">
     <div className="flex flex-wrap gap-2"><Button onClick={() => setOpen(true)} disabled={!items.length}><Plus />Nova movimentação</Button><Button variant="outline" onClick={exportar}><Download />Excel de conferência</Button></div>
-    <div className="overflow-x-auto border bg-card"><table className="w-full min-w-[560px]"><thead><tr>{["Material", "Tamanho", "Em estoque", "Entregues (pendentes de devolução)"].map((h) => <th key={h} className="px-3 text-left">{h}</th>)}</tr></thead><tbody>{items.map((i) => { const s = saldo(movs, i.id); return <tr key={i.id} className="border-t"><td className="px-3 py-2 font-medium">{i.nome}</td><td className="px-3">{i.tamanho || "—"}</td><td className="px-3"><Badge variant={s > 0 ? "secondary" : "destructive"}>{s}</Badge></td><td className="px-3">{pendentes(movs, i.id)}</td></tr>; })}</tbody></table></div>
+    <div className="overflow-x-auto border bg-card"><table className="w-full min-w-[560px]"><thead><tr>{["Material", "Tamanho", "Em estoque", "Entregues (pendentes de devolução)"].map((h) => <th key={h} className="px-3 text-left">{h}</th>)}</tr></thead><tbody>{items.map((i) => { const s = saldo(movs, i.id); return <tr key={i.id} className="border-t"><td className="px-3 py-2 font-medium">{i.nome}</td><td className="px-3">{canEditSizes ? <MaterialTamanho item={i} /> : i.tamanho || "—"}</td><td className="px-3"><Badge variant={s > 0 ? "secondary" : "destructive"}>{s}</Badge></td><td className="px-3">{pendentes(movs, i.id)}</td></tr>; })}</tbody></table></div>
     <div><h2 className="mb-3 font-semibold">Histórico de movimentações</h2>
       <div className="mb-3 flex flex-wrap gap-3">{sel("Filtrar posto", fPost, setFPost, posts, "Todos os postos")}{sel("Filtrar colaborador", fPerson, setFPerson, people, "Todos os colaboradores")}{sel("Filtrar supervisor", fSup, setFSup, profiles, "Todos os supervisores")}<Input type="date" aria-label="De" className="w-full sm:w-40" value={from} onChange={(e) => setFrom(e.target.value)} /><Input type="date" aria-label="Até" className="w-full sm:w-40" value={to} onChange={(e) => setTo(e.target.value)} /></div>
       {!hist.length ? <EmptyState text="Nenhuma movimentação encontrada." /> : <div className="overflow-x-auto border bg-card"><table className="w-full min-w-[900px]"><thead><tr>{["Data/hora", "Tipo", "Material", "Qtd.", "Colaborador", "Posto", "Supervisor", "Lançado por", ...(canFull ? ["Ações"] : [])].map((h) => <th key={h} className="px-3 text-left">{h}</th>)}</tr></thead><tbody>{hist.map((m) => <tr key={m.id} className="border-t"><td className="px-3 py-2 whitespace-nowrap">{fmt(m.created_at)}</td><td className="px-3"><Badge variant="outline">{MOV_LABELS[m.tipo]}</Badge>{m.motivo && <p className="text-xs text-muted-foreground">{m.motivo}</p>}</td><td className="px-3">{name(items, m.material_id)}</td><td className="px-3">{m.quantidade}</td><td className="px-3">{name(people, m.colaborador_id)}</td><td className="px-3">{name(posts, m.posto_id)}</td><td className="px-3">{name(profiles, m.supervisor_id)}</td><td className="px-3">{name(profiles, m.registrado_por)}</td>{canFull && <td className="px-3"><Button variant="ghost" size="icon" aria-label="Excluir movimentação" onClick={() => excluir(m)}><Trash2 className="text-destructive" /></Button></td>}</tr>)}</tbody></table></div>}

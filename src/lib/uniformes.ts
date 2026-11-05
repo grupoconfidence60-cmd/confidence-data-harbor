@@ -25,7 +25,7 @@ export async function cadastrarTamanhosUniforme(input: {
   nome: string;
   categoria: string;
   tamanhos: string[];
-  identificacao?: string;
+  identificacao?: string | undefined;
 }): Promise<Resultado> {
   // Usa o cliente autenticado existente; a nova função ainda não consta
   // nos tipos gerados do Supabase.

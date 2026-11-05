@@ -46,7 +46,7 @@ export function MaterialEstoque({ items, people, posts, canFull, filterMaterialI
   const [to, setTo] = useState("");
   const grupos = new Map<string, Item[]>();
   for (const item of items) {
-    const key = ehUniforme(item.categoria) ? `uniforme:${normalizarUniforme(item.nome)}` : `material:${item.id}`;
+    const key = JSON.stringify([ehUniforme(item.categoria) ? "uniforme" : normalizarUniforme(item.categoria), normalizarUniforme(item.nome)]);
     const grupo = grupos.get(key) ?? [];
     grupo.push(item);
     grupos.set(key, grupo);
@@ -78,7 +78,7 @@ export function MaterialEstoque({ items, people, posts, canFull, filterMaterialI
 
   return <div className="space-y-4 text-foreground">
     <section className="overflow-hidden rounded-lg border bg-card" aria-label="Saldo por material">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b p-4"><div><h3 className="text-sm font-semibold">Estoque por material</h3><p className="mt-1 text-xs text-muted-foreground">Uma linha por uniforme. Selecione o tamanho ao lado para consultar seu saldo e suas pendências.</p></div><div className="flex flex-wrap gap-2"><Button onClick={() => setOpen(true)} disabled={!items.length}><Plus />Nova movimentação</Button><Button variant="outline" onClick={exportar}><Download />Exportar estoque</Button></div></div>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b p-4"><div><h3 className="text-sm font-semibold">Estoque por material</h3><p className="mt-1 text-xs text-muted-foreground">Equipamentos e uniformes agrupados por nome e categoria. Selecione o tamanho ao lado para consultar seu saldo e suas pendências.</p></div><div className="flex flex-wrap gap-2"><Button onClick={() => setOpen(true)} disabled={!items.length}><Plus />Nova movimentação</Button><Button variant="outline" onClick={exportar}><Download />Exportar estoque</Button></div></div>
       {!items.length ? <EmptyState text="Nenhum material encontrado para esta busca." /> : <div className="overflow-x-auto"><table className="w-full min-w-[560px]"><thead><tr>{["Material", "Tamanho", "Em estoque", "A devolver"].map((h) => <th key={h} className="px-3 text-left">{h}</th>)}</tr></thead><tbody>{[...grupos.entries()].map(([key, grupo]) => <EstoqueLinha key={key} items={grupo} movs={movs} canEditSizes={canEditSizes} />)}</tbody></table></div>}
     </section>
     <details className="rounded-lg border bg-card p-4">
@@ -111,13 +111,13 @@ function EstoqueLinha({ items, movs, canEditSizes }: { items: Item[]; movs: Mov[
   return <tr className="border-t text-foreground">
     <td className="px-3 py-3 font-medium">{item.nome}</td>
     <td className="px-3 py-2">
-      {uniforme ? <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Select value={selecionado.id} onValueChange={setSelectedId}>
           <SelectTrigger className="w-44 bg-background" aria-label={`Selecionar tamanho de ${item.nome}`}><SelectValue /></SelectTrigger>
           <SelectContent>{opcoes.map((grupo) => <SelectItem key={grupo[0].id} value={grupo[0].id}>{grupo[0].tamanho.trim() || "Sem tamanho informado"}</SelectItem>)}</SelectContent>
         </Select>
-        {canEditSizes && <UniformeTamanhos item={selecionado} label="Adicionar tamanhos" />}
-      </div> : canEditSizes ? <MaterialTamanho item={item} /> : item.tamanho || "—"}
+        {canEditSizes && (uniforme ? <UniformeTamanhos item={selecionado} label="Adicionar tamanhos" /> : <MaterialTamanho key={selecionado.id} item={selecionado} />)}
+      </div>
     </td>
     <td className="px-3 tabular-nums"><Badge variant={emEstoque > 0 ? "secondary" : "destructive"}>{emEstoque}</Badge></td>
     <td className="px-3 tabular-nums">{aDevolver}</td>

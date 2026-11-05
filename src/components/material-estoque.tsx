@@ -13,7 +13,9 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EmptyState } from "@/components/page";
 import { MaterialTamanho } from "@/components/material-tamanho";
-import { MOV_LABELS, saldo, pendentes } from "@/lib/estoque";
+import { UniformeTamanhos } from "@/components/uniforme-tamanhos";
+import { ehUniforme, normalizarUniforme } from "@/lib/uniformes";
+import { MOV_LABELS, saldo, pendentes, type Mov } from "@/lib/estoque";
 
 type Opt = { id: string; nome: string };
 type Item = Opt & { tamanho: string; categoria: string };
@@ -42,6 +44,13 @@ export function MaterialEstoque({ items, people, posts, canFull, filterMaterialI
   const [fSup, setFSup] = useState("todos");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
+  const grupos = new Map<string, Item[]>();
+  for (const item of items) {
+    const key = ehUniforme(item.categoria) ? `uniforme:${normalizarUniforme(item.nome)}` : `material:${item.id}`;
+    const grupo = grupos.get(key) ?? [];
+    grupo.push(item);
+    grupos.set(key, grupo);
+  }
   const name = (list: Opt[], id: string | null) => (id ? list.find((x) => x.id === id)?.nome ?? "—" : "—");
   const day = (iso: string) => iso.slice(0, 10);
   const hist = movs.filter((m) => (!filterMaterialIds || filterMaterialIds.includes(m.material_id)) && (fPost === "todos" || m.posto_id === fPost) && (fPerson === "todos" || m.colaborador_id === fPerson) && (fSup === "todos" || m.supervisor_id === fSup) && (!from || day(m.created_at) >= from) && (!to || day(m.created_at) <= to));
@@ -69,8 +78,8 @@ export function MaterialEstoque({ items, people, posts, canFull, filterMaterialI
 
   return <div className="space-y-4 text-foreground">
     <section className="overflow-hidden rounded-lg border bg-card" aria-label="Saldo por material">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b p-4"><div><h3 className="text-sm font-semibold">Estoque por material e tamanho</h3><p className="mt-1 text-xs text-muted-foreground">Saldos calculados pelos lançamentos de movimentação.</p></div><div className="flex flex-wrap gap-2"><Button onClick={() => setOpen(true)} disabled={!items.length}><Plus />Nova movimentação</Button><Button variant="outline" onClick={exportar}><Download />Exportar estoque</Button></div></div>
-      {!items.length ? <EmptyState text="Nenhum material encontrado para esta busca." /> : <div className="overflow-x-auto"><table className="w-full min-w-[560px]"><thead><tr>{["Material", "Tamanho", "Em estoque", "Pendentes de devolução"].map((h) => <th key={h} className="px-3 text-left">{h}</th>)}</tr></thead><tbody>{items.map((i) => { const s = saldo(movs, i.id); return <tr key={i.id} className="border-t"><td className="px-3 py-2 font-medium">{i.nome}</td><td className="px-3">{canEditSizes ? <MaterialTamanho item={i} /> : i.tamanho || "—"}</td><td className="px-3"><Badge variant={s > 0 ? "secondary" : "destructive"}>{s}</Badge></td><td className="px-3">{pendentes(movs, i.id)}</td></tr>; })}</tbody></table></div>}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b p-4"><div><h3 className="text-sm font-semibold">Estoque por material</h3><p className="mt-1 text-xs text-muted-foreground">Uma linha por uniforme. Selecione o tamanho ao lado para consultar seu saldo e suas pendências.</p></div><div className="flex flex-wrap gap-2"><Button onClick={() => setOpen(true)} disabled={!items.length}><Plus />Nova movimentação</Button><Button variant="outline" onClick={exportar}><Download />Exportar estoque</Button></div></div>
+      {!items.length ? <EmptyState text="Nenhum material encontrado para esta busca." /> : <div className="overflow-x-auto"><table className="w-full min-w-[560px]"><thead><tr>{["Material", "Tamanho", "Em estoque", "A devolver"].map((h) => <th key={h} className="px-3 text-left">{h}</th>)}</tr></thead><tbody>{[...grupos.entries()].map(([key, grupo]) => <EstoqueLinha key={key} items={grupo} movs={movs} canEditSizes={canEditSizes} />)}</tbody></table></div>}
     </section>
     <details className="rounded-lg border bg-card p-4">
       <summary className="cursor-pointer rounded text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Histórico de movimentações <span className="ml-2 font-normal text-muted-foreground">({hist.length})</span></summary>
@@ -80,6 +89,39 @@ export function MaterialEstoque({ items, people, posts, canFull, filterMaterialI
     </details>
     {open && <MovDialog items={items} people={people} posts={posts} profiles={profiles} canFull={canFull} onClose={() => setOpen(false)} />}
   </div>;
+}
+
+function EstoqueLinha({ items, movs, canEditSizes }: { items: Item[]; movs: Mov[]; canEditSizes: boolean }) {
+  const [selectedId, setSelectedId] = useState("");
+  const item = items[0];
+  const uniforme = ehUniforme(item.categoria);
+  const tamanhos = new Map<string, Item[]>();
+  for (const registro of items) {
+    const key = normalizarUniforme(registro.tamanho);
+    const grupo = tamanhos.get(key) ?? [];
+    grupo.push(registro);
+    tamanhos.set(key, grupo);
+  }
+  const opcoes = [...tamanhos.values()].sort((a, b) => a[0].tamanho.localeCompare(b[0].tamanho, "pt-BR", { numeric: true }));
+  const selecionados = opcoes.find((grupo) => grupo[0].id === selectedId) ?? opcoes[0];
+  const selecionado = selecionados[0];
+  const emEstoque = selecionados.reduce((total, registro) => total + saldo(movs, registro.id), 0);
+  const aDevolver = selecionados.reduce((total, registro) => total + pendentes(movs, registro.id), 0);
+
+  return <tr className="border-t text-foreground">
+    <td className="px-3 py-3 font-medium">{item.nome}</td>
+    <td className="px-3 py-2">
+      {uniforme ? <div className="flex flex-wrap items-center gap-2">
+        <Select value={selecionado.id} onValueChange={setSelectedId}>
+          <SelectTrigger className="w-44 bg-background" aria-label={`Selecionar tamanho de ${item.nome}`}><SelectValue /></SelectTrigger>
+          <SelectContent>{opcoes.map((grupo) => <SelectItem key={grupo[0].id} value={grupo[0].id}>{grupo[0].tamanho.trim() || "Sem tamanho informado"}</SelectItem>)}</SelectContent>
+        </Select>
+        {canEditSizes && <UniformeTamanhos item={selecionado} label="Adicionar tamanhos" />}
+      </div> : canEditSizes ? <MaterialTamanho item={item} /> : item.tamanho || "—"}
+    </td>
+    <td className="px-3 tabular-nums"><Badge variant={emEstoque > 0 ? "secondary" : "destructive"}>{emEstoque}</Badge></td>
+    <td className="px-3 tabular-nums">{aDevolver}</td>
+  </tr>;
 }
 
 function MovDialog({ items, people, posts, profiles, canFull, onClose }: { items: Item[]; people: Person[]; posts: Opt[]; profiles: Opt[]; canFull: boolean; onClose: () => void }) {

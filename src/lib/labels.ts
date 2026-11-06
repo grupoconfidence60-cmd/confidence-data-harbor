@@ -36,7 +36,7 @@ export const FERIAS_LABELS = {
 
 export const GRAVIDADE_LABELS = { leve: "Leve", moderada: "Moderada", grave: "Grave" } as const;
 
-export const DOCUMENTO_TIPOS = ["Atestado", "Certificado", "Advertência", "Outro"];
+export const DOCUMENTO_TIPOS = ["Atestado", "Justificativa de falta", "Certificado", "Advertência", "Outro"];
 
 /** Which roles can open each module. */
 export const MODULE_ACCESS: Record<string, AppRole[]> = {

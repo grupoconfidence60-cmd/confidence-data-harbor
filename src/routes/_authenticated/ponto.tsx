@@ -49,7 +49,7 @@ function RegistrosEquipe() {
     queryKey: ["ponto-equipe", dia],
     queryFn: async () => {
       const { data, error } = await supabase.from("presencas")
-        .select("id, data, status, hora_entrada, hora_saida, distancia_metros, colaboradores(nome, matricula), postos(nome)")
+        .select("id, data, status, hora_entrada, hora_saida, distancia_metros, colaboradores:colaborador_id(nome, matricula), postos(nome)")
         .eq("data", dia).not("hora_entrada", "is", null).order("hora_entrada", { ascending: false });
       if (error) throw error;
       return data ?? [];

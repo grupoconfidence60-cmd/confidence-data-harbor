@@ -260,6 +260,20 @@
       "when": 1793929666288,
       "tag": "0036_ferias_avisos_automaticos",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1793973166767,
+      "tag": "0037_falta_justificada_documento_cobertura",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1793973310922,
+      "tag": "0038_valida_motivo_falta_justificada",
+      "breakpoints": true
     }
   ]
 }

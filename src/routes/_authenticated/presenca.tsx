@@ -198,9 +198,9 @@ function Presenca() {
                   <TableCell><Badge variant={TONE[auto]}>{auto === "registrado" && pres ? PRESENCA_LABELS[pres.status as keyof typeof PRESENCA_LABELS] : AUTO_LABELS[auto]}</Badge></TableCell>
                   <TableCell>
                     {canEdit && !(pres?.confirmado && !canConfirm) ? (
-                      <Select value={pres?.status ?? ""} onValueChange={(v) => setStatus(c.id, posto, v)}>
-                        <SelectTrigger className="w-48" aria-label={`Alterar presença de ${c.nome}`}><SelectValue placeholder="Presente pela escala" /></SelectTrigger>
-                        <SelectContent>{STATUS.map((s) => <SelectItem key={s} value={s}>{PRESENCA_LABELS[s]}</SelectItem>)}</SelectContent>
+                      <Select value={auto === "folga" && pres?.status === "presente" ? "" : pres?.status ?? ""} onValueChange={(v) => setStatus(c.id, posto, v)}>
+                        <SelectTrigger className="w-48" aria-label={`Alterar presença de ${c.nome}`}><SelectValue placeholder={auto === "registrado" && pres ? PRESENCA_LABELS[pres.status as keyof typeof PRESENCA_LABELS] : AUTO_LABELS[auto]} /></SelectTrigger>
+                        <SelectContent>{STATUS.filter((s) => s !== "presente" || scheduled === "T").map((s) => <SelectItem key={s} value={s}>{PRESENCA_LABELS[s]}</SelectItem>)}</SelectContent>
                       </Select>
                     ) : pres ? PRESENCA_LABELS[pres.status as keyof typeof PRESENCA_LABELS] : AUTO_LABELS[auto]}
                   </TableCell>
@@ -225,7 +225,7 @@ function Presenca() {
                     ) : <Badge variant="destructive">Anexo pendente</Badge> : <span className="text-xs text-muted-foreground">—</span>}
                   </TableCell>
                   <TableCell>
-                    {!pres ? <span className="text-xs text-muted-foreground">Sem alteração</span>
+                    {!pres || (auto === "folga" && pres.status === "presente") ? <span className="text-xs text-muted-foreground">{auto === "folga" ? "Folga automática" : "Sem alteração"}</span>
                       : pres.confirmado ? <div className="flex items-center gap-2"><Badge><CheckCircle2 className="mr-1 h-3 w-3" />Confirmado</Badge>{canConfirm && <Button size="sm" variant="ghost" disabled={busy} onClick={() => confirmar([pres.id], false)}>Desfazer</Button>}</div>
                       : pres.status === "falta_justificada" && !documento ? <Badge variant="outline">Aguardando anexo</Badge>
                       : canConfirm ? <Button size="sm" variant="outline" disabled={busy} onClick={() => confirmar([pres.id])}>OK</Button>

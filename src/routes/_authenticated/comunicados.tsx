@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Archive, CheckCheck, CheckCircle2, Megaphone, Plus, Search } from "lucide-react";
+import { Archive, CheckCheck, CheckCircle2, Megaphone, MessageCircle, Plus, Search } from "lucide-react";
+import { ComunicadoWhatsapp } from "@/components/comunicado-whatsapp";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,7 @@ function Comunicados() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("ativos");
   const [busy, setBusy] = useState<string | null>(null);
+  const [wa, setWa] = useState<{ titulo: string; mensagem: string } | null>(null);
   const { data, isPending, isError } = useQuery({
     queryKey: ["comunicados", me?.id],
     enabled: Boolean(me?.id),
@@ -114,12 +116,13 @@ function Comunicados() {
           <p className="mt-4 whitespace-pre-wrap break-words text-sm leading-relaxed">{p.mensagem}</p>
           <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t pt-4">
             <div className="text-xs text-muted-foreground">{read ? `Leitura confirmada em ${new Date(read.created_at).toLocaleString("pt-BR")}` : "Leitura pendente"}{manage && <span className="ml-3">{data?.reads.filter((r) => r.comunicado_id === p.id).length ?? 0} leitura(s) confirmada(s)</span>}</div>
-            <div className="flex gap-2">{!p.arquivado && !p.resolvido && !read && <Button size="sm" variant="outline" disabled={busy !== null} onClick={() => confirm(p.id)}><CheckCheck className="mr-2 h-4 w-4" />Confirmar leitura</Button>}{manage && !p.arquivado && !p.resolvido && <Button size="sm" variant="outline" disabled={busy !== null} onClick={() => resolver(p.id)}><CheckCircle2 className="mr-2 h-4 w-4" />Dar baixa</Button>}{manage && !p.arquivado && <Button size="icon" variant="ghost" title="Arquivar comunicado" aria-label={`Arquivar ${p.titulo}`} disabled={busy !== null} onClick={() => archive(p.id)}><Archive className="h-4 w-4" /></Button>}</div>
+            <div className="flex gap-2">{publish && !p.arquivado && <Button size="sm" variant="outline" onClick={() => setWa({ titulo: p.titulo, mensagem: p.mensagem })}><MessageCircle className="mr-2 h-4 w-4" />WhatsApp</Button>}{!p.arquivado && !p.resolvido && !read && <Button size="sm" variant="outline" disabled={busy !== null} onClick={() => confirm(p.id)}><CheckCheck className="mr-2 h-4 w-4" />Confirmar leitura</Button>}{manage && !p.arquivado && !p.resolvido && <Button size="sm" variant="outline" disabled={busy !== null} onClick={() => resolver(p.id)}><CheckCircle2 className="mr-2 h-4 w-4" />Dar baixa</Button>}{manage && !p.arquivado && <Button size="icon" variant="ghost" title="Arquivar comunicado" aria-label={`Arquivar ${p.titulo}`} disabled={busy !== null} onClick={() => archive(p.id)}><Archive className="h-4 w-4" /></Button>}</div>
           </div>
         </article>;
       })}
     </div>}
     {open && publish && <NovoComunicado onClose={() => setOpen(false)} />}
+    {wa && <ComunicadoWhatsapp titulo={wa.titulo} mensagem={wa.mensagem} onClose={() => setWa(null)} />}
     {relatoOpen && collaborator && <RelatoColaboradorDialog onClose={() => setRelatoOpen(false)} />}
   </div>;
 }

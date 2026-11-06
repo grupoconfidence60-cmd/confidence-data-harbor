@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Radio, UserX } from "lucide-react";
+import { CheckCircle2, Radio, UserX } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { PageHeader, RequireModule, EmptyState } from "@/components/page";
 import { FuncaoBadge, FuncaoLegenda } from "@/components/funcao-badge";
 import { useMe } from "@/lib/use-me";
-import { canEditPresenca, PRESENCA_LABELS } from "@/lib/labels";
+import { canConfirmPresenca, canEditPresenca, PRESENCA_LABELS } from "@/lib/labels";
 import { dayStatus } from "@/lib/planilha";
 import { AUTO_LABELS, statusAutomatico, type AutoStatus } from "@/lib/presenca-auto";
 
@@ -37,6 +37,7 @@ const hm = (iso: string | null | undefined) => (iso ? new Date(iso).toLocaleTime
 function Presenca() {
   const { data: me } = useMe();
   const canEdit = canEditPresenca(me?.roles ?? []);
+  const canConfirm = canConfirmPresenca(me?.roles ?? []);
   const qc = useQueryClient();
   const [data, setData] = useState(new Date().toLocaleDateString("sv-SE"));
   const [postoId, setPostoId] = useState("all");
@@ -94,10 +95,20 @@ function Presenca() {
     if (error) { toast.error(error.message); return; }
     qc.invalidateQueries({ queryKey: ["presencas"] });
   }
-  async function registrarFaltas() {
-    if (!faltasPendentes.length || !window.confirm(`Registrar ${faltasPendentes.length} falta(s) de quem estava escalado e não bateu o ponto?`)) return;
+  async function confirmar(ids: string[], valor = true) {
+    if (!ids.length) return;
     setBusy(true);
-    const { error } = await supabase.from("presencas").insert(faltasPendentes.map((l) => ({ colaborador_id: l.c.id, posto_id: l.posto, data, status: "falta" as const, justificativa: "Registrada automaticamente pela escala (sem ponto)", registrado_por: me?.profile?.id ?? null })));
+    const { error } = await supabase.from("presencas").update({ confirmado: valor }).in("id", ids);
+    setBusy(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success(valor ? "Presença confirmada." : "Confirmação retirada.");
+    qc.invalidateQueries({ queryKey: ["presencas"] });
+  }
+  const naoConfirmados = linhas.filter((l) => l.pres && !l.pres.confirmado).map((l) => l.pres!.id);
+  async function registrarFaltas() {
+    if (!faltasPendentes.length || !window.confirm(`Registrar ${faltasPendentes.length} falta(s) de quem estava escalado e não tem lançamento?`)) return;
+    setBusy(true);
+    const { error } = await supabase.from("presencas").insert(faltasPendentes.map((l) => ({ colaborador_id: l.c.id, posto_id: l.posto, data, status: "falta" as const, justificativa: "Registrada automaticamente pela escala (sem lançamento)", registrado_por: me?.profile?.id ?? null })));
     setBusy(false);
     if (error) { toast.error(error.message); return; }
     toast.success("Faltas registradas.");
@@ -106,7 +117,7 @@ function Presenca() {
 
   return (
     <div>
-      <PageHeader title="Presença e faltas" description="Automático pela planilha de escalas e pelo ponto" actions={<span className="flex items-center gap-2 text-xs text-success"><Radio className="h-4 w-4 animate-pulse" />Tempo real</span>} />
+      <PageHeader title="Presença e faltas" description="Lançamento manual diário por supervisores e gestores; confirmação pela Administração e RH" actions={<span className="flex items-center gap-2 text-xs text-success"><Radio className="h-4 w-4 animate-pulse" />Tempo real</span>} />
       <div className="mb-4 flex flex-wrap items-end gap-3">
         <div className="space-y-1.5"><Label htmlFor="pres-data">Data</Label><Input id="pres-data" type="date" value={data} onChange={(e) => e.target.value && setData(e.target.value)} /></div>
         <div className="space-y-1.5"><Label>Posto</Label>
@@ -118,6 +129,7 @@ function Presenca() {
             </SelectContent>
           </Select></div>
         {canEdit && faltasPendentes.length > 0 && <Button variant="destructive" disabled={busy} onClick={registrarFaltas}><UserX />Registrar {faltasPendentes.length} falta(s)</Button>}
+        {canConfirm && naoConfirmados.length > 0 && <Button disabled={busy} onClick={() => confirmar(naoConfirmados)}><CheckCircle2 />Confirmar todos ({naoConfirmados.length})</Button>}
       </div>
       <div className="mb-4 grid grid-cols-2 divide-x border-y py-3 sm:grid-cols-5">{resumo.map((r) => <div key={r.s} className="px-3"><p className="text-xs text-muted-foreground">{AUTO_LABELS[r.s]}</p><p className={`text-xl font-semibold ${(r.s === "falta" || r.s === "atraso") && r.n ? "text-destructive" : ""}`}>{r.n}</p></div>)}</div>
       <div className="mb-3"><FuncaoLegenda /></div>
@@ -125,7 +137,7 @@ function Presenca() {
         <Card><CardContent className="p-0">
           <Table>
             <TableHeader><TableRow>
-              <TableHead>Colaborador</TableHead><TableHead>Função</TableHead><TableHead>Posto</TableHead><TableHead>Escala</TableHead><TableHead>Situação automática</TableHead><TableHead>Ajuste manual</TableHead>
+              <TableHead>Colaborador</TableHead><TableHead>Função</TableHead><TableHead>Posto</TableHead><TableHead>Escala</TableHead><TableHead>Situação automática</TableHead><TableHead>Lançamento manual</TableHead><TableHead>Confirmação</TableHead>
             </TableRow></TableHeader>
             <TableBody>
               {linhas.map(({ c, plano, pres, posto, auto }) => (
@@ -136,13 +148,14 @@ function Presenca() {
                   <TableCell className="text-xs">{plano ? `${plano.hora_inicio.slice(0, 5)}–${plano.hora_fim.slice(0, 5)}` : "—"}</TableCell>
                   <TableCell><Badge variant={TONE[auto]}>{auto === "registrado" && pres ? PRESENCA_LABELS[pres.status as keyof typeof PRESENCA_LABELS] : AUTO_LABELS[auto]}</Badge>{pres?.hora_entrada && <p className="mt-1 text-xs text-muted-foreground">Entrada {hm(pres.hora_entrada)}{pres.hora_saida ? ` · Saída ${hm(pres.hora_saida)}` : ""}</p>}</TableCell>
                   <TableCell>
-                    {canEdit ? (
+                    {canEdit && !(pres?.confirmado && !canConfirm) ? (
                       <Select value={pres?.status ?? ""} onValueChange={(v) => setStatus(c.id, posto, v)}>
                         <SelectTrigger className="w-44" aria-label={`Ajustar ${c.nome}`}><SelectValue placeholder="Ajustar…" /></SelectTrigger>
                         <SelectContent>{STATUS.map((s) => <SelectItem key={s} value={s}>{PRESENCA_LABELS[s]}</SelectItem>)}</SelectContent>
                       </Select>
-                    ) : "—"}
+                    ) : pres ? PRESENCA_LABELS[pres.status as keyof typeof PRESENCA_LABELS] : "—"}
                   </TableCell>
+                  <TableCell>{!pres ? <span className="text-xs text-muted-foreground">—</span> : pres.confirmado ? <div className="flex items-center gap-2"><Badge><CheckCircle2 className="mr-1 h-3 w-3" />Confirmado</Badge>{canConfirm && <Button size="sm" variant="ghost" disabled={busy} onClick={() => confirmar([pres.id], false)}>Desfazer</Button>}</div> : canConfirm ? <Button size="sm" variant="outline" disabled={busy} onClick={() => confirmar([pres.id])}>OK</Button> : <Badge variant="outline">Aguardando confirmação</Badge>}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

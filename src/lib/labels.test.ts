@@ -6,7 +6,7 @@ describe("permissões por perfil", () => {
     const modules = Object.keys(MODULE_ACCESS).filter((module) => canAccess(["rh"], module)).sort();
     expect(modules).toEqual([
       "colaboradores", "comunicados", "documentos", "escalas", "ferias", "funcoes",
-      "inspecoes", "materiais", "ocorrencias", "painel", "ponto", "postos", "presenca",
+      "inspecoes", "materiais", "ocorrencias", "painel", "postos", "presenca",
       "relatorios", "visitas",
     ]);
     expect(canAccess(["rh"], "usuarios")).toBe(false);
@@ -40,9 +40,9 @@ describe("permissões por perfil", () => {
     expect(canAccess(["colaborador"], "materiais")).toBe(false);
     expect(canManageMateriais([])).toBe(false);
   });
-  it("colaborador acessa apenas ponto, solicitações e comunicados", () => {
+  it("colaborador acessa apenas solicitações e comunicados", () => {
     const mods = Object.keys(MODULE_ACCESS).filter((m) => canAccess(["colaborador"], m)).sort();
-    expect(mods).toEqual(["comunicados", "ocorrencias", "ponto"]);
+    expect(mods).toEqual(["comunicados", "ocorrencias"]);
     expect(canCreateOcorrencias(["colaborador"])).toBe(true);
     expect(canManageComunicados(["colaborador"])).toBe(false);
   });

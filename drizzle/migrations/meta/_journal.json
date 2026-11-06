@@ -253,6 +253,13 @@
       "when": 1793928578409,
       "tag": "0035_corrige_guard_delete_e_zera_presencas",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1793929666288,
+      "tag": "0036_ferias_avisos_automaticos",
+      "breakpoints": true
     }
   ]
 }

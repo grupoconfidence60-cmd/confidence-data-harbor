@@ -110,7 +110,8 @@ function Ferias() {
           {emFerias.length === 0 ? <p className="text-sm text-muted-foreground">Nenhum colaborador em férias no momento.</p> : (
             <ul className="grid gap-1 text-sm">{emFerias.map((c) => (
               <li key={c.id} className="flex justify-between border-b py-1 last:border-0"><span className="font-medium">{c.nome} <span className="text-muted-foreground">({c.matricula})</span></span>
-                <span className="text-muted-foreground">{c.periodo ? `${fmt(c.periodo.data_inicio)} — ${fmt(c.periodo.data_fim)}` : "Período não informado"}</span></li>
+                <span className="text-right text-muted-foreground">{c.periodo ? `${fmt(c.periodo.data_inicio)} — ${fmt(c.periodo.data_fim)} · volta ${fmt(new Date(new Date(c.periodo.data_fim + "T00:00:00").getTime() + 86400000).toISOString().slice(0, 10))}` : "Período não informado"}
+                  {c.periodo && <span className="block text-xs">Cobertura: {c.periodo.cobertura || "não informada"}</span>}</span></li>
             ))}</ul>
           )}
         </CardContent></Card>

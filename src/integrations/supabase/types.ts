@@ -1259,6 +1259,11 @@ export type Database = {
         Returns: boolean
       }
       material_saldo: { Args: { _material_id: string }; Returns: number }
+      notificar_ferias_gestao: {
+        Args: { _autor?: string; _colab: string; _msg: string; _titulo: string }
+        Returns: undefined
+      }
+      rotina_ferias_diaria: { Args: never; Returns: number }
       supervisiona_posto: {
         Args: { _posto_id: string; _user_id: string }
         Returns: boolean

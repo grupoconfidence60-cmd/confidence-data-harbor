@@ -218,6 +218,13 @@
       "when": 1793898979818,
       "tag": "0030_entregas_movimentam_estoque",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1793928142743,
+      "tag": "0031_presenca_confirmacao",
+      "breakpoints": true
     }
   ]
 }

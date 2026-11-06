@@ -998,6 +998,9 @@ export type Database = {
       presencas: {
         Row: {
           colaborador_id: string
+          confirmado: boolean
+          confirmado_em: string | null
+          confirmado_por: string | null
           created_at: string
           data: string
           distancia_metros: number | null
@@ -1014,6 +1017,9 @@ export type Database = {
         }
         Insert: {
           colaborador_id: string
+          confirmado?: boolean
+          confirmado_em?: string | null
+          confirmado_por?: string | null
           created_at?: string
           data: string
           distancia_metros?: number | null
@@ -1030,6 +1036,9 @@ export type Database = {
         }
         Update: {
           colaborador_id?: string
+          confirmado?: boolean
+          confirmado_em?: string | null
+          confirmado_por?: string | null
           created_at?: string
           data?: string
           distancia_metros?: number | null

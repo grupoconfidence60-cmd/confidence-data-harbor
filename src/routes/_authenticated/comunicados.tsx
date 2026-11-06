@@ -121,13 +121,14 @@ function Comunicados() {
         </article>;
       })}
     </div>}
-    {open && publish && <NovoComunicado onClose={() => setOpen(false)} />}
+    {open && publish && <NovoComunicado onClose={() => setOpen(false)} onWhatsapp={setWa} />}
     {wa && <ComunicadoWhatsapp titulo={wa.titulo} mensagem={wa.mensagem} onClose={() => setWa(null)} />}
     {relatoOpen && collaborator && <RelatoColaboradorDialog onClose={() => setRelatoOpen(false)} />}
   </div>;
 }
 
-function NovoComunicado({ onClose }: { onClose: () => void }) {
+function NovoComunicado({ onClose, onWhatsapp }: { onClose: () => void; onWhatsapp: (v: { titulo: string; mensagem: string }) => void }) {
+  const [viaWa, setViaWa] = useState(false);
   const qc = useQueryClient();
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
@@ -154,6 +155,7 @@ function NovoComunicado({ onClose }: { onClose: () => void }) {
     if (error) { toast.error("Não foi possível publicar o comunicado."); return; }
     await qc.invalidateQueries({ queryKey: ["comunicados"] });
     toast.success("Comunicado publicado.");
+    if (viaWa) onWhatsapp({ titulo: title.trim(), mensagem: message.trim() });
     onClose();
   }
   return <Dialog open onOpenChange={(value) => { if (!value) close(); }}>
@@ -165,7 +167,7 @@ function NovoComunicado({ onClose }: { onClose: () => void }) {
           <ComunicadoDetalhes value={options} onChange={setOptions} />
         </fieldset>
         {needsDeliverySetup && <p id="comunicado-publicacao-aviso" role="status" className="rounded-lg border bg-muted/50 p-3 text-sm text-muted-foreground">Este comunicado não pode ser publicado ainda: o envio direcionado, o agendamento e os anexos precisam ser habilitados. Nenhum destinatário receberá este conteúdo. Os dados ficam apenas nesta tela e serão descartados ao fechá-la.</p>}
-        <DialogFooter className="gap-2"><Button type="button" variant="outline" disabled={saving} onClick={close}>Cancelar</Button><Button type="submit" aria-describedby={needsDeliverySetup ? "comunicado-publicacao-aviso" : undefined} disabled={saving || needsDeliverySetup || !title.trim() || !message.trim()}>{saving ? "Publicando…" : needsDeliverySetup ? "Envio ainda não habilitado" : "Publicar"}</Button></DialogFooter>
+        <DialogFooter className="gap-2"><Button type="button" variant="outline" disabled={saving} onClick={close}>Cancelar</Button><Button type="submit" variant="outline" onClick={() => setViaWa(true)} disabled={saving || needsDeliverySetup || !title.trim() || !message.trim()}><MessageCircle className="mr-2 h-4 w-4" />Publicar e enviar no WhatsApp</Button><Button type="submit" onClick={() => setViaWa(false)} aria-describedby={needsDeliverySetup ? "comunicado-publicacao-aviso" : undefined} disabled={saving || needsDeliverySetup || !title.trim() || !message.trim()}>{saving ? "Publicando…" : needsDeliverySetup ? "Envio ainda não habilitado" : "Publicar"}</Button></DialogFooter>
       </form>
     </DialogContent>
   </Dialog>;

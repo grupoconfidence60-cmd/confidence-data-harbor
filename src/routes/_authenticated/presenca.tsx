@@ -108,7 +108,7 @@ function Presenca() {
     const scheduled = plano ? dayStatus(plano, day, data.slice(0, 7)) : null;
     const auto = statusAutomatico({ scheduled, manual: pres?.status });
     const documento = pres ? q?.docs?.find((d) => d.presenca_id === pres.id) : undefined;
-    return { c, plano, pres, posto, auto, documento };
+    return { c, plano, pres, posto, scheduled, auto, documento };
   }).filter((l) => postoId === "all" || l.posto === postoId);
 
   const resumo = [

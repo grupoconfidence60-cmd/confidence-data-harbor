@@ -8,6 +8,8 @@ export function statusAutomatico(opts: {
   scheduled: "T" | "F" | null;
   manual?: string | null | undefined;
 }): AutoStatus {
+  // Um registro antigo de presença não pode transformar um dia de folga em trabalho.
+  if (opts.scheduled === "F" && (!opts.manual || opts.manual === "presente" || opts.manual === "folga")) return "folga";
   if (opts.manual) return "registrado";
   if (opts.scheduled === "T") return "presente";
   if (opts.scheduled === "F") return "folga";

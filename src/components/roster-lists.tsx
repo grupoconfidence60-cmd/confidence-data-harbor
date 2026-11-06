@@ -30,7 +30,7 @@ export function RosterLists(props: Props) {
   const supervision = useSupervisoresEscala(props.supervisorScope);
   const hoje = new Date().toLocaleDateString("en-CA");
   const { data: feriasHoje } = useQuery({ queryKey: ["ferias", "planilha-cobertura", hoje], queryFn: async () => {
-    const { data } = await supabase.from("ferias").select("colaborador_id, cobertura").in("status", ["aprovada", "em_gozo"]).eq("tipo", "ferias").lte("data_inicio", hoje).gte("data_fim", hoje);
+    const { data } = await supabase.from("ferias").select("colaborador_id, cobertura").in("status", ["aprovada", "em_gozo"]).neq("tipo", "abono").lte("data_inicio", hoje).gte("data_fim", hoje);
     return new Map((data ?? []).map((f) => [f.colaborador_id, f.cobertura?.trim() || null]));
   } });
   const { post, busy } = props;

@@ -102,12 +102,12 @@ function Presenca() {
 
   const day = Number(data.slice(8, 10));
   const linhas = (q?.colabs ?? []).map((c) => {
-    const plano = q?.plan.find((p) => p.colaborador_id === c.id);
-    const pres = q?.pres.find((p) => p.colaborador_id === c.id);
+    const plano = q?.plan?.find((p) => p.colaborador_id === c.id);
+    const pres = q?.pres?.find((p) => p.colaborador_id === c.id);
     const posto = plano?.posto_id ?? c.posto_id;
     const scheduled = plano ? dayStatus(plano, day, data.slice(0, 7)) : null;
     const auto = statusAutomatico({ scheduled, manual: pres?.status });
-    const documento = pres ? q?.docs.find((d) => d.presenca_id === pres.id) : undefined;
+    const documento = pres ? q?.docs?.find((d) => d.presenca_id === pres.id) : undefined;
     return { c, plano, pres, posto, auto, documento };
   }).filter((l) => postoId === "all" || l.posto === postoId);
 
@@ -123,7 +123,7 @@ function Presenca() {
       setJustificativa({ colabId, postoId: pPostoId });
       return;
     }
-    const existing = q?.pres.find((p) => p.colaborador_id === colabId);
+    const existing = q?.pres?.find((p) => p.colaborador_id === colabId);
     const payload = { colaborador_id: colabId, posto_id: pPostoId, data, status: status as (typeof STATUS)[number], registrado_por: me?.profile?.id ?? null };
     const { error } = existing
       ? await supabase.from("presencas").update({ status: payload.status, registrado_por: payload.registrado_por, justificativa: null, cobertura_colaborador_id: null }).eq("id", existing.id)
@@ -152,7 +152,7 @@ function Presenca() {
 
   const naoConfirmados = linhas.filter((l) => l.pres && !l.pres.confirmado && (l.pres.status !== "falta_justificada" || l.documento)).map((l) => l.pres!.id);
   const justificativaColab = justificativa ? q?.colabs.find((c) => c.id === justificativa.colabId) : undefined;
-  const justificativaPres = justificativa ? q?.pres.find((p) => p.colaborador_id === justificativa.colabId) : undefined;
+  const justificativaPres = justificativa ? q?.pres?.find((p) => p.colaborador_id === justificativa.colabId) : undefined;
 
   return (
     <div>

@@ -79,7 +79,7 @@ function Documentos() {
 
   return (
     <div>
-      <PageHeader title="Documentos" description="Atestados, contratos e arquivos dos colaboradores"
+      <PageHeader title="Documentos" description="Atestados, certificados e arquivos dos colaboradores"
         actions={canEdit && <Button onClick={() => setOpen(true)}><Plus className="mr-1 h-4 w-4" />Enviar documento</Button>} />
       <div className="mb-4 flex flex-wrap gap-3">
         <Select value={filtroColab} onValueChange={setFiltroColab}>

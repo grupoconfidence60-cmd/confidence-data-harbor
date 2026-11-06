@@ -19,4 +19,13 @@ describe("presença prevista pela escala", () => {
     expect(statusAutomatico({ scheduled: "F" })).toBe("folga");
     expect(statusAutomatico({ scheduled: null })).toBe("sem_escala");
   });
+
+  it("não deixa um registro antigo de presente substituir a folga pela escala", () => {
+    expect(statusAutomatico({ scheduled: "F", manual: "presente" })).toBe("folga");
+    expect(statusAutomatico({ scheduled: "F", manual: "folga" })).toBe("folga");
+  });
+
+  it("continua exibindo uma exceção manual diferente de presença no dia de folga", () => {
+    expect(statusAutomatico({ scheduled: "F", manual: "atestado" })).toBe("registrado");
+  });
 });

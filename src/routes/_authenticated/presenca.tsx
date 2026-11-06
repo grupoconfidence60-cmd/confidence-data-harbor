@@ -108,7 +108,7 @@ function Presenca() {
     const scheduled = plano ? dayStatus(plano, day, data.slice(0, 7)) : null;
     const auto = statusAutomatico({ scheduled, manual: pres?.status });
     const documento = pres ? q?.docs?.find((d) => d.presenca_id === pres.id) : undefined;
-    return { c, plano, pres, posto, auto, documento };
+    return { c, plano, pres, posto, scheduled, auto, documento };
   }).filter((l) => postoId === "all" || l.posto === postoId);
 
   const resumo = [
@@ -121,6 +121,12 @@ function Presenca() {
   async function setStatus(colabId: string, pPostoId: string | null, status: string) {
     if (status === "falta_justificada") {
       setJustificativa({ colabId, postoId: pPostoId });
+      return;
+    }
+    const plano = q?.plan.find((p) => p.colaborador_id === colabId);
+    const scheduled = plano ? dayStatus(plano, day, data.slice(0, 7)) : null;
+    if (status === "presente" && scheduled !== "T") {
+      toast.error("Este colaborador está de folga pela escala nesta data.");
       return;
     }
     const existing = q?.pres?.find((p) => p.colaborador_id === colabId);
@@ -150,7 +156,7 @@ function Presenca() {
     qc.invalidateQueries({ queryKey: ["presencas"] });
   }
 
-  const naoConfirmados = linhas.filter((l) => l.pres && !l.pres.confirmado && (l.pres.status !== "falta_justificada" || l.documento)).map((l) => l.pres!.id);
+  const naoConfirmados = linhas.filter((l) => l.pres && !(l.auto === "folga" && l.pres.status === "presente") && !l.pres.confirmado && (l.pres.status !== "falta_justificada" || l.documento)).map((l) => l.pres!.id);
   const justificativaColab = justificativa ? q?.colabs.find((c) => c.id === justificativa.colabId) : undefined;
   const justificativaPres = justificativa ? q?.pres?.find((p) => p.colaborador_id === justificativa.colabId) : undefined;
 
@@ -183,7 +189,7 @@ function Presenca() {
               <TableHead>Colaborador</TableHead><TableHead>Função</TableHead><TableHead>Posto</TableHead><TableHead>Horário</TableHead><TableHead>Situação do dia</TableHead><TableHead>Alteração manual</TableHead><TableHead>Cobertura</TableHead><TableHead>Documento</TableHead><TableHead>Confirmação</TableHead>
             </TableRow></TableHeader>
             <TableBody>
-              {linhas.map(({ c, plano, pres, posto, auto, documento }) => (
+              {linhas.map(({ c, plano, pres, posto, scheduled, auto, documento }) => (
                 <TableRow key={c.id}>
                   <TableCell><p className="font-medium">{c.nome}</p><p className="text-xs text-muted-foreground">{c.matricula}</p></TableCell>
                   <TableCell><FuncaoBadge nome={c.funcoes?.nome} /></TableCell>
@@ -192,9 +198,9 @@ function Presenca() {
                   <TableCell><Badge variant={TONE[auto]}>{auto === "registrado" && pres ? PRESENCA_LABELS[pres.status as keyof typeof PRESENCA_LABELS] : AUTO_LABELS[auto]}</Badge></TableCell>
                   <TableCell>
                     {canEdit && !(pres?.confirmado && !canConfirm) ? (
-                      <Select value={pres?.status ?? ""} onValueChange={(v) => setStatus(c.id, posto, v)}>
-                        <SelectTrigger className="w-48" aria-label={`Alterar presença de ${c.nome}`}><SelectValue placeholder="Presente pela escala" /></SelectTrigger>
-                        <SelectContent>{STATUS.map((s) => <SelectItem key={s} value={s}>{PRESENCA_LABELS[s]}</SelectItem>)}</SelectContent>
+                      <Select value={auto === "folga" && pres?.status === "presente" ? "" : pres?.status ?? ""} onValueChange={(v) => setStatus(c.id, posto, v)}>
+                        <SelectTrigger className="w-48" aria-label={`Alterar presença de ${c.nome}`}><SelectValue placeholder={auto === "registrado" && pres ? PRESENCA_LABELS[pres.status as keyof typeof PRESENCA_LABELS] : AUTO_LABELS[auto]} /></SelectTrigger>
+                        <SelectContent>{STATUS.filter((s) => s !== "presente" || scheduled === "T").map((s) => <SelectItem key={s} value={s}>{PRESENCA_LABELS[s]}</SelectItem>)}</SelectContent>
                       </Select>
                     ) : pres ? PRESENCA_LABELS[pres.status as keyof typeof PRESENCA_LABELS] : AUTO_LABELS[auto]}
                   </TableCell>
@@ -219,7 +225,7 @@ function Presenca() {
                     ) : <Badge variant="destructive">Anexo pendente</Badge> : <span className="text-xs text-muted-foreground">—</span>}
                   </TableCell>
                   <TableCell>
-                    {!pres ? <span className="text-xs text-muted-foreground">Sem alteração</span>
+                    {!pres || (auto === "folga" && pres.status === "presente") ? <span className="text-xs text-muted-foreground">{auto === "folga" ? "Folga automática" : "Sem alteração"}</span>
                       : pres.confirmado ? <div className="flex items-center gap-2"><Badge><CheckCircle2 className="mr-1 h-3 w-3" />Confirmado</Badge>{canConfirm && <Button size="sm" variant="ghost" disabled={busy} onClick={() => confirmar([pres.id], false)}>Desfazer</Button>}</div>
                       : pres.status === "falta_justificada" && !documento ? <Badge variant="outline">Aguardando anexo</Badge>
                       : canConfirm ? <Button size="sm" variant="outline" disabled={busy} onClick={() => confirmar([pres.id])}>OK</Button>

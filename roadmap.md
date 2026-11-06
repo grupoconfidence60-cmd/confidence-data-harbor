@@ -29,6 +29,9 @@
 - [x] Selecionar o colaborador que cobriu a falta no dia e manter a informação vinculada ao lançamento.
 - [x] Testar regras, permissões e o fluxo principal na plataforma; lançamento, anexo, cobertura e confirmação verificados com conta conectada e dados temporários removidos.
 
+## Pedido de 06/11 — folgas pela escala
+- [x] Exibir "Folga pela escala" para todo colaborador fora do seu dia de trabalho, sem marcá-lo presente; par/ímpar e ajustes diários testados, duas divergências atuais removidas e tela verificada com acesso conectado.
+
 ## Pedido de 05/11
 - [x] Desligado sai sozinho da planilha de escala
 - [x] Supervisores solicitam férias

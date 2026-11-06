@@ -1,0 +1,1 @@
+DELETE FROM public.presencas WHERE data <= DATE '2026-11-06';

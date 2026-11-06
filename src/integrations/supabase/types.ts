@@ -277,6 +277,7 @@ export type Database = {
           enviado_por: string | null
           id: string
           observacao: string | null
+          presenca_id: string | null
           tipo: string
           titulo: string
         }
@@ -289,6 +290,7 @@ export type Database = {
           enviado_por?: string | null
           id?: string
           observacao?: string | null
+          presenca_id?: string | null
           tipo?: string
           titulo: string
         }
@@ -301,6 +303,7 @@ export type Database = {
           enviado_por?: string | null
           id?: string
           observacao?: string | null
+          presenca_id?: string | null
           tipo?: string
           titulo?: string
         }
@@ -310,6 +313,13 @@ export type Database = {
             columns: ["colaborador_id"]
             isOneToOne: false
             referencedRelation: "colaboradores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documentos_presenca_id_fkey"
+            columns: ["presenca_id"]
+            isOneToOne: false
+            referencedRelation: "presencas"
             referencedColumns: ["id"]
           },
         ]
@@ -997,6 +1007,7 @@ export type Database = {
       }
       presencas: {
         Row: {
+          cobertura_colaborador_id: string | null
           colaborador_id: string
           confirmado: boolean
           confirmado_em: string | null
@@ -1016,6 +1027,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cobertura_colaborador_id?: string | null
           colaborador_id: string
           confirmado?: boolean
           confirmado_em?: string | null
@@ -1035,6 +1047,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cobertura_colaborador_id?: string | null
           colaborador_id?: string
           confirmado?: boolean
           confirmado_em?: string | null
@@ -1054,6 +1067,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "presencas_cobertura_colaborador_id_fkey"
+            columns: ["cobertura_colaborador_id"]
+            isOneToOne: false
+            referencedRelation: "colaboradores"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "presencas_colaborador_id_fkey"
             columns: ["colaborador_id"]

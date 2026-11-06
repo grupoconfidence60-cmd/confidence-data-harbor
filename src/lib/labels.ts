@@ -41,7 +41,8 @@ export const DOCUMENTO_TIPOS = ["Atestado", "Contrato", "Identidade", "Certifica
 /** Which roles can open each module. */
 export const MODULE_ACCESS: Record<string, AppRole[]> = {
   painel: ["admin", "gestor", "rh", "supervisor"],
-  ponto: ["admin", "gestor", "rh", "supervisor", "colaborador"],
+  // Meu ponto desativado por enquanto (presença é lançada manualmente).
+  ponto: [],
   colaboradores: ["admin", "gestor", "rh", "supervisor"],
   postos: ["admin", "gestor", "rh", "supervisor"],
   funcoes: ["admin", "gestor", "rh"],
@@ -74,6 +75,9 @@ export function canEditEscalas(roles: AppRole[]) {
 }
 export function canEditPresenca(roles: AppRole[]) {
   return roles.some((r) => ["admin", "gestor", "rh", "supervisor"].includes(r));
+}
+export function canConfirmPresenca(roles: AppRole[]) {
+  return roles.some((r) => ["admin", "rh"].includes(r));
 }
 export function canEditFerias(roles: AppRole[]) {
   return roles.some((r) => ["admin", "gestor", "rh"].includes(r));

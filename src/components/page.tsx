@@ -20,7 +20,7 @@ export function PageHeader({ title, description, actions }: { title: string; des
 export function RequireModule({ module, children }: { module: string; children: ReactNode }) {
   const { data: me, isLoading } = useMe();
   if (isLoading) return null;
-  if (me && module === "painel" && !canAccess(me.roles, "painel") && canAccess(me.roles, "ponto")) return <Navigate to="/ponto" replace />;
+  if (me && module === "painel" && !canAccess(me.roles, "painel") && canAccess(me.roles, "ocorrencias")) return <Navigate to="/ocorrencias" replace />;
   if (!me || !canAccess(me.roles, module))
     return <p className="mt-20 text-center text-muted-foreground">Você não tem permissão para acessar este módulo.</p>;
   return <>{children}</>;

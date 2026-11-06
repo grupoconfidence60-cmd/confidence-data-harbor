@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { canAccess, canEditColaboradores, canEditPostos, canEditOcorrencias, canManageComunicados, canManageMateriais, canManageChecklists, canCreateInspecoes, canCreateOcorrencias, MODULE_ACCESS, type AppRole } from "./labels";
+import { canAccess, canEditPresenca, canConfirmPresenca, canEditColaboradores, canEditPostos, canEditOcorrencias, canManageComunicados, canManageMateriais, canManageChecklists, canCreateInspecoes, canCreateOcorrencias, MODULE_ACCESS, type AppRole } from "./labels";
 
 describe("permissões por perfil", () => {
   it("RH acessa os módulos de trabalho, incluindo Funções, sem administrar contas ou auditoria", () => {
@@ -13,7 +13,7 @@ describe("permissões por perfil", () => {
     expect(canAccess(["rh"], "auditoria")).toBe(false);
   });
   it("administrador mantém acesso a todos os módulos", () => {
-    for (const module of Object.keys(MODULE_ACCESS)) {
+    for (const module of Object.keys(MODULE_ACCESS).filter((m) => m !== "ponto")) {
       expect(canAccess(["admin"], module)).toBe(true);
     }
   });
@@ -53,6 +53,14 @@ describe("permissões por perfil", () => {
       expect(canManageComunicados([role])).toBe(["admin", "gestor", "rh"].includes(role));
     }
     expect(canManageComunicados([])).toBe(false);
+  });
+  it("presença: supervisores e gestores lançam; só Administração e RH confirmam", () => {
+    for (const r of ["admin", "gestor", "rh", "supervisor"] as AppRole[]) expect(canEditPresenca([r])).toBe(true);
+    for (const r of ["admin", "rh"] as AppRole[]) expect(canConfirmPresenca([r])).toBe(true);
+    for (const r of ["gestor", "supervisor", "colaborador"] as AppRole[]) expect(canConfirmPresenca([r])).toBe(false);
+  });
+  it("Meu ponto fica desativado para todos", () => {
+    for (const r of ["admin", "gestor", "rh", "supervisor", "colaborador"] as AppRole[]) expect(canAccess([r], "ponto")).toBe(false);
   });
   it("só administrador acessa usuários e auditoria", () => {
     expect(canAccess(["admin"], "usuarios")).toBe(true);

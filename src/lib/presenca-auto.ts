@@ -20,5 +20,5 @@ export function statusAutomatico(opts: { scheduled: "T" | "F" | null; data: stri
 }
 
 export const AUTO_LABELS: Record<AutoStatus, string> = {
-  registrado: "Registrado", presente: "Presente", atraso: "Atraso", aguardando: "Aguardando entrada", falta: "Falta (sem ponto)", folga: "Folga pela escala", sem_escala: "Sem escala no mês",
+  registrado: "Registrado", presente: "Presente", atraso: "Atraso", aguardando: "Aguardando lançamento", falta: "Falta (sem lançamento)", folga: "Folga pela escala", sem_escala: "Sem escala no mês",
 };

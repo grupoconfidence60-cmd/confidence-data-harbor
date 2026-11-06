@@ -225,6 +225,13 @@
       "when": 1793928142743,
       "tag": "0031_presenca_confirmacao",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1793928483007,
+      "tag": "0032_notificacoes_todas_alteracoes",
+      "breakpoints": true
     }
   ]
 }

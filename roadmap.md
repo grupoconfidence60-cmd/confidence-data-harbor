@@ -23,6 +23,12 @@
 - [ ] Etapa 4: avaliação de desempenho
 
 
+## Pedido de 06/11 — presença e faltas
+- [ ] Escalados aparecem presentes por padrão; supervisores e gestores só registram exceções, com confirmação da Administração/RH.
+- [ ] Falta justificada exige justificativa e anexo, com pendências visíveis em Documentos.
+- [ ] Selecionar o colaborador que cobriu a falta no dia e manter a informação vinculada ao lançamento.
+- [ ] Testar regras, permissões e o fluxo principal na plataforma.
+
 ## Pedido de 05/11
 - [x] Desligado sai sozinho da planilha de escala
 - [x] Supervisores solicitam férias

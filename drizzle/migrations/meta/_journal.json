@@ -239,6 +239,20 @@
       "when": 1793928513130,
       "tag": "0033_notificacoes_todas_alteracoes_fix",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1793928556404,
+      "tag": "0034_zerar_presencas_ate_hoje",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1793928578409,
+      "tag": "0035_corrige_guard_delete_e_zera_presencas",
+      "breakpoints": true
     }
   ]
 }

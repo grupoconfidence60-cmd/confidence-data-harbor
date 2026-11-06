@@ -98,7 +98,7 @@ function Comunicados() {
   }
 
   return <div className="workspace">
-    <PageHeader title="Comunicados" description="Avisos dos supervisores, administração, RH e gestores para os colaboradores" actions={<div className="flex flex-wrap gap-2">{publish && <Button onClick={() => setOpen(true)}><Plus className="mr-2 h-4 w-4" />Novo comunicado</Button>}{collaborator && <Button variant="outline" onClick={() => setRelatoOpen(true)}><Plus className="mr-2 h-4 w-4" />Preparar relato / atestado</Button>}</div>} />
+    <PageHeader title="Comunicados" description="Avisos dos supervisores, administração, RH e gestores para os colaboradores" actions={<div className="flex flex-wrap gap-2">{publish && <Button variant="outline" onClick={() => setOpen(true)}><MessageCircle className="mr-2 h-4 w-4" />Enviar no WhatsApp</Button>}{publish && <Button onClick={() => setOpen(true)}><Plus className="mr-2 h-4 w-4" />Novo comunicado</Button>}{collaborator && <Button variant="outline" onClick={() => setRelatoOpen(true)}><Plus className="mr-2 h-4 w-4" />Preparar relato / atestado</Button>}</div>} />
     <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
       <Tabs value={filter} onValueChange={setFilter}>
         <TabsList><TabsTrigger value="ativos">{manage ? `Dar baixa (${data?.posts.filter((p) => !p.arquivado && !p.resolvido).length ?? 0})` : "Publicados"}</TabsTrigger><TabsTrigger value="pendentes">Não lidos ({pending})</TabsTrigger>{manage && <TabsTrigger value="resolvidos">Resolvidos</TabsTrigger>}{manage && <TabsTrigger value="arquivados">Arquivados</TabsTrigger>}</TabsList>

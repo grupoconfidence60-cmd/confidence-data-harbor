@@ -2,9 +2,10 @@ import { FuncaoBadge, FuncaoLegenda } from "@/components/funcao-badge";
 import { PlanilhaSupervisores, useSupervisoresEscala } from "@/components/planilha-supervisores";
 import { FUNCAO_BORDA, funcaoTom } from "@/lib/funcao-cores";
 import { createContext, useContext, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-const CoberturaCtx = createContext<Map<string, string | null>>(new Map());
+const CoberturaCtx = createContext<Map<string, { id: string; cobertura: string | null }>>(new Map());
 import { ArrowDown, ArrowUp, ArrowLeftRight, GripVertical, Moon, Pencil, Plus, Save, Sun, UserMinus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,8 +31,8 @@ export function RosterLists(props: Props) {
   const supervision = useSupervisoresEscala(props.supervisorScope);
   const hoje = new Date().toLocaleDateString("en-CA");
   const { data: feriasHoje } = useQuery({ queryKey: ["ferias", "planilha-cobertura", hoje], queryFn: async () => {
-    const { data } = await supabase.from("ferias").select("colaborador_id, cobertura").in("status", ["aprovada", "em_gozo"]).neq("tipo", "abono").lte("data_inicio", hoje).gte("data_fim", hoje);
-    return new Map((data ?? []).map((f) => [f.colaborador_id, f.cobertura?.trim() || null]));
+    const { data } = await supabase.from("ferias").select("id, colaborador_id, cobertura").in("status", ["aprovada", "em_gozo"]).neq("tipo", "abono").lte("data_inicio", hoje).gte("data_fim", hoje);
+    return new Map((data ?? []).map((f) => [f.colaborador_id, { id: f.id, cobertura: f.cobertura?.trim() || null }]));
   } });
   const { post, busy } = props;
   const matchesSupervisor = (name: string) => supervisorFilter === "todos" || (supervisorFilter === "sem-supervisor" ? !name : supervisorFilter === `nome:${name}`);
@@ -73,11 +74,14 @@ function RosterLine({ row, person, props, dragged, onDrag, onEnd, onMove, first,
   const [editing, setEditing] = useState(false);
   const coberturas = useContext(CoberturaCtx);
   const emFerias = !!person && coberturas.has(person.id);
-  const cobertura = person ? coberturas.get(person.id) : null;
+  const ferias = person ? coberturas.get(person.id) : undefined;
+  const cobertura = ferias?.cobertura ?? null;
+  const qc = useQueryClient();
+  const definirCobertura = async (nome: string) => { if (!ferias) return; const { error } = await supabase.rpc("definir_cobertura", { _ferias_id: ferias.id, _nome: nome }); if (error) toast.error("Não foi possível salvar a cobertura."); else { toast.success("Cobertura salva."); void qc.invalidateQueries({ queryKey: ["ferias"] }); } };
   const name = person?.nome ?? "Colaborador indisponível";
   return <tr className={`border-t ${FUNCAO_BORDA[funcaoTom(person?.funcoes?.nome)]} ${dragged ? "opacity-40" : "hover:bg-accent/40"}`}>
     <td className="px-2"><div className="flex items-center gap-1"><Button size="icon" variant="ghost" className="h-7 w-5 shrink-0 cursor-grab" disabled={props.busy} draggable={!props.busy} onDragStart={onDrag} onDragEnd={onEnd} title={`Arrastar ${name}`} aria-label={`Arrastar ${name}`}><GripVertical /></Button><span className="break-all text-[11px]">{person?.matricula ?? "—"}</span></div></td>
-    <td className="px-2"><span className="block break-words text-xs font-semibold uppercase">{name}</span>{person?.funcoes?.nome && <FuncaoBadge nome={person.funcoes.nome} className="mt-0.5" />}{emFerias && <span className="block break-words text-[11px] text-muted-foreground">De férias · Cobertura: {cobertura ?? "não informada"}</span>}</td>
+    <td className="px-2"><span className="block break-words text-xs font-semibold uppercase">{name}</span>{person?.funcoes?.nome && <FuncaoBadge nome={person.funcoes.nome} className="mt-0.5" />}{emFerias && <div className="mt-1 rounded border border-dashed border-primary/40 bg-primary/5 p-1"><span className="block text-[10px] font-semibold uppercase text-primary">De férias · Cobertura</span><Select value={cobertura ?? ""} disabled={props.busy} onValueChange={(v) => void definirCobertura(v)}><SelectTrigger className="mt-0.5 h-7 text-[11px]" aria-label={`Quem cobre as férias de ${name}`}><SelectValue placeholder="Selecionar quem cobre" /></SelectTrigger><SelectContent>{cobertura && !props.people.some((p) => p.nome === cobertura) && <SelectItem value={cobertura}>{cobertura}</SelectItem>}{props.people.filter((p) => p.id !== person?.id).sort((a, b) => a.nome.localeCompare(b.nome)).map((p) => <SelectItem key={p.id} value={p.nome}>{p.nome}{p.matricula ? ` · ${p.matricula}` : ""}</SelectItem>)}</SelectContent></Select></div>}</td>
     <td className="px-2">{editing ? <Input aria-label={`Posição de ${name}`} className="h-8 text-xs" value={draft.posicao} disabled={props.busy} onChange={(e) => setDraft({ ...draft, posicao: e.target.value })} /> : <span className="block break-words text-xs uppercase">{row.posicao || "—"}</span>}</td>
     <td className="px-2">{editing ? <div className="space-y-1"><Input type="time" aria-label={`Entrada de ${name}`} className="h-7 px-1 text-xs" value={draft.hora_inicio} onChange={(e) => setDraft({ ...draft, hora_inicio: e.target.value })} /><Input type="time" aria-label={`Saída de ${name}`} className="h-7 px-1 text-xs" value={draft.hora_fim} onChange={(e) => setDraft({ ...draft, hora_fim: e.target.value })} /></div> : <span className="text-[11px]">{row.hora_inicio.slice(0, 5)} às {row.hora_fim.slice(0, 5)}</span>}</td>
     <td className="px-1"><div className="flex flex-wrap gap-0.5">

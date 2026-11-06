@@ -1,18 +1,22 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { statusAutomatico } from "./presenca-auto";
 
-const base = { data: "2026-10-24", inicio: "06:00", agora: new Date("2026-10-24T10:00:00") };
-describe("presença automática pela escala", () => {
-  it("escalado sem ponto após 15 min de tolerância vira falta", () => {
-    expect(statusAutomatico({ ...base, scheduled: "T" })).toBe("falta");
-    expect(statusAutomatico({ ...base, scheduled: "T", agora: new Date("2026-10-24T06:10:00") })).toBe("aguardando");
+describe("presença prevista pela escala", () => {
+  it("todo colaborador escalado começa como presente, sem depender do horário", () => {
+    expect(statusAutomatico({ scheduled: "T" })).toBe("presente");
   });
-  it("ponto dentro da tolerância é presente; depois é atraso", () => {
-    expect(statusAutomatico({ ...base, scheduled: "T", entrada: "2026-10-24T06:14:00" })).toBe("presente");
-    expect(statusAutomatico({ ...base, scheduled: "T", entrada: "2026-10-24T06:20:00" })).toBe("atraso");
+
+  it("não gera falta automática para quem está escalado", () => {
+    expect(statusAutomatico({ scheduled: "T" })).not.toBe("falta");
   });
-  it("folga da escala e registro manual prevalecem", () => {
-    expect(statusAutomatico({ ...base, scheduled: "F" })).toBe("folga");
-    expect(statusAutomatico({ ...base, scheduled: "T", manual: "atestado" })).toBe("registrado");
+
+  it("a alteração manual dos supervisores e gestores prevalece", () => {
+    expect(statusAutomatico({ scheduled: "T", manual: "falta" })).toBe("registrado");
+    expect(statusAutomatico({ scheduled: "T", manual: "falta_justificada" })).toBe("registrado");
+  });
+
+  it("mantém folga e ausência de escala identificadas", () => {
+    expect(statusAutomatico({ scheduled: "F" })).toBe("folga");
+    expect(statusAutomatico({ scheduled: null })).toBe("sem_escala");
   });
 });

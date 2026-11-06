@@ -123,6 +123,12 @@ function Presenca() {
       setJustificativa({ colabId, postoId: pPostoId });
       return;
     }
+    const plano = q?.plan.find((p) => p.colaborador_id === colabId);
+    const scheduled = plano ? dayStatus(plano, day, data.slice(0, 7)) : null;
+    if (status === "presente" && scheduled !== "T") {
+      toast.error("Este colaborador está de folga pela escala nesta data.");
+      return;
+    }
     const existing = q?.pres?.find((p) => p.colaborador_id === colabId);
     const payload = { colaborador_id: colabId, posto_id: pPostoId, data, status: status as (typeof STATUS)[number], registrado_por: me?.profile?.id ?? null };
     const { error } = existing
@@ -150,7 +156,7 @@ function Presenca() {
     qc.invalidateQueries({ queryKey: ["presencas"] });
   }
 
-  const naoConfirmados = linhas.filter((l) => l.pres && !l.pres.confirmado && (l.pres.status !== "falta_justificada" || l.documento)).map((l) => l.pres!.id);
+  const naoConfirmados = linhas.filter((l) => l.pres && !(l.auto === "folga" && l.pres.status === "presente") && !l.pres.confirmado && (l.pres.status !== "falta_justificada" || l.documento)).map((l) => l.pres!.id);
   const justificativaColab = justificativa ? q?.colabs.find((c) => c.id === justificativa.colabId) : undefined;
   const justificativaPres = justificativa ? q?.pres?.find((p) => p.colaborador_id === justificativa.colabId) : undefined;
 
@@ -183,7 +189,7 @@ function Presenca() {
               <TableHead>Colaborador</TableHead><TableHead>Função</TableHead><TableHead>Posto</TableHead><TableHead>Horário</TableHead><TableHead>Situação do dia</TableHead><TableHead>Alteração manual</TableHead><TableHead>Cobertura</TableHead><TableHead>Documento</TableHead><TableHead>Confirmação</TableHead>
             </TableRow></TableHeader>
             <TableBody>
-              {linhas.map(({ c, plano, pres, posto, auto, documento }) => (
+              {linhas.map(({ c, plano, pres, posto, scheduled, auto, documento }) => (
                 <TableRow key={c.id}>
                   <TableCell><p className="font-medium">{c.nome}</p><p className="text-xs text-muted-foreground">{c.matricula}</p></TableCell>
                   <TableCell><FuncaoBadge nome={c.funcoes?.nome} /></TableCell>

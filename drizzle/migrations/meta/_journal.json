@@ -274,6 +274,13 @@
       "when": 1793973310922,
       "tag": "0038_valida_motivo_falta_justificada",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1794342478404,
+      "tag": "0039_migration",
+      "breakpoints": true
     }
   ]
 }

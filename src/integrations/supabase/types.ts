@@ -1123,6 +1123,42 @@ export type Database = {
         }
         Relationships: []
       }
+      supervisor_funcoes: {
+        Row: {
+          created_at: string
+          funcao_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          funcao_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          funcao_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supervisor_funcoes_funcao_id_fkey"
+            columns: ["funcao_id"]
+            isOneToOne: false
+            referencedRelation: "funcoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supervisor_funcoes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -1286,6 +1322,10 @@ export type Database = {
       rotina_ferias_diaria: { Args: never; Returns: number }
       supervisiona_posto: {
         Args: { _posto_id: string; _user_id: string }
+        Returns: boolean
+      }
+      supervisor_funcao_ok: {
+        Args: { _funcao_id: string; _user_id: string }
         Returns: boolean
       }
       system_initialized: { Args: never; Returns: boolean }

@@ -141,10 +141,10 @@ function Relatorios() {
           const c = r.colaboradores as { nome: string; matricula: string } | null;
           const row = m.get(r.colaborador_id) ?? { Colaborador: c?.nome ?? "", Matrícula: c?.matricula ?? "", ...Object.fromEntries(Object.values(PRESENCA_LABELS).map((l) => [l, 0])), Total: 0 };
           const l = PRESENCA_LABELS[r.status];
-          row[l] = Number(row[l] ?? 0) + 1; row.Total = Number(row.Total) + 1;
+          row[l] = Number(row[l] ?? 0) + 1; row["Total"] = Number(row["Total"]) + 1;
           m.set(r.colaborador_id, row);
         });
-        return [...m.values()].sort((a, b) => String(a.Colaborador).localeCompare(String(b.Colaborador)));
+        return [...m.values()].sort((a, b) => String(a["Colaborador"]).localeCompare(String(b["Colaborador"])));
       }
       if (tipo === "ferias") {
         const { data, error } = await supabase.from("ferias").select("data_inicio, data_fim, dias, status, colaboradores:colaborador_id(nome, matricula)")

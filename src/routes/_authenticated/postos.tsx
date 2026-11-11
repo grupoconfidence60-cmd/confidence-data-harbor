@@ -245,25 +245,6 @@ function PostoDialog({ value, sups, onClose }: { value: P; sups: Supervisor[]; o
       toast.error("Janilson da Paz está disponível como opção local. Salve somente a supervisão nesta edição; os demais dados não foram salvos.");
       return;
     }
-    if (false) {
-      try {
-        const selecoes = lerSupervisoresLocais();
-        selecoes[f.id] = Array.from(new Set(ids));
-        window.localStorage.setItem(SUPERVISORES_LOCAIS, JSON.stringify(selecoes));
-        window.dispatchEvent(new Event(SUPERVISORES_EVENTO));
-        toast.success(`${ids.length} supervisor(es) salvo(s) para este posto neste navegador.`);
-        onClose();
-      } catch {
-        toast.error("Não foi possível salvar neste navegador. Sua seleção foi mantida; verifique se o armazenamento local está permitido.");
-      }
-      return;
-    }
-    if (false) {
-      toast.error(f.id
-        ? "Salve a supervisão separadamente: reabra a edição e altere apenas os supervisores. Os outros dados deste formulário ainda não foram salvos."
-        : "Cadastre o posto primeiro, sem supervisores. Depois, edite apenas a supervisão para salvar os responsáveis neste navegador.");
-      return;
-    }
     const base = { nome: f.nome.trim(), cliente: f.cliente || null, tipo: f.tipo || null, endereco: f.endereco || null, cidade: f.cidade || null,
       efetivo_previsto: Math.max(0, Number(f.efetivo_previsto) || 0), supervisor_id: ids[0] ?? null, ativo: f.ativo, observacoes: f.observacoes || null,
       latitude: f.latitude, longitude: f.longitude, raio_metros: Math.max(20, Number(f.raio_metros) || 150) };

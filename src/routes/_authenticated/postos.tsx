@@ -103,7 +103,6 @@ function paraFormulario(p: PostoRow): P {
 
 function Postos() {
   const { data: me } = useMe();
-  const supervisoresLocais = useSupervisoresLocais();
   const canEdit = canEditPostos(me?.roles ?? []);
   const [editing, setEditing] = useState<P | null>(null);
   const [supervisorFilter, setSupervisorFilter] = useState("todos");
@@ -112,7 +111,7 @@ function Postos() {
     queryFn: async () => {
       const [{ data: postos }, { data: colabs }, { data: roles }] = await Promise.all([
         supabase.from("postos").select("*").order("nome"),
-        supabase.from("colaboradores").select("posto_id").eq("arquivado", false).eq("situacao", "ativo"),
+        supabase.from("colaboradores").select("id,nome,matricula,posto_id,situacao").eq("arquivado", false).neq("situacao", "desligado").order("nome"),
         supabase.from("user_roles").select("user_id").eq("role", "supervisor"),
       ]);
       const linhas = (postos ?? []) as unknown as PostoRow[];
@@ -142,8 +141,7 @@ function Postos() {
   const nomesSupervisores = (p: PostoRow) =>
     idsSupervisores(p).map((id) => nomeSupervisor(id)).filter((n): n is string => Boolean(n));
   const postosVisiveis = (data?.postos ?? []).map((posto) => {
-    const ids = supervisoresLocais[posto.id];
-    return ids === undefined ? posto : { ...posto, supervisor_ids: ids, supervisor_id: ids[0] ?? null };
+    return posto;
   }).filter((posto) => {
     if (supervisorFilter === "todos") return true;
     const ids = idsSupervisores(posto);
@@ -175,7 +173,7 @@ function Postos() {
       {!data?.postos.length ? <EmptyState text="Nenhum posto cadastrado." /> : !postosVisiveis.length ? <EmptyState text="Nenhum posto encontrado para o supervisor selecionado." /> : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {postosVisiveis.map((p) => {
-            const n = data.colabs.filter((c) => c.posto_id === p.id).length;
+            const n = data.colabs.filter((c) => c.posto_id === p.id && c.situacao === "ativo").length;
             const low = n < p.efetivo_previsto;
             const nomes = nomesSupervisores(p);
             return (
@@ -189,7 +187,7 @@ function Postos() {
                     <div className="min-w-0 text-sm">
                       <div className="text-muted-foreground">{nomes.length > 1 ? "Supervisores" : "Supervisor"}</div>
                       <div className="break-words">{nomes.length ? nomes.join(", ") : "Não definido"}</div>
-                      {supervisoresLocais[p.id] !== undefined && <p className="mt-1 text-xs text-muted-foreground">Supervisão salva neste navegador</p>}
+                      
                     </div>
                     <div className={`shrink-0 text-right font-display text-2xl font-semibold ${low ? "text-warning" : ""}`}>{n}<span className="text-sm text-muted-foreground">/{p.efetivo_previsto}</span></div>
                   </div>
@@ -204,6 +202,7 @@ function Postos() {
           })}
         </div>
       )}
+      {data && <Reservas colabs={data.colabs.filter((c) => !c.posto_id)} postos={data.postos.filter((p) => p.ativo)} canEdit={canEdit} />}
       {editing && <PostoDialog value={editing} sups={editing.supervisor_ids.includes(JANILSON_LOCAL_ID) ? supervisores.filter((s) => s.profiles?.nome !== "Janilson da Paz").concat({ user_id: JANILSON_LOCAL_ID, profiles: { nome: "Janilson da Paz" } }) : supervisores} onClose={() => setEditing(null)} />}
     </div>
   );
@@ -238,31 +237,12 @@ function PostoDialog({ value, sups, onClose }: { value: P; sups: Supervisor[]; o
   }
   async function save(e: React.FormEvent) {
     e.preventDefault();
-    const ids = f.supervisor_ids ?? [];
+    const ids = (f.supervisor_ids ?? []).filter((id) => id !== JANILSON_LOCAL_ID);
     const outrosCamposAlterados = (Object.keys(value) as (keyof P)[]).some((key) =>
       key !== "supervisor_ids" && key !== "supervisor_id" && f[key] !== value[key]
     );
-    if (outrosCamposAlterados && ids.includes(JANILSON_LOCAL_ID)) {
+    if (outrosCamposAlterados && (f.supervisor_ids ?? []).includes(JANILSON_LOCAL_ID)) {
       toast.error("Janilson da Paz está disponível como opção local. Salve somente a supervisão nesta edição; os demais dados não foram salvos.");
-      return;
-    }
-    if (f.id && !outrosCamposAlterados) {
-      try {
-        const selecoes = lerSupervisoresLocais();
-        selecoes[f.id] = Array.from(new Set(ids));
-        window.localStorage.setItem(SUPERVISORES_LOCAIS, JSON.stringify(selecoes));
-        window.dispatchEvent(new Event(SUPERVISORES_EVENTO));
-        toast.success(`${ids.length} supervisor(es) salvo(s) para este posto neste navegador.`);
-        onClose();
-      } catch {
-        toast.error("Não foi possível salvar neste navegador. Sua seleção foi mantida; verifique se o armazenamento local está permitido.");
-      }
-      return;
-    }
-    if (ids.length !== value.supervisor_ids.length || ids.some((id, index) => id !== value.supervisor_ids[index])) {
-      toast.error(f.id
-        ? "Salve a supervisão separadamente: reabra a edição e altere apenas os supervisores. Os outros dados deste formulário ainda não foram salvos."
-        : "Cadastre o posto primeiro, sem supervisores. Depois, edite apenas a supervisão para salvar os responsáveis neste navegador.");
       return;
     }
     const base = { nome: f.nome.trim(), cliente: f.cliente || null, tipo: f.tipo || null, endereco: f.endereco || null, cidade: f.cidade || null,
@@ -326,5 +306,41 @@ function PostoDialog({ value, sups, onClose }: { value: P; sups: Supervisor[]; o
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function Reservas({ colabs, postos, canEdit }: { colabs: { id: string; nome: string; matricula: string; situacao: string }[]; postos: PostoRow[]; canEdit: boolean }) {
+  const qc = useQueryClient();
+  const [salvando, setSalvando] = useState<string | null>(null);
+  async function alocar(id: string, postoId: string) {
+    setSalvando(id);
+    const { error } = await supabase.from("colaboradores").update({ posto_id: postoId } as never).eq("id", id);
+    setSalvando(null);
+    if (error) { toast.error("Não foi possível alocar: " + error.message); return; }
+    toast.success("Colaborador alocado no posto.");
+    qc.invalidateQueries();
+  }
+  return (
+    <section className="mt-8 rounded-lg border bg-card p-4 text-card-foreground">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <h2 className="font-display text-lg font-semibold">Sem posto · Reservas</h2>
+        <span className="text-sm text-muted-foreground">{colabs.length} colaborador(es)</span>
+      </div>
+      {!colabs.length ? <p className="text-sm text-muted-foreground">Todos os colaboradores estão alocados em postos.</p> : (
+        <div className="divide-y">
+          {colabs.map((c) => (
+            <div key={c.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+              <div className="min-w-0"><div className="font-medium">{c.nome}</div><div className="text-xs text-muted-foreground">Mat. {c.matricula} · Reserva</div></div>
+              {canEdit && (
+                <Select disabled={salvando === c.id} onValueChange={(v) => alocar(c.id, v)}>
+                  <SelectTrigger className="w-56"><SelectValue placeholder="Alocar em posto" /></SelectTrigger>
+                  <SelectContent>{postos.map((p) => <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>)}</SelectContent>
+                </Select>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }

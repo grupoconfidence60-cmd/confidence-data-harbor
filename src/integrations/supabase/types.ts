@@ -1250,6 +1250,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      alocar_reserva: {
+        Args: { _colab: string; _posto: string }
+        Returns: undefined
+      }
       cadastrar_tamanhos_uniforme:
         | {
             Args: {

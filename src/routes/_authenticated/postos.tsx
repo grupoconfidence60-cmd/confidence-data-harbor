@@ -202,7 +202,7 @@ function Postos() {
           })}
         </div>
       )}
-      {data && <Reservas colabs={data.colabs.filter((c) => !c.posto_id)} postos={data.postos.filter((p) => p.ativo)} canEdit={canEdit} />}
+      {data && <Reservas colabs={data.colabs.filter((c) => !c.posto_id)} postos={data.postos.filter((p) => p.ativo && (!(me?.roles ?? []).every((r) => r === "supervisor" || r === "colaborador") || idsSupervisores(p).includes(me?.id ?? "")))} canEdit={(me?.roles ?? []).some((r) => ["admin","gestor","rh","supervisor"].includes(r))} />}
       {editing && <PostoDialog value={editing} sups={editing.supervisor_ids.includes(JANILSON_LOCAL_ID) ? supervisores.filter((s) => s.profiles?.nome !== "Janilson da Paz").concat({ user_id: JANILSON_LOCAL_ID, profiles: { nome: "Janilson da Paz" } }) : supervisores} onClose={() => setEditing(null)} />}
     </div>
   );
@@ -314,7 +314,7 @@ function Reservas({ colabs, postos, canEdit }: { colabs: { id: string; nome: str
   const [salvando, setSalvando] = useState<string | null>(null);
   async function alocar(id: string, postoId: string) {
     setSalvando(id);
-    const { error } = await supabase.from("colaboradores").update({ posto_id: postoId } as never).eq("id", id);
+    const { error } = await supabase.rpc("alocar_reserva", { _colab: id, _posto: postoId });
     setSalvando(null);
     if (error) { toast.error("Não foi possível alocar: " + error.message); return; }
     toast.success("Colaborador alocado no posto.");

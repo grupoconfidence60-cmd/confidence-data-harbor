@@ -103,7 +103,6 @@ function paraFormulario(p: PostoRow): P {
 
 function Postos() {
   const { data: me } = useMe();
-  const supervisoresLocais = useSupervisoresLocais();
   const canEdit = canEditPostos(me?.roles ?? []);
   const [editing, setEditing] = useState<P | null>(null);
   const [supervisorFilter, setSupervisorFilter] = useState("todos");

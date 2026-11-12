@@ -288,6 +288,13 @@
       "when": 1794421175416,
       "tag": "0040_alocar_reserva",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1794487884478,
+      "tag": "0041_corrige_faltas_e_retirada_escala_supervisores",
+      "breakpoints": true
     }
   ]
 }

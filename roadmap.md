@@ -25,7 +25,7 @@
 
 ## Pedido de 06/11 — presença e faltas
 - [x] Escalados aparecem presentes por padrão; supervisores e gestores só registram exceções, com confirmação da Administração/RH.
-- [x] Falta justificada exige justificativa e anexo, com pendências visíveis em Documentos.
+- [x] Falta justificada exige justificativa, pode ser salva sem anexo e fica pendente em Documentos até o envio; confirmação somente após o anexo.
 - [x] Selecionar o colaborador que cobriu a falta no dia e manter a informação vinculada ao lançamento.
 - [x] Testar regras, permissões e o fluxo principal na plataforma; lançamento, anexo, cobertura e confirmação verificados com conta conectada e dados temporários removidos.
 
@@ -33,10 +33,10 @@
 - [x] Exibir "Folga pela escala" para todo colaborador fora do seu dia de trabalho, sem marcá-lo presente; par/ímpar e ajustes diários testados, duas divergências atuais removidas e tela verificada com acesso conectado.
 
 ## Pedido de 12/11 — escalas e faltas dos supervisores
-- [ ] Permitir que supervisores e gestores retirem colaboradores das escalas dos postos que gerenciam, incluindo a conta de Edvilson dentro da restrição de funções dele.
-- [ ] Corrigir o registro de falta normal e demais exceções manuais.
-- [ ] Permitir salvar falta justificada sem anexo e anexar depois; RH/Administração só confirmam após o anexo.
-- [ ] Testar as regras e o fluxo principal com os acessos reais.
+- [x] Supervisores e gestores retiram colaboradores das escalas dos postos que gerenciam, sem depender do posto da ficha; Edvilson continua restrito às funções de bombeiro e não vê mais linhas indisponíveis de outras funções.
+- [x] Falta normal e demais exceções manuais gravando após correção do aviso automático.
+- [x] Falta justificada pode ser salva sem anexo e anexada depois; RH/Administração só confirmam após o anexo.
+- [x] Fluxo de falta normal, justificada sem anexo, anexo posterior e retirada da escala verificado com a conta real de Edvilson; 35 testes passaram e dados temporários foram removidos. Confirmação com conta Administração/RH não testada nesta rodada.
 
 ## Pedido de 05/11
 - [x] Desligado sai sozinho da planilha de escala

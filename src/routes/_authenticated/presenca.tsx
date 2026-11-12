@@ -297,20 +297,26 @@ function JustificativaDialog({ colaborador, colaboradores, postoId, data, existi
       presencaId = saved.id;
     }
 
-    const resultado = await anexarJustificativa({
-      presencaId: presencaId!,
-      colaboradorId: colaborador.id,
-      data,
-      justificativa: motivo,
-      arquivo: arquivo!,
-    });
-    setEnviando(false);
-    onSaved();
-    if (resultado.error) {
-      toast.error(`${resultado.error} A falta ficou na lista de pendências de Documentos.`);
-      return;
+    if (arquivo) {
+      const resultado = await anexarJustificativa({
+        presencaId: presencaId!,
+        colaboradorId: colaborador.id,
+        data,
+        justificativa: motivo,
+        arquivo,
+      });
+      setEnviando(false);
+      onSaved();
+      if (resultado.error) {
+        toast.error(`${resultado.error} A falta ficou na lista de pendências de Documentos.`);
+        return;
+      }
+      toast.success("Falta justificada, cobertura e documento salvos.");
+    } else {
+      setEnviando(false);
+      onSaved();
+      toast.success("Falta justificada salva. O comprovante pode ser anexado depois; a confirmação ficará pendente.");
     }
-    toast.success("Falta justificada, cobertura e documento salvos.");
     onClose();
   }
 
@@ -319,7 +325,7 @@ function JustificativaDialog({ colaborador, colaboradores, postoId, data, existi
       <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle>Falta justificada · {colaborador.nome}</DialogTitle>
-          <DialogDescription>Informe o motivo, quem cobriu o plantão e anexe o comprovante. O anexo é obrigatório para a confirmação.</DialogDescription>
+          <DialogDescription>Informe o motivo e quem cobriu o plantão. Você pode anexar o comprovante agora ou depois; Administração e RH só confirmam após o anexo.</DialogDescription>
         </DialogHeader>
         <form onSubmit={save} className="grid gap-4">
           <div className="space-y-1.5">
@@ -338,12 +344,13 @@ function JustificativaDialog({ colaborador, colaboradores, postoId, data, existi
             <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><Users className="h-3.5 w-3.5" />A cobertura fica vinculada somente a esta data.</p>
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="anexo-falta">Documento comprobatório * (máx. 20 MB)</Label>
-            <Input id="anexo-falta" type="file" required accept=".pdf,image/*" onChange={(e) => setArquivo(e.target.files?.[0] ?? null)} />
+            <Label htmlFor="anexo-falta">Documento comprobatório (opcional agora, máx. 20 MB)</Label>
+            <Input id="anexo-falta" type="file" accept=".pdf,image/*" onChange={(e) => setArquivo(e.target.files?.[0] ?? null)} />
+            <p className="text-xs text-muted-foreground">Sem anexo, a falta ficará em “Aguardando anexo” até o comprovante ser enviado.</p>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" disabled={enviando} onClick={onClose}>Cancelar</Button>
-            <Button type="submit" disabled={enviando}>{enviando ? "Salvando…" : "Salvar falta e anexo"}</Button>
+            <Button type="submit" disabled={enviando}>{enviando ? "Salvando…" : arquivo ? "Salvar falta e anexo" : "Salvar falta justificada"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

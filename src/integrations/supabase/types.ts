@@ -1290,6 +1290,14 @@ export type Database = {
             Returns: Json
           }
       can_manage_planilha: { Args: { _posto_id: string }; Returns: boolean }
+      can_manage_planilha_colaborador: {
+        Args: {
+          _colaborador_id: string
+          _exigir_ativo?: boolean
+          _posto_id: string
+        }
+        Returns: boolean
+      }
       colaborador_no_posto: {
         Args: { _posto_id: string; _user_id: string }
         Returns: boolean

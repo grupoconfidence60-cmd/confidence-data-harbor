@@ -73,7 +73,7 @@ function Presenca() {
         supabase.from("postos").select("id, nome").eq("ativo", true).order("nome"),
         supabase.from("colaboradores").select("id, nome, matricula, posto_id, funcoes(nome)").eq("arquivado", false).eq("situacao", "ativo").order("nome"),
         supabase.from("presencas").select("*").eq("data", data),
-        supabase.from("posto_planilha").select("colaborador_id,posto_id,paridade,escala_tipo,ajustes,hora_inicio,hora_fim,turno,mes").lte("mes", `${data.slice(0, 7)}-01`).eq("removido", false).order("mes", { ascending: false }),
+        supabase.from("posto_planilha").select("colaborador_id,posto_id,paridade,escala_tipo,ajustes,hora_inicio,hora_fim,turno,mes,removido").lte("mes", `${data.slice(0, 7)}-01`).order("mes", { ascending: false }),
         supabase.from("documentos").select("id, presenca_id").not("presenca_id", "is", null),
       ]);
       if (postosResult.error) throw postosResult.error;
@@ -85,8 +85,13 @@ function Presenca() {
       // Se o mês ainda não foi montado, repete somente o horário e a paridade da última escala.
       const mesAtual = `${data.slice(0, 7)}-01`;
       const porColab = new Map<string, NonNullable<typeof planResult.data>[number]>();
-      for (const p of planResult.data ?? []) {
-        if (porColab.has(p.colaborador_id)) continue;
+      const rows = planResult.data ?? [];
+      // Postos com escala do mês atual montada: vale somente a escala atual (sem herdar horários antigos).
+      const postosMontados = new Set(rows.filter((p) => p.mes === mesAtual).map((p) => p.posto_id));
+      const comLinhaAtual = new Set(rows.filter((p) => p.mes === mesAtual).map((p) => p.colaborador_id));
+      for (const p of rows) {
+        if (porColab.has(p.colaborador_id) || p.removido) continue;
+        if (p.mes !== mesAtual && (comLinhaAtual.has(p.colaborador_id) || postosMontados.has(p.posto_id))) continue;
         porColab.set(p.colaborador_id, p.mes === mesAtual ? p : { ...p, ajustes: {} });
       }
       return {

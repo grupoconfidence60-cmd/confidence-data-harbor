@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { TAMANHO_MAXIMO_ANEXO, validarFaltaJustificada } from "./falta-justificada";
+import { TAMANHO_MAXIMO_ANEXO, validarAnexoJustificativa, validarFaltaJustificada } from "./falta-justificada";
 
 const arquivo = { name: "justificativa.pdf", size: 1024 };
 

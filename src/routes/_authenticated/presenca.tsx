@@ -297,20 +297,26 @@ function JustificativaDialog({ colaborador, colaboradores, postoId, data, existi
       presencaId = saved.id;
     }
 
-    const resultado = await anexarJustificativa({
-      presencaId: presencaId!,
-      colaboradorId: colaborador.id,
-      data,
-      justificativa: motivo,
-      arquivo: arquivo!,
-    });
-    setEnviando(false);
-    onSaved();
-    if (resultado.error) {
-      toast.error(`${resultado.error} A falta ficou na lista de pendências de Documentos.`);
-      return;
+    if (arquivo) {
+      const resultado = await anexarJustificativa({
+        presencaId: presencaId!,
+        colaboradorId: colaborador.id,
+        data,
+        justificativa: motivo,
+        arquivo,
+      });
+      setEnviando(false);
+      onSaved();
+      if (resultado.error) {
+        toast.error(`${resultado.error} A falta ficou na lista de pendências de Documentos.`);
+        return;
+      }
+      toast.success("Falta justificada, cobertura e documento salvos.");
+    } else {
+      setEnviando(false);
+      onSaved();
+      toast.success("Falta justificada salva. O comprovante pode ser anexado depois; a confirmação ficará pendente.");
     }
-    toast.success("Falta justificada, cobertura e documento salvos.");
     onClose();
   }
 

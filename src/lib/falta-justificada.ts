@@ -8,10 +8,17 @@ export function validarFaltaJustificada(input: {
 }) {
   if (!input.justificativa.trim()) return "Descreva o motivo da falta justificada.";
   if (input.justificativa.trim().length > 2000) return "A justificativa deve ter no máximo 2.000 caracteres.";
-  if (!input.arquivo) return "Anexe o documento da falta justificada.";
-  if (input.arquivo.size <= 0) return "O arquivo selecionado está vazio.";
-  if (input.arquivo.size > TAMANHO_MAXIMO_ANEXO) return "O documento deve ter no máximo 20 MB.";
+  if (input.arquivo && input.arquivo.size <= 0) return "O arquivo selecionado está vazio.";
+  if (input.arquivo && input.arquivo.size > TAMANHO_MAXIMO_ANEXO) return "O documento deve ter no máximo 20 MB.";
   return null;
+}
+
+export function validarAnexoJustificativa(input: {
+  justificativa: string;
+  arquivo: { name: string; size: number } | null;
+}) {
+  if (!input.arquivo) return "Anexe o documento da falta justificada.";
+  return validarFaltaJustificada(input);
 }
 
 /** Envia o arquivo privado e liga o documento à falta; remove o arquivo se o vínculo falhar. */

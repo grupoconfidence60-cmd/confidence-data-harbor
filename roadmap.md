@@ -32,6 +32,12 @@
 ## Pedido de 06/11 — folgas pela escala
 - [x] Exibir "Folga pela escala" para todo colaborador fora do seu dia de trabalho, sem marcá-lo presente; par/ímpar e ajustes diários testados, duas divergências atuais removidas e tela verificada com acesso conectado.
 
+## Pedido de 12/11 — escalas e faltas dos supervisores
+- [ ] Permitir que supervisores e gestores retirem colaboradores das escalas dos postos que gerenciam, incluindo a conta de Edvilson dentro da restrição de funções dele.
+- [ ] Corrigir o registro de falta normal e demais exceções manuais.
+- [ ] Permitir salvar falta justificada sem anexo e anexar depois; RH/Administração só confirmam após o anexo.
+- [ ] Testar as regras e o fluxo principal com os acessos reais.
+
 ## Pedido de 05/11
 - [x] Desligado sai sozinho da planilha de escala
 - [x] Supervisores solicitam férias

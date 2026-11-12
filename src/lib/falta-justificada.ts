@@ -29,7 +29,7 @@ export async function anexarJustificativa(input: {
   justificativa: string;
   arquivo: File;
 }) {
-  const invalido = validarFaltaJustificada(input);
+  const invalido = validarAnexoJustificativa(input);
   if (invalido) return { error: invalido };
   const nomeSeguro = input.arquivo.name.normalize("NFD").replace(/[^a-zA-Z0-9._-]/g, "-");
   const path = `${input.colaboradorId}/${crypto.randomUUID()}-${nomeSeguro}`;

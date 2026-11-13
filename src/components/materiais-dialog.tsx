@@ -25,10 +25,11 @@ export function MateriaisDialog({ mode, id, minimumDate, initialMaterialId, item
   const uniformPreset = tiposUniforme.find((t) => t.id === uniformType);
   const [size, setSize] = useState("");
   const [identification, setIdentification] = useState("");
-  const [item, setItem] = useState(initialMaterialId ?? "");
+  const [lines, setLines] = useState<{ item: string; quantity: string }[]>([{ item: initialMaterialId ?? "", quantity: "1" }]);
+  const linesOk = lines.length > 0 && lines.every((l) => l.item && Number.isInteger(Number(l.quantity)) && Number(l.quantity) >= 1) && new Set(lines.map((l) => l.item)).size === lines.length;
+  const setLine = (i: number, patch: Partial<{ item: string; quantity: string }>) => setLines((cur) => cur.map((l, j) => j === i ? { ...l, ...patch } : l));
   const [person, setPerson] = useState("");
   const [post, setPost] = useState("");
-  const [quantity, setQuantity] = useState("1");
   const [date, setDate] = useState(new Date().toLocaleDateString("sv-SE"));
   const [condition, setCondition] = useState("bom");
   const [notes, setNotes] = useState("");
@@ -55,17 +56,17 @@ export function MateriaisDialog({ mode, id, minimumDate, initialMaterialId, item
       const result = mode === "item"
         ? await supabase.from("materiais").insert({ nome: name.trim(), categoria: category, grupo, tamanho: size.trim(), identificacao: identification.trim() }).select("id").single()
         : mode === "entrega"
-          ? await supabase.from("material_entregas").insert({ material_id: item, colaborador_id: person, posto_id: postoEntrega(post), quantidade: Number(quantity), data_entrega: date, observacoes: notes.trim() }).select("id").single()
+          ? await supabase.from("material_entregas").insert(lines.map((l) => ({ material_id: l.item, colaborador_id: person, posto_id: postoEntrega(post), quantidade: Number(l.quantity), data_entrega: date, observacoes: notes.trim() }))).select("id")
           : await supabase.from("material_entregas").update({ data_devolucao: date, condicao_devolucao: condition }).eq("id", id ?? "").select("id").single();
       if (result.error) throw result.error;
       await qc.invalidateQueries({ queryKey: ["materiais"] });
-      toast.success(mode === "item" ? "Material cadastrado." : mode === "entrega" ? "Entrega registrada." : "Devolução registrada.");
+      toast.success(mode === "item" ? "Material cadastrado." : mode === "entrega" ? lines.length > 1 ? `${lines.length} materiais entregues.` : "Entrega registrada." : "Devolução registrada.");
       onClose();
     } catch (error) { toast.error(error instanceof Error ? error.message : "Não foi possível salvar. Confira os dados e seu acesso."); }
     finally { setBusy(false); }
   }
   const selector = (label: string, value: string, change: (v: string) => void, options: Option[]) => <div className="space-y-2"><Label>{label}</Label><Select value={value} onValueChange={change}><SelectTrigger className="w-full" aria-label={label}><SelectValue placeholder="Selecione" /></SelectTrigger><SelectContent>{options.map((o) => <SelectItem key={o.id} value={o.id}>{o.nome}</SelectItem>)}</SelectContent></Select></div>;
-  return <Dialog open onOpenChange={(open) => { if (!open && !busy) onClose(); }}><DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-lg"><DialogHeader><DialogTitle>{mode === "item" ? "Cadastrar material" : mode === "entrega" ? "Registrar entrega" : "Registrar devolução"}</DialogTitle><DialogDescription>{mode === "item" ? "Escolha a categoria, informe o nome e depois os tamanhos. Quantidades são lançadas na aba Estoque." : mode === "entrega" ? "Selecione o material e o colaborador que recebeu. Confira o posto, a quantidade e a data." : "Informe a data e a condição do material devolvido. A entrega original será preservada."}</DialogDescription></DialogHeader>
+  return <Dialog open onOpenChange={(open) => { if (!open && !busy) onClose(); }}><DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-lg"><DialogHeader><DialogTitle>{mode === "item" ? "Cadastrar material" : mode === "entrega" ? "Registrar entrega" : "Registrar devolução"}</DialogTitle><DialogDescription>{mode === "item" ? "Escolha a categoria, informe o nome e depois os tamanhos. Quantidades são lançadas na aba Estoque." : mode === "entrega" ? "Selecione o colaborador uma vez e adicione todos os materiais que ele recebeu." : "Informe a data e a condição do material devolvido. A entrega original será preservada."}</DialogDescription></DialogHeader>
     <form className="space-y-4" onSubmit={save}>
       {mode === "item" ? <>
         <div className="space-y-3 rounded-lg border bg-muted/20 p-3">
@@ -98,16 +99,19 @@ export function MateriaisDialog({ mode, id, minimumDate, initialMaterialId, item
           <div className="space-y-1 rounded-md bg-muted/50 p-3 text-xs text-muted-foreground"><p>Separe os tamanhos por vírgula. Exemplo: 38, 40, 42.</p><p>Deixe vazio quando o tamanho não estiver informado. O cadastro não aumenta o estoque.</p><details className="pt-1"><summary className="cursor-pointer rounded font-medium text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Como os tamanhos são salvos?</summary><p className="mt-2">Cada nome e tamanho forma um registro separado. Equivalentes são reaproveitados e registros arquivados são reativados. Não há restrição por função do colaborador.</p></details></div>
         </div>}
       </> : mode === "entrega" ? <>
-        {selector("Material", item, setItem, items)}
         {selector("Colaborador", person, (v) => { setPerson(v); setPost(destinoMaterial(people.find((c) => c.id === v)?.posto_id ?? null, posts)); }, people)}
         {selector("Posto / classificação", post, setPost, [...(people.find((c) => c.id === person)?.posto_id === null ? [{ id: RESERVA, nome: "Reserva · Sem posto" }] : []), ...posts])}
-        <div className="grid grid-cols-2 gap-3"><div className="space-y-2"><Label htmlFor="entrega-quantidade">Quantidade</Label><Input id="entrega-quantidade" type="number" required min={1} step={1} value={quantity} onChange={(e) => setQuantity(e.target.value)} /></div><div className="space-y-2"><Label htmlFor="entrega-data">Data da entrega</Label><Input id="entrega-data" type="date" required value={date} onChange={(e) => setDate(e.target.value)} /></div></div>
+        <div className="space-y-2 rounded-lg border bg-muted/20 p-3"><p className="text-xs font-semibold text-muted-foreground">Materiais entregues</p>
+          {lines.map((l, i) => <div key={i} className="flex items-end gap-2"><div className="min-w-0 flex-1 space-y-1"><Label className="text-xs">Material {i + 1}</Label><Select value={l.item} onValueChange={(v) => setLine(i, { item: v })}><SelectTrigger className="w-full" aria-label={`Material ${i + 1}`}><SelectValue placeholder="Selecione" /></SelectTrigger><SelectContent>{items.filter((o) => o.id === l.item || !lines.some((x) => x.item === o.id)).map((o) => <SelectItem key={o.id} value={o.id}>{o.nome}</SelectItem>)}</SelectContent></Select></div><div className="w-20 space-y-1"><Label className="text-xs">Qtd.</Label><Input type="number" aria-label={`Quantidade do material ${i + 1}`} min={1} step={1} value={l.quantity} onChange={(e) => setLine(i, { quantity: e.target.value })} /></div>{lines.length > 1 && <Button type="button" variant="ghost" size="sm" onClick={() => setLines((cur) => cur.filter((_, j) => j !== i))}>Remover</Button>}</div>)}
+          <Button type="button" variant="outline" size="sm" onClick={() => setLines((cur) => [...cur, { item: "", quantity: "1" }])}>+ Adicionar outro material</Button>
+        </div>
+        <div className="grid grid-cols-1 gap-3"><div className="space-y-2"><Label htmlFor="entrega-data">Data da entrega</Label><Input id="entrega-data" type="date" required value={date} onChange={(e) => setDate(e.target.value)} /></div></div>
         <div className="space-y-2"><Label htmlFor="entrega-notas">Observações</Label><Textarea id="entrega-notas" value={notes} onChange={(e) => setNotes(e.target.value)} /></div>
       </> : <>
         <div className="space-y-2"><Label htmlFor="devolucao-data">Data da devolução</Label><Input id="devolucao-data" type="date" required min={minimumDate} value={date} onChange={(e) => setDate(e.target.value)} /></div>
         {selector("Condição na devolução", condition, setCondition, [{ id: "bom", nome: "Bom estado" }, { id: "danificado", nome: "Danificado" }, { id: "inutilizado", nome: "Inutilizado" }])}
       </>}
-      <DialogFooter><Button type="button" variant="outline" disabled={busy} onClick={onClose}>Cancelar</Button><Button type="submit" disabled={busy || (mode === "item" ? !name.trim() : mode === "entrega" ? !item || !person || !post || !Number.isInteger(Number(quantity)) || Number(quantity) < 1 : !date || date < (minimumDate ?? ""))}>{busy ? "Salvando…" : "Salvar"}</Button></DialogFooter>
+      <DialogFooter><Button type="button" variant="outline" disabled={busy} onClick={onClose}>Cancelar</Button><Button type="submit" disabled={busy || (mode === "item" ? !name.trim() : mode === "entrega" ? !linesOk || !person || !post : !date || date < (minimumDate ?? ""))}>{busy ? "Salvando…" : "Salvar"}</Button></DialogFooter>
     </form>
   </DialogContent></Dialog>;
 }

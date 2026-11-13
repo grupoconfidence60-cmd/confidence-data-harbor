@@ -23,3 +23,5 @@
 - Live updates: a single app-wide Realtime channel (src/components/live-sync.tsx, mounted in the authenticated layout header) invalidates queries on changes; new tables shown in screens must join the supabase_realtime publication and that table list, so every screen stays current without per-page channels.
 - Stock items carry a display group and a per-size minimum; "Comprar" is derived (stock below minimum), never stored, so it stays correct as movements change.
 - Per-supervisor function restriction: optional rows in supervisor_funcoes limit which colaboradores a supervisor reads (via supervisor_funcao_ok in colaboradores RLS); no rows = no restriction.
+
+- Material deliveries with a null post are reserves; use the shared destination helpers in delivery forms, stock history and exports, and enforce role/function scope in RLS without changing employee assignments.

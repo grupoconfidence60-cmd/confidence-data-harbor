@@ -44,3 +44,7 @@
 - [x] Ordem manual das linhas da escala (subir/descer)
 - [x] Aba Coberturas em Férias (nome do vigia na cobertura, só consulta)
 - [ ] Ligar o efetivo ao supervisor para o dia da escala mudar sozinho — aguardando explicação do usuário
+
+## Pedido de 13/11 — uniformes para reservas
+- [x] Permitir entrega sem posto, classificada como Reserva, preservando estoque, histórico e acesso por perfil.
+- [ ] Verificar formulário e gravação com acesso conectado — sessão do solicitante indisponível.

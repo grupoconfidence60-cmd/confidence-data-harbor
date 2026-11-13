@@ -1,3 +1,4 @@
+import { RESERVA, destinoMaterial, postoEntrega } from "@/lib/material-reserva";
 import { GRUPOS_ESTOQUE } from "@/lib/estoque";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -54,7 +55,7 @@ export function MateriaisDialog({ mode, id, minimumDate, initialMaterialId, item
       const result = mode === "item"
         ? await supabase.from("materiais").insert({ nome: name.trim(), categoria: category, grupo, tamanho: size.trim(), identificacao: identification.trim() }).select("id").single()
         : mode === "entrega"
-          ? await supabase.from("material_entregas").insert({ material_id: item, colaborador_id: person, posto_id: post, quantidade: Number(quantity), data_entrega: date, observacoes: notes.trim() }).select("id").single()
+          ? await supabase.from("material_entregas").insert({ material_id: item, colaborador_id: person, posto_id: postoEntrega(post), quantidade: Number(quantity), data_entrega: date, observacoes: notes.trim() }).select("id").single()
           : await supabase.from("material_entregas").update({ data_devolucao: date, condicao_devolucao: condition }).eq("id", id ?? "").select("id").single();
       if (result.error) throw result.error;
       await qc.invalidateQueries({ queryKey: ["materiais"] });
@@ -98,8 +99,8 @@ export function MateriaisDialog({ mode, id, minimumDate, initialMaterialId, item
         </div>}
       </> : mode === "entrega" ? <>
         {selector("Material", item, setItem, items)}
-        {selector("Colaborador", person, (v) => { setPerson(v); const p = people.find((c) => c.id === v)?.posto_id; if (p && posts.some((s) => s.id === p)) setPost(p); }, people)}
-        {selector("Posto", post, setPost, posts)}
+        {selector("Colaborador", person, (v) => { setPerson(v); setPost(destinoMaterial(people.find((c) => c.id === v)?.posto_id ?? null, posts)); }, people)}
+        {selector("Posto / classificação", post, setPost, [...(people.find((c) => c.id === person)?.posto_id === null ? [{ id: RESERVA, nome: "Reserva · Sem posto" }] : []), ...posts])}
         <div className="grid grid-cols-2 gap-3"><div className="space-y-2"><Label htmlFor="entrega-quantidade">Quantidade</Label><Input id="entrega-quantidade" type="number" required min={1} step={1} value={quantity} onChange={(e) => setQuantity(e.target.value)} /></div><div className="space-y-2"><Label htmlFor="entrega-data">Data da entrega</Label><Input id="entrega-data" type="date" required value={date} onChange={(e) => setDate(e.target.value)} /></div></div>
         <div className="space-y-2"><Label htmlFor="entrega-notas">Observações</Label><Textarea id="entrega-notas" value={notes} onChange={(e) => setNotes(e.target.value)} /></div>
       </> : <>

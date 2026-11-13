@@ -645,7 +645,7 @@ export type Database = {
           id: string
           material_id: string
           observacoes: string
-          posto_id: string
+          posto_id: string | null
           quantidade: number
           registrado_por: string
         }
@@ -659,7 +659,7 @@ export type Database = {
           id?: string
           material_id: string
           observacoes?: string
-          posto_id: string
+          posto_id?: string | null
           quantidade: number
           registrado_por?: string
         }
@@ -673,7 +673,7 @@ export type Database = {
           id?: string
           material_id?: string
           observacoes?: string
-          posto_id?: string
+          posto_id?: string | null
           quantidade?: number
           registrado_por?: string
         }
@@ -1289,6 +1289,10 @@ export type Database = {
             }
             Returns: Json
           }
+      can_manage_material_reserva: {
+        Args: { _colaborador_id: string }
+        Returns: boolean
+      }
       can_manage_planilha: { Args: { _posto_id: string }; Returns: boolean }
       can_manage_planilha_colaborador: {
         Args: {

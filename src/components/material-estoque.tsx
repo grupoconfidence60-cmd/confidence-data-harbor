@@ -1,3 +1,4 @@
+import { RESERVA, destinoMaterial, postoEntrega, nomeDestinoMaterial } from "@/lib/material-reserva";
 import { useState } from "react";
 import { queryOptions, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Download, Plus, Trash2 } from "lucide-react";
@@ -72,7 +73,7 @@ export function MaterialEstoque({ items, people, posts, canFull, filterMaterialI
   }
   const name = (list: Opt[], id: string | null) => (id ? list.find((x) => x.id === id)?.nome ?? "—" : "—");
   const day = (iso: string) => iso.slice(0, 10);
-  const hist = movs.filter((m) => (!filterMaterialIds || filterMaterialIds.includes(m.material_id)) && (fPost === "todos" || m.posto_id === fPost) && (fPerson === "todos" || m.colaborador_id === fPerson) && (fSup === "todos" || m.supervisor_id === fSup) && (!from || day(m.created_at) >= from) && (!to || day(m.created_at) <= to));
+  const hist = movs.filter((m) => (!filterMaterialIds || filterMaterialIds.includes(m.material_id)) && (fPost === "todos" || (fPost === RESERVA ? m.posto_id === null && m.colaborador_id !== null : m.posto_id === fPost)) && (fPerson === "todos" || m.colaborador_id === fPerson) && (fSup === "todos" || m.supervisor_id === fSup) && (!from || day(m.created_at) >= from) && (!to || day(m.created_at) <= to));
   const fmt = (iso: string) => new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
 
   async function excluir(m: (typeof movs)[number]) {
@@ -88,7 +89,7 @@ export function MaterialEstoque({ items, people, posts, canFull, filterMaterialI
     const book = XLSX.utils.book_new();
     const est = XLSX.utils.aoa_to_sheet([["Grupo Confidence — Estoque"], ["Grupo", "Material", "Categoria", "Tamanho", "Em estoque", "Estoque mínimo", "Situação", "Entregues pendentes"], ...[...items].sort((a, b) => gruposDisponiveis.indexOf(grupoDe(a)) - gruposDisponiveis.indexOf(grupoDe(b)) || a.nome.localeCompare(b.nome) || a.tamanho.localeCompare(b.tamanho, "pt-BR", { numeric: true })).map((i) => [grupoDe(i), i.nome, catLabel(i.categoria), i.tamanho, saldo(movs, i.id), i.estoque_minimo ?? 0, comprarItem(i) ? "Comprar" : "Ok", pendentes(movs, i.id)])]);
     est["!cols"] = [24, 34, 22, 14, 12, 14, 12, 18].map((wch) => ({ wch }));
-    const mov = XLSX.utils.aoa_to_sheet([["Grupo Confidence — Movimentações"], ["Data/hora", "Tipo", "Material", "Qtd.", "Colaborador", "Posto", "Supervisor", "Lançado por", "Motivo"], ...hist.map((m) => [fmt(m.created_at), MOV_LABELS[m.tipo], name(items, m.material_id), m.quantidade, name(people, m.colaborador_id), name(posts, m.posto_id), name(profiles, m.supervisor_id), name(profiles, m.registrado_por), m.motivo])]);
+    const mov = XLSX.utils.aoa_to_sheet([["Grupo Confidence — Movimentações"], ["Data/hora", "Tipo", "Material", "Qtd.", "Colaborador", "Posto", "Supervisor", "Lançado por", "Motivo"], ...hist.map((m) => [fmt(m.created_at), MOV_LABELS[m.tipo], name(items, m.material_id), m.quantidade, name(people, m.colaborador_id), (m.colaborador_id ? nomeDestinoMaterial(m.posto_id, posts) : name(posts, m.posto_id)), name(profiles, m.supervisor_id), name(profiles, m.registrado_por), m.motivo])]);
     XLSX.utils.book_append_sheet(book, est, "Estoque");
     XLSX.utils.book_append_sheet(book, mov, "Movimentações");
     XLSX.writeFile(book, "Confidence-Estoque-Materiais.xlsx");
@@ -114,8 +115,8 @@ export function MaterialEstoque({ items, people, posts, canFull, filterMaterialI
     <details open className="rounded-lg border bg-card p-4">
       <summary className="cursor-pointer rounded text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Histórico de movimentações <span className="ml-2 font-normal text-muted-foreground">({hist.length})</span></summary>
       <p className="mb-3 mt-2 text-xs text-muted-foreground">Consulte os lançamentos de estoque usando os filtros abaixo. A busca acima filtra somente o quadro de saldos; este histórico possui filtros próprios.</p>
-      <div className="mb-3 flex flex-wrap gap-3">{sel("Filtrar posto", fPost, setFPost, posts, "Todos os postos")}{sel("Filtrar colaborador", fPerson, setFPerson, people, "Todos os colaboradores")}{sel("Filtrar supervisor", fSup, setFSup, profiles, "Todos os supervisores")}<Input type="date" aria-label="De" className="w-full sm:w-40" value={from} onChange={(e) => setFrom(e.target.value)} /><Input type="date" aria-label="Até" className="w-full sm:w-40" value={to} onChange={(e) => setTo(e.target.value)} /></div>
-      {!hist.length ? <EmptyState text="Nenhuma movimentação encontrada." /> : <div className="overflow-x-auto border bg-card"><table className="w-full min-w-[900px]"><thead><tr>{["Data/hora", "Tipo", "Material", "Qtd.", "Colaborador", "Posto", "Supervisor", "Lançado por", ...(canFull ? ["Ações"] : [])].map((h) => <th key={h} className="px-3 text-left">{h}</th>)}</tr></thead><tbody>{hist.map((m) => <tr key={m.id} className="border-t"><td className="px-3 py-2 whitespace-nowrap">{fmt(m.created_at)}</td><td className="px-3"><Badge variant="outline">{MOV_LABELS[m.tipo]}</Badge>{m.motivo && <p className="text-xs text-muted-foreground">{m.motivo}</p>}</td><td className="px-3">{name(items, m.material_id)}</td><td className="px-3">{m.quantidade}</td><td className="px-3">{name(people, m.colaborador_id)}</td><td className="px-3">{name(posts, m.posto_id)}</td><td className="px-3">{name(profiles, m.supervisor_id)}</td><td className="px-3">{name(profiles, m.registrado_por)}</td>{canFull && <td className="px-3"><Button variant="ghost" size="icon" aria-label="Excluir movimentação" onClick={() => excluir(m)}><Trash2 className="text-destructive" /></Button></td>}</tr>)}</tbody></table></div>}
+      <div className="mb-3 flex flex-wrap gap-3">{sel("Filtrar posto", fPost, setFPost, [{ id: RESERVA, nome: "Reserva · Sem posto" }, ...posts], "Todos os postos")}{sel("Filtrar colaborador", fPerson, setFPerson, people, "Todos os colaboradores")}{sel("Filtrar supervisor", fSup, setFSup, profiles, "Todos os supervisores")}<Input type="date" aria-label="De" className="w-full sm:w-40" value={from} onChange={(e) => setFrom(e.target.value)} /><Input type="date" aria-label="Até" className="w-full sm:w-40" value={to} onChange={(e) => setTo(e.target.value)} /></div>
+      {!hist.length ? <EmptyState text="Nenhuma movimentação encontrada." /> : <div className="overflow-x-auto border bg-card"><table className="w-full min-w-[900px]"><thead><tr>{["Data/hora", "Tipo", "Material", "Qtd.", "Colaborador", "Posto", "Supervisor", "Lançado por", ...(canFull ? ["Ações"] : [])].map((h) => <th key={h} className="px-3 text-left">{h}</th>)}</tr></thead><tbody>{hist.map((m) => <tr key={m.id} className="border-t"><td className="px-3 py-2 whitespace-nowrap">{fmt(m.created_at)}</td><td className="px-3"><Badge variant="outline">{MOV_LABELS[m.tipo]}</Badge>{m.motivo && <p className="text-xs text-muted-foreground">{m.motivo}</p>}</td><td className="px-3">{name(items, m.material_id)}</td><td className="px-3">{m.quantidade}</td><td className="px-3">{name(people, m.colaborador_id)}</td><td className="px-3">{(m.colaborador_id ? nomeDestinoMaterial(m.posto_id, posts) : name(posts, m.posto_id))}</td><td className="px-3">{name(profiles, m.supervisor_id)}</td><td className="px-3">{name(profiles, m.registrado_por)}</td>{canFull && <td className="px-3"><Button variant="ghost" size="icon" aria-label="Excluir movimentação" onClick={() => excluir(m)}><Trash2 className="text-destructive" /></Button></td>}</tr>)}</tbody></table></div>}
     </details>
     {open && <MovDialog items={items} people={people} posts={posts} profiles={profiles} canFull={canFull} initialMaterialId={initialMaterialId} onClose={() => setOpen(false)} />}
   </div>;
@@ -197,7 +198,7 @@ function MovDialog({ items, people, posts, profiles, canFull, initialMaterialId,
     e.preventDefault();
     if (!ok || busy) return;
     setBusy(true);
-    const { error } = await supabase.from("material_movimentacoes").insert({ tipo, material_id: item, quantidade: Number(qtd), colaborador_id: needsPerson ? person : null, posto_id: post || null, supervisor_id: sup || null, motivo: motivo.trim() });
+    const { error } = await supabase.from("material_movimentacoes").insert({ tipo, material_id: item, quantidade: Number(qtd), colaborador_id: needsPerson ? person : null, posto_id: postoEntrega(post) || null, supervisor_id: sup || null, motivo: motivo.trim() });
     setBusy(false);
     if (error) { toast.error(error.message.includes("Estoque insuficiente") ? "Estoque insuficiente para este material." : "Não foi possível registrar. Confira os dados e seu acesso."); return; }
     await qc.invalidateQueries({ queryKey: ["materiais"] });
@@ -213,8 +214,8 @@ function MovDialog({ items, people, posts, profiles, canFull, initialMaterialId,
         {selecionado ? s("Tamanho / identificação", item, setItem, variacoes.map((registro) => ({ id: registro.id, nome: `${registro.tamanho.trim() || "Sem tamanho informado"}${registro.identificacao ? ` · ${registro.identificacao}` : ""}` }))) : <p className="text-xs text-muted-foreground">Escolha o material para visualizar seus tamanhos cadastrados.</p>}
       </div>
       <div className="space-y-2"><Label htmlFor="mov-qtd">Quantidade de unidades</Label><Input id="mov-qtd" type="number" min={1} step={1} value={qtd} onChange={(e) => setQtd(e.target.value)} /></div>
-      {needsPerson && s("Colaborador", person, (v) => { setPerson(v); const p = people.find((c) => c.id === v)?.posto_id; if (p && posts.some((x) => x.id === p)) setPost(p); }, people.map((p) => ({ id: p.id, nome: `${p.matricula} · ${p.nome}` })))}
-      {s(needsPerson ? "Posto" : "Posto (opcional)", post, setPost, posts)}
+      {needsPerson && s("Colaborador", person, (v) => { setPerson(v); setPost(destinoMaterial(people.find((c) => c.id === v)?.posto_id ?? null, posts)); }, people.map((p) => ({ id: p.id, nome: `${p.matricula} · ${p.nome}` })))}
+      {s(needsPerson ? "Posto / classificação" : "Posto (opcional)", post, setPost, [...(needsPerson && people.find((c) => c.id === person)?.posto_id === null ? [{ id: RESERVA, nome: "Reserva · Sem posto" }] : []), ...posts])}
       {s("Supervisor que autorizou", sup, setSup, profiles)}
       <div className="space-y-2"><Label htmlFor="mov-motivo">Motivo / observações</Label><Textarea id="mov-motivo" value={motivo} onChange={(e) => setMotivo(e.target.value)} /></div>
       <DialogFooter><Button type="button" variant="outline" onClick={onClose} disabled={busy}>Cancelar</Button><Button type="submit" disabled={!ok || busy}>{busy ? "Salvando…" : "Registrar"}</Button></DialogFooter>

@@ -309,6 +309,13 @@
       "when": 1794838259000,
       "tag": "0043_libera_edicao_todos_perfis_gestao",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1794838283618,
+      "tag": "0044_comunicados_supervisor_publica",
+      "breakpoints": true
     }
   ]
 }

@@ -68,10 +68,10 @@ export function canEditColaboradores(roles: AppRole[]) {
   return roles.some((r) => ["admin", "gestor", "rh"].includes(r));
 }
 export function canEditPostos(roles: AppRole[]) {
-  return roles.some((r) => ["admin", "gestor"].includes(r));
+  return roles.some((r) => ["admin", "gestor", "rh"].includes(r));
 }
 export function canEditEscalas(roles: AppRole[]) {
-  return roles.some((r) => ["admin", "gestor"].includes(r));
+  return roles.some((r) => ["admin", "gestor", "rh", "supervisor"].includes(r));
 }
 export function canEditPresenca(roles: AppRole[]) {
   return roles.some((r) => ["admin", "gestor", "rh", "supervisor"].includes(r));
@@ -80,10 +80,10 @@ export function canConfirmPresenca(roles: AppRole[]) {
   return roles.some((r) => ["admin", "rh"].includes(r));
 }
 export function canEditFerias(roles: AppRole[]) {
-  return roles.some((r) => ["admin", "gestor", "rh"].includes(r));
+  return roles.some((r) => ["admin", "gestor", "rh", "supervisor"].includes(r));
 }
 export function canEditOcorrencias(roles: AppRole[]) {
-  return roles.some((r) => ["admin", "gestor", "rh"].includes(r));
+  return roles.some((r) => ["admin", "gestor", "rh", "supervisor"].includes(r));
 }
 export function canCreateOcorrencias(roles: AppRole[]) {
   return roles.some((r) => ["admin", "gestor", "rh", "supervisor", "colaborador"].includes(r));
@@ -92,7 +92,7 @@ export function canEditDocumentos(roles: AppRole[]) {
   return roles.some((r) => ["admin", "gestor", "rh"].includes(r));
 }
 export function canCreateVisitas(roles: AppRole[]) {
-  return roles.some((r) => ["admin", "gestor", "supervisor"].includes(r));
+  return roles.some((r) => ["admin", "gestor", "rh", "supervisor"].includes(r));
 }
 
 export function canPublishComunicados(roles: AppRole[]) {
@@ -108,8 +108,8 @@ export function canManageMateriais(roles: AppRole[]) {
 }
 
 export function canManageChecklists(roles: AppRole[]) {
-  return roles.some((r) => ["admin", "gestor"].includes(r));
+  return roles.some((r) => ["admin", "gestor", "rh", "supervisor"].includes(r));
 }
 export function canCreateInspecoes(roles: AppRole[]) {
-  return roles.some((r) => ["admin", "gestor", "supervisor"].includes(r));
+  return roles.some((r) => ["admin", "gestor", "rh", "supervisor"].includes(r));
 }

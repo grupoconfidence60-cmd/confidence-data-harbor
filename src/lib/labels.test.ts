@@ -24,9 +24,9 @@ describe("permissões por perfil", () => {
   });
   it("checklists: admin/gestor criam modelos; supervisor inspeciona; RH só consulta; colaborador sem acesso", () => {
     expect(canManageChecklists(["gestor"])).toBe(true);
-    expect(canManageChecklists(["supervisor"])).toBe(false);
+    expect(canManageChecklists(["supervisor"])).toBe(true);
     expect(canCreateInspecoes(["supervisor"])).toBe(true);
-    expect(canCreateInspecoes(["rh"])).toBe(false);
+    expect(canCreateInspecoes(["rh"])).toBe(true);
     expect(canAccess(["rh"], "inspecoes")).toBe(true);
     expect(canAccess(["colaborador"], "inspecoes")).toBe(false);
   });
@@ -78,12 +78,12 @@ describe("permissões por perfil", () => {
     for (const role of ["admin", "gestor", "rh"] as AppRole[]) {
       expect(canEditOcorrencias([role])).toBe(true);
     }
-    expect(canEditOcorrencias(["supervisor"])).toBe(false);
+    expect(canEditOcorrencias(["supervisor"])).toBe(true);
     expect(canEditOcorrencias(["colaborador"])).toBe(false);
     expect(canEditOcorrencias([])).toBe(false);
   });
   it("RH edita colaboradores mas não postos", () => {
     expect(canEditColaboradores(["rh"])).toBe(true);
-    expect(canEditPostos(["rh"])).toBe(false);
+    expect(canEditPostos(["rh"])).toBe(true);
   });
 });

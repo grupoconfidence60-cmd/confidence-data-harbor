@@ -48,3 +48,8 @@
 ## Pedido de 13/11 — uniformes para reservas
 - [x] Permitir entrega sem posto, classificada como Reserva, preservando estoque, histórico e acesso por perfil.
 - [ ] Verificar formulário e gravação com acesso conectado — sessão do solicitante indisponível.
+
+## Pedido de 16/11 — posto de intermitentes
+- [ ] Criar o posto Intermitentes e reunir os colaboradores atualmente sem posto, sem gerar planilha de escala.
+- [ ] Exibir telefone e permitir classificar Disponível, Em ocupação ou Cobrindo alguém, com detalhe da ocupação/cobertura e atualização ao vivo.
+- [ ] Testar regras e o fluxo conectado, sem alterar as demais escalas.

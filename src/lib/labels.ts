@@ -80,7 +80,7 @@ export function canConfirmPresenca(roles: AppRole[]) {
   return roles.some((r) => ["admin", "rh"].includes(r));
 }
 export function canEditFerias(roles: AppRole[]) {
-  return roles.some((r) => ["admin", "gestor", "rh"].includes(r));
+  return roles.some((r) => ["admin", "gestor", "rh", "supervisor"].includes(r));
 }
 export function canEditOcorrencias(roles: AppRole[]) {
   return roles.some((r) => ["admin", "gestor", "rh", "supervisor"].includes(r));

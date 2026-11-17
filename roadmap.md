@@ -50,6 +50,6 @@
 - [ ] Verificar formulário e gravação com acesso conectado — sessão do solicitante indisponível.
 
 ## Pedido de 16/11 — posto de intermitentes
-- [ ] Criar o posto Intermitentes e reunir os colaboradores atualmente sem posto, sem gerar planilha de escala.
-- [ ] Exibir telefone e permitir classificar Disponível, Em ocupação ou Cobrindo alguém, com detalhe da ocupação/cobertura e atualização ao vivo.
-- [ ] Testar regras e o fluxo conectado, sem alterar as demais escalas.
+- [x] Criar o posto Intermitentes e reunir os 9 colaboradores ativos que estavam sem posto, sem gerar planilha de escala.
+- [x] Exibir telefone e permitir classificar Disponível, Em ocupação ou Cobrindo alguém, com detalhe da ocupação/cobertura e atualização ao vivo.
+- [x] Testar regras e o fluxo conectado: 28 testes passaram; lista, ausência de escala, gravação e restauração verificadas com usuário temporário de Administração, sem erros na tela.

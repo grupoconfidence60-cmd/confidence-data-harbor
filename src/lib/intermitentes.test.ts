@@ -10,9 +10,9 @@ describe("disponibilidade dos intermitentes", () => {
     });
   });
 
-  it("exige o posto ou a ocupação quando estiver Em ocupação", () => {
-    expect(validarDisponibilidade("ocupado", " ")).toBe("Informe o posto ou a ocupação atual.");
-    expect(validarDisponibilidade("ocupado", "West Shopping")).toBeNull();
+  it("exige selecionar o posto de destino quando estiver Em ocupação", () => {
+    expect(validarDisponibilidade("ocupado", "West Shopping")).toBe("Selecione o posto para alocar o intermitente.");
+    expect(validarDisponibilidade("ocupado", "", "posto-west-id")).toBeNull();
   });
 
   it("exige o nome da pessoa quando estiver Cobrindo alguém", () => {

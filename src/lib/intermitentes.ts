@@ -21,9 +21,9 @@ export function disponibilidadeValida(value: string): value is DisponibilidadeIn
   return value in DISPONIBILIDADE_INTERMITENTE;
 }
 
-export function validarDisponibilidade(status: string, detalhe: string): string | null {
+export function validarDisponibilidade(status: string, detalhe: string, postoDestinoId = ""): string | null {
   if (!disponibilidadeValida(status)) return "Selecione uma situação válida.";
-  if (status === "ocupado" && !detalhe.trim()) return "Informe o posto ou a ocupação atual.";
+  if (status === "ocupado" && !postoDestinoId) return "Selecione o posto para alocar o intermitente.";
   if (status === "cobrindo" && !detalhe.trim()) return "Informe quem está sendo coberto.";
   return null;
 }

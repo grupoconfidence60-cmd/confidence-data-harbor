@@ -1,10 +1,13 @@
 # Planejamento Confidence
 
+## Pedido atual — 17/11
+- [ ] Automatizar a exibição de férias e cobertura na planilha de escala, inclusive ao mudar de mês e sem depender de atualização manual.
+- [ ] Corrigir a alocação de intermitentes no posto selecionado, com validação e retorno claro de sucesso ou erro.
+- [ ] Testar as duas rotinas com os acessos permitidos e conferir a atualização em tempo real.
+
 ## Etapa entregue
 - [x] Comunicados da administração: publicação, consulta, confirmação de leitura, notificações e arquivamento; fluxo verificado com conta conectada.
-
-## Pedido atual
-- [x] Implementar equipamentos e uniformes: cadastro, entregas por colaborador/posto, devoluções, histórico e Excel, mantendo os layouts aprovados; permissões testadas.
+- [x] Equipamentos e uniformes: cadastro, entregas por colaborador/posto, devoluções, histórico e Excel, mantendo os layouts aprovados; permissões testadas.
 - [x] Checklists de inspeção: modelos, inspeção por posto com não conformidades, histórico e Excel.
 - [x] Importação de colaboradores por planilha (modelo, validação por linha, importação das válidas).
 - [x] Página detalhada do posto: visão geral (efetivo, presença do dia, ocorrências, supervisão, materiais, equipe) + planilha.
@@ -18,10 +21,9 @@
 
 ## Próximas etapas do planejamento
 - [x] Etapa 1: estoque e movimentações de materiais (16 itens cadastrados)
-- [ ] Etapa 2: contracheques
-- [ ] Etapa 3: cursos e treinamentos
-- [ ] Etapa 4: avaliação de desempenho
-
+- [ ] Etapa 2: contracheques — fora do pedido atual.
+- [ ] Etapa 3: cursos e treinamentos — fora do pedido atual.
+- [ ] Etapa 4: avaliação de desempenho — fora do pedido atual.
 
 ## Pedido de 06/11 — presença e faltas
 - [x] Escalados aparecem presentes por padrão; supervisores e gestores só registram exceções, com confirmação da Administração/RH.

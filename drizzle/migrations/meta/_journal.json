@@ -330,6 +330,13 @@
       "when": 1794919905987,
       "tag": "0046_disponibilidade_intermitentes",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1794922006766,
+      "tag": "0047_alocar_intermitentes_nos_postos",
+      "breakpoints": true
     }
   ]
 }

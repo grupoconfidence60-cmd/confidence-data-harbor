@@ -323,6 +323,13 @@
       "when": 1794838322743,
       "tag": "0045_libera_edicao_demais_telas",
       "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1794919905987,
+      "tag": "0046_disponibilidade_intermitentes",
+      "breakpoints": true
     }
   ]
 }

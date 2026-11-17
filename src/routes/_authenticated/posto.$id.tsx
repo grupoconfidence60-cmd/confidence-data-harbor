@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { PageHeader, RequireModule } from "@/components/page";
 import { PostoPlanilha } from "@/components/posto-planilha";
 import { PostoResumo } from "@/components/posto-resumo";
+import { Intermitentes } from "@/components/intermitentes";
+import { isPostoIntermitentes } from "@/lib/intermitentes";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
 
@@ -23,17 +25,20 @@ function Posto() {
   const { id } = Route.useParams();
   const [tab, setTab] = useState("geral");
   const { data, isPending, isError } = useQuery({ queryKey: ["posto", id], queryFn: async () => {
-    const result = await supabase.from("postos").select("id,nome,cliente,endereco,cidade,supervisor_id,supervisor_ids,ativo").eq("id", id).maybeSingle();
+    const result = await supabase.from("postos").select("id,nome,cliente,tipo,endereco,cidade,supervisor_id,supervisor_ids,ativo").eq("id", id).maybeSingle();
     if (result.error) throw result.error;
     return result.data;
   } });
+  const intermitentes = data ? isPostoIntermitentes(data) : false;
   return <div className="min-w-0">
     <Button asChild variant="ghost" size="sm" className="mb-4"><Link to="/postos"><ArrowLeft className="h-4 w-4" />Postos de serviço</Link></Button>
     {isPending ? <p className="text-muted-foreground">Carregando posto…</p> : isError || !data ? <p role="alert" className="text-muted-foreground">Posto não encontrado ou acesso indisponível.</p> : <>
-      <PageHeader title={data.nome} description={`${data.cliente ?? "Grupo Confidence"}${data.ativo ? "" : " · Inativo"}`} />
-      <div className="mb-4 flex items-start gap-2 text-sm text-muted-foreground"><MapPin className="h-4 w-4 shrink-0" /><span>{[data.endereco, data.cidade].filter(Boolean).join(" · ") || "Endereço não informado"}</span></div>
-      <Tabs value={tab} onValueChange={setTab} className="mb-4"><TabsList><TabsTrigger value="geral">Visão geral</TabsTrigger><TabsTrigger value="planilha">Planilha de escalas</TabsTrigger></TabsList></Tabs>
-      {tab === "geral" ? <PostoResumo postoId={data.id} /> : <PostoPlanilha posto={data} />}
+      <PageHeader title={data.nome} description={intermitentes ? "Disponibilidade e ocupação dos colaboradores, sem planilha de escala" : `${data.cliente ?? "Grupo Confidence"}${data.ativo ? "" : " · Inativo"}`} />
+      {!intermitentes && <div className="mb-4 flex items-start gap-2 text-sm text-muted-foreground"><MapPin className="h-4 w-4 shrink-0" /><span>{[data.endereco, data.cidade].filter(Boolean).join(" · ") || "Endereço não informado"}</span></div>}
+      {intermitentes ? <Intermitentes postoId={data.id} /> : <>
+        <Tabs value={tab} onValueChange={setTab} className="mb-4"><TabsList><TabsTrigger value="geral">Visão geral</TabsTrigger><TabsTrigger value="planilha">Planilha de escalas</TabsTrigger></TabsList></Tabs>
+        {tab === "geral" ? <PostoResumo postoId={data.id} /> : <PostoPlanilha posto={data} />}
+      </>}
     </>}
   </div>;
 }

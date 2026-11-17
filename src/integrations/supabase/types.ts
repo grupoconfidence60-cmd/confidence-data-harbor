@@ -118,6 +118,8 @@ export type Database = {
           cpf: string | null
           created_at: string
           data_admissao: string | null
+          disponibilidade_detalhe: string | null
+          disponibilidade_status: string
           email: string | null
           endereco: string | null
           funcao_id: string | null
@@ -139,6 +141,8 @@ export type Database = {
           cpf?: string | null
           created_at?: string
           data_admissao?: string | null
+          disponibilidade_detalhe?: string | null
+          disponibilidade_status?: string
           email?: string | null
           endereco?: string | null
           funcao_id?: string | null
@@ -160,6 +164,8 @@ export type Database = {
           cpf?: string | null
           created_at?: string
           data_admissao?: string | null
+          disponibilidade_detalhe?: string | null
+          disponibilidade_status?: string
           email?: string | null
           endereco?: string | null
           funcao_id?: string | null

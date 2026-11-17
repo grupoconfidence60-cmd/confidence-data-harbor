@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Pencil, MapPin, Table2 } from "lucide-react";
+import { Plus, Pencil, MapPin, Table2, UsersRound } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { PageHeader, RequireModule, EmptyState } from "@/components/page";
 import { useMe } from "@/lib/use-me";
 import { canEditPostos } from "@/lib/labels";
+import { isPostoIntermitentes } from "@/lib/intermitentes";
 import { geocodeEndereco } from "@/lib/geo.functions";
 
 export const Route = createFileRoute("/_authenticated/postos")({
@@ -174,7 +175,8 @@ function Postos() {
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {postosVisiveis.map((p) => {
             const n = data.colabs.filter((c) => c.posto_id === p.id && c.situacao === "ativo").length;
-            const low = n < p.efetivo_previsto;
+            const intermitentes = isPostoIntermitentes(p);
+            const low = !intermitentes && n < p.efetivo_previsto;
             const nomes = nomesSupervisores(p);
             return (
               <Card key={p.id} className={`border-blue-300 bg-[#1c4677] text-white [--background:#1c4677] [--muted-foreground:#ffffff] [--accent:#1a4a80] [--accent-foreground:#ffffff] [--border:#85baff] [--input:#85baff] [--ring:#c4e3ff] [--warning:#fef08a] ${!p.ativo ? "opacity-60" : ""}`}>
@@ -189,13 +191,13 @@ function Postos() {
                       <div className="break-words">{nomes.length ? nomes.join(", ") : "Não definido"}</div>
                       
                     </div>
-                    <div className={`shrink-0 text-right font-display text-2xl font-semibold ${low ? "text-warning" : ""}`}>{n}<span className="text-sm text-muted-foreground">/{p.efetivo_previsto}</span></div>
+                    <div className={`shrink-0 text-right font-display text-2xl font-semibold ${low ? "text-warning" : ""}`}>{n}<span className="text-sm text-muted-foreground">{intermitentes ? " na lista" : `/${p.efetivo_previsto}`}</span></div>
                   </div>
                   {!p.ativo && <div className="mt-2 text-xs">Inativo</div>}
-                  <div className={`mt-2 text-xs ${p.latitude != null ? "text-muted-foreground" : "text-warning"}`}>
+                  {!intermitentes && <div className={`mt-2 text-xs ${p.latitude != null ? "text-muted-foreground" : "text-warning"}`}>
                     {p.latitude != null ? `Ponto por GPS: raio de ${p.raio_metros} m` : "Ponto por GPS não configurado"}
-                  </div>
-                  <Button asChild variant="outline" className="mt-4 w-full border-blue-200 bg-blue-100 text-blue-950 hover:bg-blue-200 hover:text-blue-950 dark:bg-blue-100 dark:hover:bg-blue-200"><Link to="/posto/$id" params={{ id: p.id }}><Table2 className="h-4 w-4" />Planilha de colaboradores</Link></Button>
+                  </div>}
+                  <Button asChild variant="outline" className="mt-4 w-full border-blue-200 bg-blue-100 text-blue-950 hover:bg-blue-200 hover:text-blue-950 dark:bg-blue-100 dark:hover:bg-blue-200"><Link to="/posto/$id" params={{ id: p.id }}>{intermitentes ? <UsersRound className="h-4 w-4" /> : <Table2 className="h-4 w-4" />}{intermitentes ? "Colaboradores intermitentes" : "Planilha de colaboradores"}</Link></Button>
                 </CardContent>
               </Card>
             );

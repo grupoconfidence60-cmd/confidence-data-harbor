@@ -1,5 +1,10 @@
 # Planejamento Confidence
 
+## Revisão ampliada — 18/11
+- [ ] Revisar todas as visualizações e exportações da escala para manter férias e coberturas consistentes.
+- [ ] Revisar todos os fluxos de alocação e as rotinas automáticas relacionadas.
+- [ ] Corrigir divergências, testar e preservar registros já encerrados.
+
 ## Pedido atual — 17/11
 - [x] Automatizar a exibição de férias e cobertura na planilha de escala, inclusive ao mudar de mês e sem depender de atualização manual.
 - [x] Corrigir a alocação de intermitentes no posto selecionado, com validação e retorno claro de sucesso ou erro.

@@ -2,7 +2,7 @@ import { FuncaoBadge, FuncaoLegenda } from "@/components/funcao-badge";
 import { PlanilhaSupervisores, useSupervisoresEscala } from "@/components/planilha-supervisores";
 import { FUNCAO_BORDA, funcaoTom } from "@/lib/funcao-cores";
 import { createContext, useContext, useMemo, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 const CoberturaCtx = createContext<Map<string, { id: string; cobertura: string | null; data_inicio: string; data_fim: string; status: string }>>(new Map());
@@ -10,7 +10,7 @@ import { ArrowDown, ArrowUp, ArrowLeftRight, GripVertical, Moon, Pencil, Plus, S
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { monthDays, rosterGroup, type PlanilhaPerson, type PlanilhaRow } from "@/lib/planilha";
+import { mapFerias, rosterGroup, type FeriasPlanilha, type PlanilhaPerson, type PlanilhaRow } from "@/lib/planilha";
 import { escalaLabel } from "@/lib/escala-options";
 import logoAsset from "@/assets/logo-confidence.png.asset.json";
 
@@ -19,7 +19,7 @@ const formatarData = (value: string) => value.split("-").reverse().join("/");
 export type RosterEdit = { posicao?: string; hora_inicio?: string; hora_fim?: string; removido?: boolean; escala_tipo?: string; paridade?: string; turno?: string };
 type Props = {
   supervisorScope: string;
-  post: string; month: string; rows: PlanilhaRow[]; people: PlanilhaPerson[]; busy: boolean;
+  post: string; month: string; rows: PlanilhaRow[]; people: PlanilhaPerson[]; ferias: FeriasPlanilha[]; busy: boolean;
   save: (id: string, payload: RosterEdit) => Promise<boolean>;
   move: (id: string, type: "par" | "impar", turno: "diurno" | "noturno") => void;
   add: (type: "par" | "impar", turno: "diurno" | "noturno") => void;
@@ -31,31 +31,7 @@ export function RosterLists(props: Props) {
   const [over, setOver] = useState<string | null>(null);
   const [supervisorFilter, setSupervisorFilter] = useState("todos");
   const supervision = useSupervisoresEscala(props.supervisorScope);
-  const colaboradorIds = useMemo(() => [...new Set(props.rows.map((row) => row.colaborador_id))].sort(), [props.rows]);
-  const lastDay = monthDays(props.month);
-  const { data: feriasPeriodos = [], isError: feriasError } = useQuery({
-    queryKey: ["ferias", "planilha-cobertura", props.month, colaboradorIds],
-    enabled: lastDay > 0 && colaboradorIds.length > 0,
-    queryFn: async () => {
-      const { data, error } = await supabase.from("ferias")
-        .select("id,colaborador_id,cobertura,data_inicio,data_fim,status")
-        .in("colaborador_id", colaboradorIds)
-        .eq("tipo", "ferias")
-        .in("status", ["aprovada", "em_gozo", "concluida"])
-        .lte("data_inicio", `${props.month}-${String(lastDay).padStart(2, "0")}`)
-        .gte("data_fim", `${props.month}-01`)
-        .order("data_inicio");
-      if (error) throw error;
-      return data;
-    },
-  });
-  const feriasMes = useMemo(() => new Map(feriasPeriodos.map((f) => [f.colaborador_id, {
-    id: f.id,
-    cobertura: f.cobertura?.trim() || null,
-    data_inicio: f.data_inicio,
-    data_fim: f.data_fim,
-    status: f.status,
-  }])), [feriasPeriodos]);
+  const feriasMes = useMemo(() => mapFerias(props.ferias), [props.ferias]);
   const { post, busy } = props;
   const matchesSupervisor = (name: string) => supervisorFilter === "todos" || (supervisorFilter === "sem-supervisor" ? !name : supervisorFilter === `nome:${name}`);
   const groups = (["impar", "par"] as const).filter((type) => matchesSupervisor(supervision.saved[type]));
@@ -66,7 +42,6 @@ export function RosterLists(props: Props) {
   return <CoberturaCtx.Provider value={feriasMes}><div className="roster-lists">
     <PlanilhaSupervisores {...supervision} filter={supervisorFilter} onFilterChange={setSupervisorFilter} busy={busy} />
     <div className="mb-3"><FuncaoLegenda /></div>
-    {feriasError && <p role="alert" className="mb-3 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">Não foi possível atualizar as férias desta planilha. Recarregue a página para tentar novamente.</p>}
     {groups.length === 0 && rows.length === 0 && <div role="status" className="mb-4 flex min-h-24 items-center justify-center rounded-lg border bg-card p-4 text-sm text-muted-foreground">Nenhuma escala encontrada para este supervisor.</div>}
     <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
       {groups.map((type) => <section key={type} className="min-w-0" aria-label={`Planilha ${type === "par" ? "Par" : "Ímpar"}`}>

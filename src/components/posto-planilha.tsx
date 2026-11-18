@@ -1,5 +1,5 @@
 import { FuncaoBadge } from "@/components/funcao-badge";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeftRight, Download, Pencil, Plus, Search, UserMinus } from "lucide-react";
 import { toast } from "sonner";
@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/page";
-import { canManagePlanilha, dayStatus, downloadSchedule, monthDays, rosterMove, type PlanilhaRow, type PlanilhaPerson } from "@/lib/planilha";
+import { canManagePlanilha, dayStatus, dayStatusComFerias, downloadSchedule, feriasNoDia, mapFerias, monthDays, rosterMove, type PlanilhaRow, type PlanilhaPerson } from "@/lib/planilha";
 import { RosterLists, type RosterEdit } from "@/components/roster-lists";
 import { PlanilhaFerias } from "@/components/planilha-ferias";
 import { ESCALA_OPTIONS, escalaLabel, escalaFromJornada } from "@/lib/escala-options";
@@ -55,6 +55,27 @@ export function PostoPlanilha({ posto }: { posto: { id: string; nome: string; su
     const person = people.find((p) => p.id === r.colaborador_id);
     return (filter === "todos" || (r.escala_tipo ?? r.paridade) === filter) && `${person?.nome ?? ""} ${person?.matricula ?? ""}`.toLocaleLowerCase("pt-BR").includes(search.toLocaleLowerCase("pt-BR"));
   });
+  const feriasIds = useMemo(() => [...new Set([
+    ...rows.map((row) => row.colaborador_id),
+    ...people.filter((person) => person.posto_id === posto.id).map((person) => person.id),
+  ])].sort(), [rows, people, posto.id]);
+  const { data: feriasPeriodos = [], isError: feriasError } = useQuery({
+    queryKey: ["ferias", "planilha", posto.id, month, feriasIds],
+    enabled: allowed && monthDays(month) > 0 && feriasIds.length > 0,
+    queryFn: async () => {
+      const { data: periods, error } = await supabase.from("ferias")
+        .select("id,colaborador_id,data_inicio,data_fim,status,cobertura")
+        .in("colaborador_id", feriasIds)
+        .eq("tipo", "ferias")
+        .in("status", ["aprovada", "em_gozo", "concluida"])
+        .lte("data_inicio", `${month}-${String(monthDays(month)).padStart(2, "0")}`)
+        .gte("data_fim", `${month}-01`)
+        .order("data_inicio");
+      if (error) throw error;
+      return periods;
+    },
+  });
+  const feriasMap = useMemo(() => mapFerias(feriasPeriodos), [feriasPeriodos]);
   async function update(id: string, payload: RosterEdit & { ajustes?: Record<string, string> }) {
     if (busy) return false;
     setBusy(true);
@@ -96,7 +117,7 @@ export function PostoPlanilha({ posto }: { posto: { id: string; nome: string; su
   return <section className="mt-7 min-w-0">
     <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
       <div><h2 className="text-lg font-semibold">Planilha mensal de colaboradores</h2><div className="mt-2 flex flex-wrap gap-4 text-xs text-muted-foreground"><span>{rows.length} colaborador(es)</span><span>{rows.filter((r) => (r.escala_tipo ?? r.paridade) === "par").length} pares</span><span>{rows.filter((r) => (r.escala_tipo ?? r.paridade) === "impar").length} ímpares</span></div></div>
-      <div className="flex flex-wrap gap-2">{view === "dias" && <Button variant={swapMode ? "secondary" : "outline"} aria-pressed={swapMode} onClick={() => { setSwapMode(!swapMode); setSource(null); }}><ArrowLeftRight className="h-4 w-4" />Trocar plantões</Button>}<Button variant="outline" disabled={isPending || isError || busy} onClick={() => downloadSchedule(posto.nome, month, rows, people)}><Download className="h-4 w-4" />Baixar Excel</Button><Button disabled={isPending || isError || busy} onClick={() => setEditing(empty)}><Plus className="h-4 w-4" />Incluir colaborador</Button></div>
+      <div className="flex flex-wrap gap-2">{view === "dias" && <Button variant={swapMode ? "secondary" : "outline"} aria-pressed={swapMode} onClick={() => { setSwapMode(!swapMode); setSource(null); }}><ArrowLeftRight className="h-4 w-4" />Trocar plantões</Button>}<Button variant="outline" disabled={isPending || isError || feriasError || busy} onClick={() => downloadSchedule(posto.nome, month, rows, people, feriasPeriodos)}><Download className="h-4 w-4" />Baixar Excel</Button><Button disabled={isPending || isError || busy} onClick={() => setEditing(empty)}><Plus className="h-4 w-4" />Incluir colaborador</Button></div>
     </div>
     <div className="mb-4 flex flex-wrap items-end gap-3">
       <div className="space-y-2"><Label htmlFor="planilha-mes">Mês</Label><Input id="planilha-mes" className="w-44" type="month" value={month} disabled={busy} onChange={(e) => { if (e.target.value) { setMonth(e.target.value); setSource(null); } }} /></div>
@@ -105,16 +126,19 @@ export function PostoPlanilha({ posto }: { posto: { id: string; nome: string; su
       <Button variant="outline" className="self-end" aria-pressed={view === "dias"} onClick={() => setView(view === "listas" ? "dias" : "listas")}>{view === "listas" ? "Ver dias do mês" : "Ver colaboradores · Par / Ímpar"}</Button>
     </div>
     {!isPending && !isError && <PlanilhaFerias key={`${posto.id}:${month}`} postoId={posto.id} month={month} rows={rows} people={data?.people ?? []} />}
-    {isPending ? <p className="text-muted-foreground">Carregando planilha…</p> : isError ? <p className="text-destructive" role="alert">Não foi possível carregar a planilha.</p> : view === "listas" ? <RosterLists key={`${me?.id ?? ""}:${posto.id}:${month}`} supervisorScope={`${me?.id ?? ""}:${posto.id}:${month}`} post={posto.nome} month={month} rows={visible} people={people} busy={busy} save={update} reorder={(ids) => { void reorder(ids); }} move={(id, type, turno) => { void update(id, rosterMove(type, turno)); }} add={(type, turno) => setEditing({ ...empty, ...rosterMove(type, turno), hora_inicio: turno === "noturno" ? "18:00" : "06:00", hora_fim: turno === "noturno" ? "06:00" : "18:00" })} edit={(row) => setEditing({ ...row, hora_inicio: row.hora_inicio.slice(0, 5), hora_fim: row.hora_fim.slice(0, 5) })} /> : visible.length === 0 ? <EmptyState text="Nenhum colaborador nesta planilha." /> : <div className="max-w-full overflow-x-auto rounded-lg border bg-card">
+    {isPending ? <p className="text-muted-foreground">Carregando planilha…</p> : isError ? <p className="text-destructive" role="alert">Não foi possível carregar a planilha.</p> : view === "listas" ? <RosterLists key={`${me?.id ?? ""}:${posto.id}:${month}`} supervisorScope={`${me?.id ?? ""}:${posto.id}:${month}`} post={posto.nome} month={month} rows={visible} people={people} ferias={feriasPeriodos} busy={busy} save={update} reorder={(ids) => { void reorder(ids); }} move={(id, type, turno) => { void update(id, rosterMove(type, turno)); }} add={(type, turno) => setEditing({ ...empty, ...rosterMove(type, turno), hora_inicio: turno === "noturno" ? "18:00" : "06:00", hora_fim: turno === "noturno" ? "06:00" : "18:00" })} edit={(row) => setEditing({ ...row, hora_inicio: row.hora_inicio.slice(0, 5), hora_fim: row.hora_fim.slice(0, 5) })} /> : visible.length === 0 ? <EmptyState text="Nenhum colaborador nesta planilha." /> : <div className="max-w-full overflow-x-auto rounded-lg border bg-card">
       <table className="w-max min-w-full border-collapse text-xs">
         <thead><tr><th className="sticky left-0 z-20 w-64 min-w-64 border-b border-r bg-muted px-4 text-left">Colaborador / matrícula</th><th className="min-w-28 border-b px-3 text-left">Função</th><th className="min-w-32 border-b px-3 text-left">Escala / turno</th>{days.map((day) => <th key={day} className="w-10 min-w-10 border-b px-1 text-center"><div>{day.toString().padStart(2, "0")}</div><div className="mt-1 text-[10px] font-normal text-muted-foreground">{new Date(`${month}-${String(day).padStart(2, "0")}T12:00:00`).toLocaleDateString("pt-BR", { weekday: "short" }).slice(0, 3)}</div></th>)}<th className="min-w-20 border-b px-3">Plantões</th><th className="min-w-24 border-b px-3">Ações</th></tr></thead>
         <tbody>{visible.map((row) => {
           const person = people.find((p) => p.id === row.colaborador_id);
-          return <tr key={row.id} className="border-b last:border-b-0"><td className="sticky left-0 z-10 w-64 min-w-64 max-w-64 border-r bg-card px-4"><div className="break-words font-semibold">{person?.nome ?? "Colaborador indisponível"}</div><div className="mt-1 text-muted-foreground">{person?.matricula ?? "—"}</div></td><td className="max-w-40 px-3"><FuncaoBadge nome={person?.funcoes?.nome} /></td><td className="px-3"><div className="font-medium">{escalaLabel(row.escala_tipo ?? row.paridade)} · {row.turno === "diurno" ? "Diurno" : "Noturno"}</div><div className="mt-1 text-muted-foreground">{row.hora_inicio.slice(0, 5)}–{row.hora_fim.slice(0, 5)}</div></td>{days.map((day) => {
-            const status = dayStatus(row, day, month);
-            return <td key={day} className="px-1 text-center" onDragOver={(e) => { if (!busy) e.preventDefault(); }} onDrop={(e) => { e.preventDefault(); const raw = e.dataTransfer.getData("application/confidence-cell"); try { const cell = JSON.parse(raw); if (typeof cell.id === "string" && Number.isInteger(cell.day)) void swap({ id: row.id, day }, cell); } catch { setSource(null); } }}><Button draggable={!busy} onDragStart={(e) => { setSource({ id: row.id, day }); e.dataTransfer.setData("application/confidence-cell", JSON.stringify({ id: row.id, day })); e.dataTransfer.effectAllowed = "move"; }} onDragEnd={() => setSource(null)} size="icon" variant={status === "T" ? "secondary" : "ghost"} className={`h-8 w-8 cursor-grab active:cursor-grabbing ${status === "T" ? "text-primary" : "text-muted-foreground"} ${source?.id === row.id && source.day === day ? "ring-2 ring-primary" : ""}`} disabled={busy} title={`${person?.nome}: ${day}/${month.slice(5)}, ${status === "T" ? "Trabalho" : "Folga"}`} aria-label={`${person?.nome}, dia ${day}, ${status === "T" ? "Trabalho" : "Folga"}`} onClick={() => { if (swapMode) { if (source) void swap({ id: row.id, day }); else setSource({ id: row.id, day }); } else toggleDay(row, day); }}>{status}</Button></td>;
-          })}<td className="px-3 text-center font-semibold">{days.filter((day) => dayStatus(row, day, month) === "T").length}</td><td className="px-3"><div className="flex"><Button size="icon" variant="ghost" disabled={busy} title="Editar escala" aria-label={`Editar escala de ${person?.nome}`} onClick={() => setEditing({ ...row, hora_inicio: row.hora_inicio.slice(0, 5), hora_fim: row.hora_fim.slice(0, 5) })}><Pencil className="h-4 w-4" /></Button><Button size="icon" variant="ghost" disabled={busy} title="Retirar da planilha" aria-label={`Retirar ${person?.nome} da planilha`} onClick={() => { if (window.confirm(`Retirar ${person?.nome} da planilha de ${month}?`)) void update(row.id, { removido: true }); }}><UserMinus className="h-4 w-4 text-destructive" /></Button></div></td></tr>;
-        })}<tr className="bg-muted"><td className="sticky left-0 z-10 border-r bg-muted px-4 font-semibold" colSpan={3}>Efetivo previsto por dia</td>{days.map((day) => <td key={day} className="px-1 text-center font-semibold">{visible.filter((row) => dayStatus(row, day, month) === "T").length}</td>)}<td colSpan={2} /></tr></tbody>
+          const periodo = feriasMap.get(row.colaborador_id);
+          return <tr key={row.id} className="border-b last:border-b-0"><td className="sticky left-0 z-10 w-64 min-w-64 max-w-64 border-r bg-card px-4"><div className="break-words font-semibold">{person?.nome ?? "Colaborador indisponível"}</div><div className="mt-1 text-muted-foreground">{person?.matricula ?? "—"}</div>{periodo && <div className="mt-1 text-[11px] text-primary">Férias: {periodo.data_inicio.split("-").reverse().join("/")} a {periodo.data_fim.split("-").reverse().join("/")}<br />Cobertura: {periodo.cobertura || "não informada"}</div>}</td><td className="max-w-40 px-3"><FuncaoBadge nome={person?.funcoes?.nome} /></td><td className="px-3"><div className="font-medium">{escalaLabel(row.escala_tipo ?? row.paridade)} · {row.turno === "diurno" ? "Diurno" : "Noturno"}</div><div className="mt-1 text-muted-foreground">{row.hora_inicio.slice(0, 5)}–{row.hora_fim.slice(0, 5)}</div></td>{days.map((day) => {
+            const vacation = feriasNoDia(periodo, day, month);
+            const status = dayStatusComFerias(row, day, month, periodo);
+            const dayLabel = status === "FÉ" ? "Férias" : status === "T" ? "Trabalho" : "Folga";
+            return <td key={day} className="px-1 text-center" onDragOver={(e) => { if (!busy && !vacation) e.preventDefault(); }} onDrop={(e) => { if (vacation) return; e.preventDefault(); const raw = e.dataTransfer.getData("application/confidence-cell"); try { const cell = JSON.parse(raw); if (typeof cell.id === "string" && Number.isInteger(cell.day)) void swap({ id: row.id, day }, cell); } catch { setSource(null); } }}><Button draggable={!busy && !vacation} onDragStart={(e) => { setSource({ id: row.id, day }); e.dataTransfer.setData("application/confidence-cell", JSON.stringify({ id: row.id, day })); e.dataTransfer.effectAllowed = "move"; }} onDragEnd={() => setSource(null)} size="icon" variant={status === "T" ? "secondary" : "ghost"} className={`h-8 w-8 ${vacation ? "cursor-not-allowed text-warning" : "cursor-grab active:cursor-grabbing"} ${status === "T" ? "text-primary" : status === "F" ? "text-muted-foreground" : ""} ${source?.id === row.id && source.day === day ? "ring-2 ring-primary" : ""}`} disabled={busy || vacation} title={`${person?.nome}: ${day}/${month.slice(5)}, ${dayLabel}`} aria-label={`${person?.nome}, dia ${day}, ${dayLabel}`} onClick={() => { if (swapMode) { if (source) void swap({ id: row.id, day }); else setSource({ id: row.id, day }); } else toggleDay(row, day); }}>{status}</Button></td>;
+          })}<td className="px-3 text-center font-semibold">{days.filter((day) => dayStatusComFerias(row, day, month, periodo) === "T").length}</td><td className="px-3"><div className="flex"><Button size="icon" variant="ghost" disabled={busy} title="Editar escala" aria-label={`Editar escala de ${person?.nome}`} onClick={() => setEditing({ ...row, hora_inicio: row.hora_inicio.slice(0, 5), hora_fim: row.hora_fim.slice(0, 5) })}><Pencil className="h-4 w-4" /></Button><Button size="icon" variant="ghost" disabled={busy} title="Retirar da planilha" aria-label={`Retirar ${person?.nome} da planilha`} onClick={() => { if (window.confirm(`Retirar ${person?.nome} da planilha de ${month}?`)) void update(row.id, { removido: true }); }}><UserMinus className="h-4 w-4 text-destructive" /></Button></div></td></tr>;
+        })}<tr className="bg-muted"><td className="sticky left-0 z-10 border-r bg-muted px-4 font-semibold" colSpan={3}>Efetivo previsto por dia</td>{days.map((day) => <td key={day} className="px-1 text-center font-semibold">{visible.filter((row) => dayStatusComFerias(row, day, month, feriasMap.get(row.colaborador_id)) === "T").length}</td>)}<td colSpan={2} /></tr></tbody>
       </table>
     </div>}
     {editing && <PlanilhaDialog value={editing} people={candidates} postoId={posto.id} month={month} existing={data?.allocations ?? []} onClose={() => setEditing(null)} onSaved={() => qc.invalidateQueries({ queryKey: key })} />}

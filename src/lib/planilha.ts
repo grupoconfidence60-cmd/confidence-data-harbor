@@ -4,6 +4,7 @@ import { escalaLabel } from "./escala-options";
 
 export type PlanilhaRow = { id: string; colaborador_id: string; paridade: string; escala_tipo?: string | null | undefined; turno: string; hora_inicio: string; hora_fim: string; ajustes: unknown; observacoes: string; posicao?: string };
 export type PlanilhaPerson = { id: string; nome: string; matricula: string; funcoes: { nome: string } | null };
+export type FeriasPlanilha = { id: string; colaborador_id: string; data_inicio: string; data_fim: string; status: string; cobertura: string | null };
 
 export function rosterGroup(row: PlanilhaRow) {
   const type = row.escala_tipo ?? row.paridade;
@@ -12,12 +13,36 @@ export function rosterGroup(row: PlanilhaRow) {
 export function rosterMove(type: "par" | "impar", turno: "diurno" | "noturno") {
   return { escala_tipo: type, paridade: type, turno };
 }
-export function rosterWorkbook(post: string, month: string, rows: PlanilhaRow[], people: PlanilhaPerson[]) {
+
+export function mapFerias(periods: FeriasPlanilha[]) {
+  const ordered = [...periods].sort((a, b) => a.data_inicio.localeCompare(b.data_inicio) || a.data_fim.localeCompare(b.data_fim));
+  return new Map(ordered.map((period) => [period.colaborador_id, period]));
+}
+
+export function feriasNoDia(period: Pick<FeriasPlanilha, "data_inicio" | "data_fim"> | undefined, day: number, month: string) {
+  if (!period || !/^\d{4}-\d{2}$/.test(month) || monthDays(month) < day || day < 1) return false;
+  const date = `${month}-${String(day).padStart(2, "0")}`;
+  return period.data_inicio <= date && period.data_fim >= date;
+}
+
+export function dayStatusComFerias(row: Pick<PlanilhaRow, "paridade" | "ajustes" | "escala_tipo">, day: number, month: string, period?: Pick<FeriasPlanilha, "data_inicio" | "data_fim">): "T" | "F" | "FÉ" {
+  return feriasNoDia(period, day, month) ? "FÉ" : dayStatus(row, day, month);
+}
+
+const dataBR = (value: string) => value.split("-").reverse().join("/");
+export function feriasTexto(period: FeriasPlanilha) {
+  return `Férias ${dataBR(period.data_inicio)} a ${dataBR(period.data_fim)} · Cobertura: ${period.cobertura?.trim() || "não informada"}`;
+}
+
+export function rosterWorkbook(post: string, month: string, rows: PlanilhaRow[], people: PlanilhaPerson[], ferias: FeriasPlanilha[] = []) {
   const workbook = XLSX.utils.book_new();
+  const feriasMap = mapFerias(ferias);
   const grid: (string | number)[][] = [["Grupo Confidence — Escala de colaboradores"], ["Posto", post, "Mês", month], [], [`${post} · ÍMPAR`, "", "", "", "", `${post} · PAR`], ["Matrícula", "Nome", "Posição", "Horário", "", "Matrícula", "Nome", "Posição", "Horário"]];
   const cells = (row: PlanilhaRow) => {
     const person = people.find((p) => p.id === row.colaborador_id);
-    return [person?.matricula ?? "", person?.nome ?? "Colaborador indisponível", row.posicao ?? "", `${row.hora_inicio.slice(0, 5)} às ${row.hora_fim.slice(0, 5)}`];
+    const period = feriasMap.get(row.colaborador_id);
+    const nome = person?.nome ?? "Colaborador indisponível";
+    return [person?.matricula ?? "", period ? `${nome} — ${feriasTexto(period)}` : nome, row.posicao ?? "", `${row.hora_inicio.slice(0, 5)} às ${row.hora_fim.slice(0, 5)}`];
   };
   for (const turno of ["diurno", "noturno"]) {
     grid.push([turno.toUpperCase(), "", "", "", "", turno.toUpperCase()]);
@@ -34,11 +59,27 @@ export function rosterWorkbook(post: string, month: string, rows: PlanilhaRow[],
     others.forEach((r) => grid.push([...cells(r), escalaLabel(r.escala_tipo ?? r.paridade), r.turno === "noturno" ? "Noturno" : "Diurno"]));
   }
   const sheet = XLSX.utils.aoa_to_sheet(grid);
-  sheet["!cols"] = [12, 30, 24, 20, 4, 12, 30, 24, 20].map((wch) => ({ wch }));
+  sheet["!cols"] = [12, 46, 24, 20, 4, 12, 46, 24, 20].map((wch) => ({ wch }));
   sheet["!merges"] = [{ s: { r: 3, c: 0 }, e: { r: 3, c: 3 } }, { s: { r: 3, c: 5 }, e: { r: 3, c: 8 } }];
   XLSX.utils.book_append_sheet(workbook, sheet, "Colaboradores por escala");
-  const monthly = scheduleWorkbook(post, month, rows, people).Sheets["Escala mensal"];
+  const monthly = scheduleWorkbook(post, month, rows, people, ferias).Sheets["Escala mensal"];
   if (monthly) XLSX.utils.book_append_sheet(workbook, monthly, "Escala mensal");
+  if (ferias.length) {
+    const statusLabels: Record<string, string> = { solicitada: "Solicitada", aprovada: "Aprovada", em_gozo: "Em gozo", concluida: "Concluída", recusada: "Recusada" };
+    const scaleIds = new Set(rows.map((row) => row.colaborador_id));
+    const vacationGrid: (string | number)[][] = [
+      ["Grupo Confidence — Férias e coberturas"], ["Posto", post, "Mês", month], [],
+      ["Matrícula", "Colaborador", "Início", "Fim", "Situação", "Cobertura", "Na escala"],
+      ...ferias.map((period) => {
+        const person = people.find((p) => p.id === period.colaborador_id);
+        return [person?.matricula ?? "", person?.nome ?? "Colaborador indisponível", dataBR(period.data_inicio), dataBR(period.data_fim), statusLabels[period.status] ?? period.status, period.cobertura?.trim() || "Não informada", scaleIds.has(period.colaborador_id) ? "Sim" : "Fora da planilha"];
+      }),
+    ];
+    const vacationSheet = XLSX.utils.aoa_to_sheet(vacationGrid);
+    vacationSheet["!cols"] = [14, 36, 14, 14, 16, 36, 20].map((wch) => ({ wch }));
+    vacationSheet["!autofilter"] = { ref: `A4:G${vacationGrid.length}` };
+    XLSX.utils.book_append_sheet(workbook, vacationSheet, "Férias e coberturas");
+  }
   return workbook;
 }
 
@@ -64,27 +105,30 @@ export function dayStatus(row: Pick<PlanilhaRow, "paridade" | "ajustes" | "escal
   }
   return (day % 2 === 0) === (type === "par") ? "T" : "F";
 }
-export function scheduleWorkbook(post: string, month: string, rows: PlanilhaRow[], people: PlanilhaPerson[]) {
+export function scheduleWorkbook(post: string, month: string, rows: PlanilhaRow[], people: PlanilhaPerson[], ferias: FeriasPlanilha[] = []) {
   const days = Array.from({ length: monthDays(month) }, (_, i) => i + 1);
+  const feriasMap = mapFerias(ferias);
   const headers = ["Matrícula", "Colaborador", "Função", "Escala", "Turno", "Entrada", "Saída", ...days.map(String), "Plantões previstos", "Observações"];
-  const grid: (string | number)[][] = [["Grupo Confidence — Escala mensal"], ["Posto", post, "Mês", month], ["T = Trabalho previsto", "F = Folga prevista"], headers];
+  const grid: (string | number)[][] = [["Grupo Confidence — Escala mensal"], ["Posto", post, "Mês", month], ["T = Trabalho previsto", "F = Folga prevista", "FÉ = Férias"], headers];
   for (const row of rows) {
     const person = people.find((p) => p.id === row.colaborador_id);
-    grid.push([person?.matricula ?? "", person?.nome ?? "Colaborador indisponível", person?.funcoes?.nome ?? "", escalaLabel(row.escala_tipo ?? row.paridade), row.turno === "noturno" ? "Noturno" : "Diurno", row.hora_inicio.slice(0, 5), row.hora_fim.slice(0, 5), ...days.map((d) => dayStatus(row, d, month)), "", row.observacoes]);
+    const period = feriasMap.get(row.colaborador_id);
+    const observacoes = [row.observacoes, period ? feriasTexto(period) : ""].filter(Boolean).join(" | ");
+    grid.push([person?.matricula ?? "", person?.nome ?? "Colaborador indisponível", person?.funcoes?.nome ?? "", escalaLabel(row.escala_tipo ?? row.paridade), row.turno === "noturno" ? "Noturno" : "Diurno", row.hora_inicio.slice(0, 5), row.hora_fim.slice(0, 5), ...days.map((d) => dayStatusComFerias(row, d, month, period)), "", observacoes]);
   }
   const sheet = XLSX.utils.aoa_to_sheet(grid);
   rows.forEach((row, i) => {
     const r = i + 5;
-    sheet[XLSX.utils.encode_cell({ r: r - 1, c: 7 + days.length })] = { t: "n", v: days.filter((d) => dayStatus(row, d, month) === "T").length, f: `COUNTIF(H${r}:${XLSX.utils.encode_col(6 + days.length)}${r},"T")` };
+    sheet[XLSX.utils.encode_cell({ r: r - 1, c: 7 + days.length })] = { t: "n", v: days.filter((d) => dayStatusComFerias(row, d, month, feriasMap.get(row.colaborador_id)) === "T").length, f: `COUNTIF(H${r}:${XLSX.utils.encode_col(6 + days.length)}${r},"T")` };
   });
-  sheet["!cols"] = headers.map((_, i) => ({ wch: i === 1 ? 36 : i === 2 || i === headers.length - 1 ? 28 : i >= 7 && i < 7 + days.length ? 4 : 18 }));
+  sheet["!cols"] = headers.map((_, i) => ({ wch: i === 1 ? 36 : i === 2 || i === headers.length - 1 ? 48 : i >= 7 && i < 7 + days.length ? 5 : 18 }));
   sheet["!autofilter"] = { ref: `A4:${XLSX.utils.encode_col(headers.length - 1)}${Math.max(4, grid.length)}` };
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, sheet, "Escala mensal");
   return workbook;
 }
-export function downloadSchedule(post: string, month: string, rows: PlanilhaRow[], people: PlanilhaPerson[]) {
-  const bytes = XLSX.write(rosterWorkbook(post, month, rows, people), { bookType: "xlsx", type: "array" });
+export function downloadSchedule(post: string, month: string, rows: PlanilhaRow[], people: PlanilhaPerson[], ferias: FeriasPlanilha[] = []) {
+  const bytes = XLSX.write(rosterWorkbook(post, month, rows, people, ferias), { bookType: "xlsx", type: "array" });
   const url = URL.createObjectURL(new Blob([bytes], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }));
   const link = document.createElement("a");
   link.href = url;

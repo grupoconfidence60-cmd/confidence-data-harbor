@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { monthDays } from "@/lib/planilha";
 
-type Person = { id: string; nome: string; matricula: string; situacao: string };
+type Person = { id: string; nome: string; matricula: string; situacao: string; posto_id?: string | null };
 type Props = {
   postoId: string;
   month: string;
@@ -19,7 +19,11 @@ type Props = {
 const fmt = (date: string) => new Date(`${date}T12:00:00`).toLocaleDateString("pt-BR");
 
 export function PlanilhaFerias({ postoId, month, rows, people }: Props) {
-  const ids = [...new Set(rows.map((row) => row.colaborador_id))].sort();
+  const scaleIds = new Set(rows.map((row) => row.colaborador_id));
+  const ids = [...new Set([
+    ...scaleIds,
+    ...people.filter((person) => person.posto_id === postoId).map((person) => person.id),
+  ])].sort();
   const validMonth = /^\d{4}-\d{2}$/.test(month) && monthDays(month) > 0;
   const { data = [], isPending, isError, refetch } = useQuery({
     queryKey: ["ferias", "planilha", postoId, month, ids],
@@ -40,7 +44,7 @@ export function PlanilhaFerias({ postoId, month, rows, people }: Props) {
   const now = new Date();
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
   const missing = month === today.slice(0, 7)
-    ? people.filter((person) => ids.includes(person.id) && person.situacao === "ferias" && !data.some((period) => period.colaborador_id === person.id))
+    ? people.filter((person) => scaleIds.has(person.id) && person.situacao === "ferias" && !data.some((period) => period.colaborador_id === person.id))
     : [];
 
   if (!validMonth || ids.length === 0) return null;
@@ -48,7 +52,7 @@ export function PlanilhaFerias({ postoId, month, rows, people }: Props) {
   return <section className="mb-5 space-y-3 rounded-lg border bg-card p-4 text-card-foreground" aria-label="Férias e coberturas da planilha">
     <div className="space-y-1">
       <h3 className="font-semibold">Férias e coberturas · {month.slice(5)}/{month.slice(0, 4)}</h3>
-      <p className="text-sm text-muted-foreground">Colaboradores incluídos nesta planilha com férias confirmadas no mês. Informar a cobertura não altera os plantões.</p>
+      <p className="text-sm text-muted-foreground">Colaboradores deste posto ou desta planilha com férias confirmadas no mês. Informar a cobertura não altera os plantões.</p>
     </div>
     {isPending ? <p className="text-sm text-muted-foreground" role="status">Carregando férias…</p> : isError ? <div className="flex flex-wrap items-center gap-3" role="alert">
       <p className="text-sm text-destructive">Não foi possível carregar as férias deste mês.</p>
@@ -65,7 +69,7 @@ export function PlanilhaFerias({ postoId, month, rows, people }: Props) {
                 <p className="font-medium">{person?.nome ?? "Colaborador indisponível"}</p>
                 <p className="text-xs text-muted-foreground">Matrícula: {person?.matricula ?? "—"}</p>
               </div>
-              <Badge variant={active ? "default" : "secondary"}>{active ? "Em férias agora" : period.data_fim < today || period.status === "concluida" ? "Férias encerradas" : "Férias programadas"}</Badge>
+              <div className="flex flex-wrap justify-end gap-1.5"><Badge variant={active ? "default" : "secondary"}>{active ? "Em férias agora" : period.data_fim < today || period.status === "concluida" ? "Férias encerradas" : "Férias programadas"}</Badge>{!scaleIds.has(period.colaborador_id) && <Badge variant="outline">Fora da planilha</Badge>}</div>
             </div>
             <p className="text-sm text-muted-foreground">{fmt(period.data_inicio)} a {fmt(period.data_fim)}</p>
             <CoberturaForm key={`${period.id}:${period.cobertura ?? ""}`} feriasId={period.id} inicial={period.cobertura ?? ""} nomeColaborador={person?.nome ?? "colaborador"} />

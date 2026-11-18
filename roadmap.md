@@ -1,9 +1,9 @@
 # Planejamento Confidence
 
 ## Pedido atual — 17/11
-- [ ] Automatizar a exibição de férias e cobertura na planilha de escala, inclusive ao mudar de mês e sem depender de atualização manual.
-- [ ] Corrigir a alocação de intermitentes no posto selecionado, com validação e retorno claro de sucesso ou erro.
-- [ ] Testar as duas rotinas com os acessos permitidos e conferir a atualização em tempo real.
+- [x] Automatizar a exibição de férias e cobertura na planilha de escala, inclusive ao mudar de mês e sem depender de atualização manual.
+- [x] Corrigir a alocação de intermitentes no posto selecionado, com validação e retorno claro de sucesso ou erro.
+- [x] Testar as duas rotinas com acesso de Administração e canal ao vivo conectado; registro temporário removido após a verificação.
 
 ## Etapa entregue
 - [x] Comunicados da administração: publicação, consulta, confirmação de leitura, notificações e arquivamento; fluxo verificado com conta conectada.

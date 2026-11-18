@@ -1,23 +1,25 @@
 import { FuncaoBadge, FuncaoLegenda } from "@/components/funcao-badge";
 import { PlanilhaSupervisores, useSupervisoresEscala } from "@/components/planilha-supervisores";
 import { FUNCAO_BORDA, funcaoTom } from "@/lib/funcao-cores";
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-const CoberturaCtx = createContext<Map<string, { id: string; cobertura: string | null }>>(new Map());
+const CoberturaCtx = createContext<Map<string, { id: string; cobertura: string | null; data_inicio: string; data_fim: string; status: string }>>(new Map());
 import { ArrowDown, ArrowUp, ArrowLeftRight, GripVertical, Moon, Pencil, Plus, Save, Sun, UserMinus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { rosterGroup, type PlanilhaPerson, type PlanilhaRow } from "@/lib/planilha";
+import { monthDays, rosterGroup, type PlanilhaPerson, type PlanilhaRow } from "@/lib/planilha";
 import { escalaLabel } from "@/lib/escala-options";
 import logoAsset from "@/assets/logo-confidence.png.asset.json";
+
+const formatarData = (value: string) => value.split("-").reverse().join("/");
 
 export type RosterEdit = { posicao?: string; hora_inicio?: string; hora_fim?: string; removido?: boolean; escala_tipo?: string; paridade?: string; turno?: string };
 type Props = {
   supervisorScope: string;
-  post: string; rows: PlanilhaRow[]; people: PlanilhaPerson[]; busy: boolean;
+  post: string; month: string; rows: PlanilhaRow[]; people: PlanilhaPerson[]; busy: boolean;
   save: (id: string, payload: RosterEdit) => Promise<boolean>;
   move: (id: string, type: "par" | "impar", turno: "diurno" | "noturno") => void;
   add: (type: "par" | "impar", turno: "diurno" | "noturno") => void;
@@ -29,11 +31,31 @@ export function RosterLists(props: Props) {
   const [over, setOver] = useState<string | null>(null);
   const [supervisorFilter, setSupervisorFilter] = useState("todos");
   const supervision = useSupervisoresEscala(props.supervisorScope);
-  const hoje = new Date().toLocaleDateString("en-CA");
-  const { data: feriasHoje } = useQuery({ queryKey: ["ferias", "planilha-cobertura", hoje], queryFn: async () => {
-    const { data } = await supabase.from("ferias").select("id, colaborador_id, cobertura").in("status", ["aprovada", "em_gozo"]).neq("tipo", "abono").lte("data_inicio", hoje).gte("data_fim", hoje);
-    return new Map((data ?? []).map((f) => [f.colaborador_id, { id: f.id, cobertura: f.cobertura?.trim() || null }]));
-  } });
+  const colaboradorIds = useMemo(() => [...new Set(props.rows.map((row) => row.colaborador_id))].sort(), [props.rows]);
+  const lastDay = monthDays(props.month);
+  const { data: feriasPeriodos = [], isError: feriasError } = useQuery({
+    queryKey: ["ferias", "planilha-cobertura", props.month, colaboradorIds],
+    enabled: lastDay > 0 && colaboradorIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("ferias")
+        .select("id,colaborador_id,cobertura,data_inicio,data_fim,status")
+        .in("colaborador_id", colaboradorIds)
+        .eq("tipo", "ferias")
+        .in("status", ["aprovada", "em_gozo", "concluida"])
+        .lte("data_inicio", `${props.month}-${String(lastDay).padStart(2, "0")}`)
+        .gte("data_fim", `${props.month}-01`)
+        .order("data_inicio");
+      if (error) throw error;
+      return data;
+    },
+  });
+  const feriasMes = useMemo(() => new Map(feriasPeriodos.map((f) => [f.colaborador_id, {
+    id: f.id,
+    cobertura: f.cobertura?.trim() || null,
+    data_inicio: f.data_inicio,
+    data_fim: f.data_fim,
+    status: f.status,
+  }])), [feriasPeriodos]);
   const { post, busy } = props;
   const matchesSupervisor = (name: string) => supervisorFilter === "todos" || (supervisorFilter === "sem-supervisor" ? !name : supervisorFilter === `nome:${name}`);
   const groups = (["impar", "par"] as const).filter((type) => matchesSupervisor(supervision.saved[type]));
@@ -41,9 +63,10 @@ export function RosterLists(props: Props) {
     const group = rosterGroup(row);
     return matchesSupervisor(group === "outras" ? "" : supervision.saved[group]);
   });
-  return <CoberturaCtx.Provider value={feriasHoje ?? new Map()}><div className="roster-lists">
+  return <CoberturaCtx.Provider value={feriasMes}><div className="roster-lists">
     <PlanilhaSupervisores {...supervision} filter={supervisorFilter} onFilterChange={setSupervisorFilter} busy={busy} />
     <div className="mb-3"><FuncaoLegenda /></div>
+    {feriasError && <p role="alert" className="mb-3 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">Não foi possível atualizar as férias desta planilha. Recarregue a página para tentar novamente.</p>}
     {groups.length === 0 && rows.length === 0 && <div role="status" className="mb-4 flex min-h-24 items-center justify-center rounded-lg border bg-card p-4 text-sm text-muted-foreground">Nenhuma escala encontrada para este supervisor.</div>}
     <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
       {groups.map((type) => <section key={type} className="min-w-0" aria-label={`Planilha ${type === "par" ? "Par" : "Ímpar"}`}>
@@ -66,14 +89,13 @@ export function RosterLists(props: Props) {
         })}
       </section>)}
     </div>
-    {rows.some((r) => rosterGroup(r) === "outras") && <section className="mt-6"><h3 className="mb-3 text-sm font-semibold">Outras escalas</h3><div className="overflow-x-auto border bg-card"><table className="w-full"><thead><tr><th className="px-3 text-left">Mat.</th><th className="px-3 text-left">Nome</th><th className="px-3 text-left">Posição</th><th className="px-3 text-left">Escala / turno</th><th className="px-3 text-left">Horário</th><th>Ações</th></tr></thead><tbody>{rows.filter((r) => rosterGroup(r) === "outras").map((r) => { const person = props.people.find((p) => p.id === r.colaborador_id); return <tr key={r.id} className="border-t"><td className="px-3">{person?.matricula}</td><td className="px-3">{person?.nome} <FuncaoBadge nome={person?.funcoes?.nome} /></td><td className="px-3">{r.posicao || "—"}</td><td className="px-3">{escalaLabel(r.escala_tipo ?? r.paridade)} · {r.turno}</td><td className="px-3">{r.hora_inicio.slice(0, 5)}–{r.hora_fim.slice(0, 5)}</td><td><Button size="icon" variant="ghost" title="Editar escala" aria-label={`Editar escala de ${person?.nome}`} onClick={() => props.edit(r)}><Pencil /></Button><Button size="icon" variant="ghost" title="Retirar da planilha" aria-label={`Retirar ${person?.nome}`} onClick={() => { if (window.confirm(`Retirar ${person?.nome} desta planilha?`)) void props.save(r.id, { removido: true }); }}><UserMinus /></Button></td></tr>; })}</tbody></table></div></section>}
+    {rows.some((r) => rosterGroup(r) === "outras") && <section className="mt-6"><h3 className="mb-3 text-sm font-semibold">Outras escalas</h3><div className="overflow-x-auto border bg-card"><table className="w-full"><thead><tr><th className="px-3 text-left">Mat.</th><th className="px-3 text-left">Nome</th><th className="px-3 text-left">Posição</th><th className="px-3 text-left">Escala / turno</th><th className="px-3 text-left">Horário</th><th>Ações</th></tr></thead><tbody>{rows.filter((r) => rosterGroup(r) === "outras").map((r) => { const person = props.people.find((p) => p.id === r.colaborador_id); const periodo = feriasMes.get(r.colaborador_id); return <tr key={r.id} className="border-t"><td className="px-3">{person?.matricula}</td><td className="px-3">{person?.nome} <FuncaoBadge nome={person?.funcoes?.nome} />{periodo && <div className="mt-1 rounded border border-dashed border-primary/40 bg-primary/5 p-1.5 text-[11px] text-primary"><strong>Férias no mês:</strong> {formatarData(periodo.data_inicio)} a {formatarData(periodo.data_fim)}<br /><strong>Cobertura:</strong> {periodo.cobertura ?? "não informada"}</div>}</td><td className="px-3">{r.posicao || "—"}</td><td className="px-3">{escalaLabel(r.escala_tipo ?? r.paridade)} · {r.turno}</td><td className="px-3">{r.hora_inicio.slice(0, 5)}–{r.hora_fim.slice(0, 5)}</td><td><Button size="icon" variant="ghost" title="Editar escala" aria-label={`Editar escala de ${person?.nome}`} onClick={() => props.edit(r)}><Pencil /></Button><Button size="icon" variant="ghost" title="Retirar da planilha" aria-label={`Retirar ${person?.nome}`} onClick={() => { if (window.confirm(`Retirar ${person?.nome} desta planilha?`)) void props.save(r.id, { removido: true }); }}><UserMinus /></Button></td></tr>; })}</tbody></table></div></section>}
   </div></CoberturaCtx.Provider>;
 }
 function RosterLine({ row, person, props, dragged, onDrag, onEnd, onMove, first, last }: { onMove: (dir: -1 | 1) => void; first: boolean; last: boolean; row: PlanilhaRow; person: PlanilhaPerson | undefined; props: Props; dragged: boolean; onDrag: (e: React.DragEvent) => void; onEnd: () => void }) {
   const [draft, setDraft] = useState({ posicao: row.posicao ?? "", hora_inicio: row.hora_inicio.slice(0, 5), hora_fim: row.hora_fim.slice(0, 5) });
   const [editing, setEditing] = useState(false);
   const coberturas = useContext(CoberturaCtx);
-  const emFerias = !!person && coberturas.has(person.id);
   const ferias = person ? coberturas.get(person.id) : undefined;
   const cobertura = ferias?.cobertura ?? null;
   const qc = useQueryClient();
@@ -81,7 +103,7 @@ function RosterLine({ row, person, props, dragged, onDrag, onEnd, onMove, first,
   const name = person?.nome ?? "Colaborador indisponível";
   return <tr className={`border-t ${FUNCAO_BORDA[funcaoTom(person?.funcoes?.nome)]} ${dragged ? "opacity-40" : "hover:bg-accent/40"}`}>
     <td className="px-2"><div className="flex items-center gap-1"><Button size="icon" variant="ghost" className="h-7 w-5 shrink-0 cursor-grab" disabled={props.busy} draggable={!props.busy} onDragStart={onDrag} onDragEnd={onEnd} title={`Arrastar ${name}`} aria-label={`Arrastar ${name}`}><GripVertical /></Button><span className="break-all text-[11px]">{person?.matricula ?? "—"}</span></div></td>
-    <td className="px-2"><span className="block break-words text-xs font-semibold uppercase">{name}</span>{person?.funcoes?.nome && <FuncaoBadge nome={person.funcoes.nome} className="mt-0.5" />}{emFerias && <div className="mt-1 rounded border border-dashed border-primary/40 bg-primary/5 p-1"><span className="block text-[10px] font-semibold uppercase text-primary">De férias · Cobertura</span><Select value={cobertura ?? ""} disabled={props.busy} onValueChange={(v) => void definirCobertura(v)}><SelectTrigger className="mt-0.5 h-7 text-[11px]" aria-label={`Quem cobre as férias de ${name}`}><SelectValue placeholder="Selecionar quem cobre" /></SelectTrigger><SelectContent>{cobertura && !props.people.some((p) => p.nome === cobertura) && <SelectItem value={cobertura}>{cobertura}</SelectItem>}{props.people.filter((p) => p.id !== person?.id).sort((a, b) => a.nome.localeCompare(b.nome)).map((p) => <SelectItem key={p.id} value={p.nome}>{p.nome}{p.matricula ? ` · ${p.matricula}` : ""}</SelectItem>)}</SelectContent></Select></div>}</td>
+    <td className="px-2"><span className="block break-words text-xs font-semibold uppercase">{name}</span>{person?.funcoes?.nome && <FuncaoBadge nome={person.funcoes.nome} className="mt-0.5" />}{ferias && <div className="mt-1 rounded border border-dashed border-primary/40 bg-primary/5 p-1"><span className="block text-[10px] font-semibold uppercase text-primary">Férias no mês · {formatarData(ferias.data_inicio)} a {formatarData(ferias.data_fim)}</span><span className="mt-0.5 block text-[10px] text-muted-foreground">Cobertura</span><Select value={cobertura ?? ""} disabled={props.busy} onValueChange={(v) => void definirCobertura(v)}><SelectTrigger className="mt-0.5 h-7 text-[11px]" aria-label={`Quem cobre as férias de ${name}`}><SelectValue placeholder="Selecionar quem cobre" /></SelectTrigger><SelectContent>{cobertura && !props.people.some((p) => p.nome === cobertura) && <SelectItem value={cobertura}>{cobertura}</SelectItem>}{props.people.filter((p) => p.id !== person?.id).sort((a, b) => a.nome.localeCompare(b.nome)).map((p) => <SelectItem key={p.id} value={p.nome}>{p.nome}{p.matricula ? ` · ${p.matricula}` : ""}</SelectItem>)}</SelectContent></Select></div>}</td>
     <td className="px-2">{editing ? <Input aria-label={`Posição de ${name}`} className="h-8 text-xs" value={draft.posicao} disabled={props.busy} onChange={(e) => setDraft({ ...draft, posicao: e.target.value })} /> : <span className="block break-words text-xs uppercase">{row.posicao || "—"}</span>}</td>
     <td className="px-2">{editing ? <div className="space-y-1"><Input type="time" aria-label={`Entrada de ${name}`} className="h-7 px-1 text-xs" value={draft.hora_inicio} onChange={(e) => setDraft({ ...draft, hora_inicio: e.target.value })} /><Input type="time" aria-label={`Saída de ${name}`} className="h-7 px-1 text-xs" value={draft.hora_fim} onChange={(e) => setDraft({ ...draft, hora_fim: e.target.value })} /></div> : <span className="text-[11px]">{row.hora_inicio.slice(0, 5)} às {row.hora_fim.slice(0, 5)}</span>}</td>
     <td className="px-1"><div className="flex flex-wrap gap-0.5">

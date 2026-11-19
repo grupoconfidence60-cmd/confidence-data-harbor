@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canManagePlanilha, dayStatus, monthDays, rosterGroup, rosterMove, rosterWorkbook, scheduleWorkbook } from "./planilha";
+import { canManagePlanilha, dayStatus, dayStatusComFerias, monthDays, rosterGroup, rosterMove, rosterWorkbook, scheduleWorkbook } from "./planilha";
 
 describe("planilha mensal por posto", () => {
   const row = { id: "1", colaborador_id: "c", paridade: "impar", escala_tipo: "impar", turno: "diurno", hora_inicio: "07:00", hora_fim: "19:00", ajustes: { "1": "F" }, observacoes: "", posicao: "Portaria" };
@@ -71,5 +71,26 @@ describe("planilha mensal por posto", () => {
     expect(sheet["AI4"].v).toBe("28");
     expect(sheet["AJ5"].f).toBe('COUNTIF(H5:AI5,"T")');
     expect(sheet["AJ5"].v).toBe(14);
+  });
+  it("marca FÉ nos dias de férias, desconta os plantões previstos e exporta a cobertura", () => {
+    const period = { id: "f1", colaborador_id: "c", data_inicio: "2026-11-12", data_fim: "2026-12-11", status: "em_gozo", cobertura: "Mariana" };
+    const vacationRow = { ...row, paridade: "par", escala_tipo: "par", ajustes: {} };
+    const person = { id: "c", nome: "Pessoa Ímpar", matricula: "807", funcoes: null };
+    expect(dayStatus(vacationRow, 12, "2026-11")).toBe("T");
+    expect(dayStatusComFerias(vacationRow, 12, "2026-11", period)).toBe("FÉ");
+    expect(dayStatusComFerias(vacationRow, 13, "2026-11", period)).toBe("FÉ");
+    expect(dayStatusComFerias(vacationRow, 10, "2026-11", period)).toBe("T");
+    const book = rosterWorkbook("West", "2026-11", [vacationRow], [person], [period]);
+    expect(book.Sheets["Escala mensal"]?.["S5"].v).toBe("FÉ");
+    expect(book.Sheets["Escala mensal"]?.["AL5"].v).toBe(5);
+    expect(book.Sheets["Colaboradores por escala"]?.["G7"].v).toContain("Cobertura: Mariana");
+    expect(book.Sheets["Férias e coberturas"]?.["F5"].v).toBe("Mariana");
+    expect(book.Sheets["Férias e coberturas"]?.["G5"].v).toBe("Sim");
+  });
+  it("identifica no Excel quem tem férias mas está fora da planilha", () => {
+    const period = { id: "f2", colaborador_id: "c", data_inicio: "2026-11-12", data_fim: "2026-12-11", status: "em_gozo", cobertura: null };
+    const book = rosterWorkbook("West", "2026-11", [], [{ id: "c", nome: "Pessoa", matricula: "807", funcoes: null }], [period]);
+    expect(book.Sheets["Férias e coberturas"]?.["G5"].v).toBe("Fora da planilha");
+    expect(book.Sheets["Férias e coberturas"]?.["F5"].v).toBe("Não informada");
   });
 });

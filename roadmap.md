@@ -1,9 +1,9 @@
 # Planejamento Confidence
 
 ## Revisão ampliada — 18/11
-- [ ] Revisar todas as visualizações e exportações da escala para manter férias e coberturas consistentes.
-- [ ] Revisar todos os fluxos de alocação e as rotinas automáticas relacionadas.
-- [ ] Corrigir divergências, testar e preservar registros já encerrados.
+- [x] Revisar listas Par/Ímpar, outras escalas, dias do mês, modelos, visão geral, presença diária e Excel; férias e coberturas agora seguem o período em todas essas visões.
+- [x] Revisar Intermitentes, Reservas, transferência direta pelo cadastro, geração mensal, rotina diária de férias e cobertura; transferências futuras sincronizam a disponibilidade.
+- [x] Validar dias FÉ, presença atual e histórica, Excel baixado e transferência nas duas direções; 67 testes passaram, nenhum erro no navegador e registros temporários removidos.
 
 ## Pedido atual — 17/11
 - [x] Automatizar a exibição de férias e cobertura na planilha de escala, inclusive ao mudar de mês e sem depender de atualização manual.

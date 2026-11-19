@@ -35,7 +35,7 @@ export const Route = createFileRoute("/_authenticated/presenca")({
 
 const STATUS = ["presente", "falta", "falta_justificada", "atestado", "folga", "ferias"] as const;
 const TONE: Record<AutoStatus, "default" | "secondary" | "destructive" | "outline"> = {
-  presente: "default", registrado: "secondary", folga: "secondary", sem_escala: "outline",
+  presente: "default", registrado: "secondary", folga: "secondary", ferias: "secondary", sem_escala: "outline",
 };
 
 type ColaboradorOption = { id: string; nome: string; matricula: string; posto_id: string | null };
@@ -61,6 +61,7 @@ function Presenca() {
     const ch = supabase.channel("presenca-tempo-real")
       .on("postgres_changes", { event: "*", schema: "public", table: "presencas" }, () => qc.invalidateQueries({ queryKey: ["presencas"] }))
       .on("postgres_changes", { event: "*", schema: "public", table: "posto_planilha" }, () => qc.invalidateQueries({ queryKey: ["presencas"] }))
+      .on("postgres_changes", { event: "*", schema: "public", table: "ferias" }, () => qc.invalidateQueries({ queryKey: ["presencas"] }))
       .on("postgres_changes", { event: "*", schema: "public", table: "documentos" }, () => qc.invalidateQueries({ queryKey: ["presencas"] }))
       .subscribe();
     return () => { void supabase.removeChannel(ch); };
@@ -69,18 +70,20 @@ function Presenca() {
   const { data: q } = useQuery({
     queryKey: ["presencas", data],
     queryFn: async () => {
-      const [postosResult, colabsResult, presResult, planResult, docsResult] = await Promise.all([
+      const [postosResult, colabsResult, presResult, planResult, docsResult, feriasResult] = await Promise.all([
         supabase.from("postos").select("id, nome").eq("ativo", true).order("nome"),
-        supabase.from("colaboradores").select("id, nome, matricula, posto_id, funcoes(nome)").eq("arquivado", false).eq("situacao", "ativo").order("nome"),
+        supabase.from("colaboradores").select("id, nome, matricula, posto_id, situacao, funcoes(nome)").eq("arquivado", false).in("situacao", ["ativo", "ferias"]).order("nome"),
         supabase.from("presencas").select("*").eq("data", data),
         supabase.from("posto_planilha").select("colaborador_id,posto_id,paridade,escala_tipo,ajustes,hora_inicio,hora_fim,turno,mes,removido").lte("mes", `${data.slice(0, 7)}-01`).order("mes", { ascending: false }),
         supabase.from("documentos").select("id, presenca_id").not("presenca_id", "is", null),
+        supabase.from("ferias").select("id,colaborador_id,data_inicio,data_fim,status").eq("tipo", "ferias").in("status", ["aprovada", "em_gozo", "concluida"]).lte("data_inicio", data).gte("data_fim", data),
       ]);
       if (postosResult.error) throw postosResult.error;
       if (colabsResult.error) throw colabsResult.error;
       if (presResult.error) throw presResult.error;
       if (planResult.error) throw planResult.error;
       if (docsResult.error) throw docsResult.error;
+      if (feriasResult.error) throw feriasResult.error;
 
       // Se o mês ainda não foi montado, repete somente o horário e a paridade da última escala.
       const mesAtual = `${data.slice(0, 7)}-01`;
@@ -100,6 +103,7 @@ function Presenca() {
         pres: presResult.data ?? [],
         plan: [...porColab.values()],
         docs: docsResult.data ?? [],
+        ferias: feriasResult.data ?? [],
       };
     },
     refetchInterval: 60_000,
@@ -111,7 +115,8 @@ function Presenca() {
     const pres = q?.pres?.find((p) => p.colaborador_id === c.id);
     const posto = plano?.posto_id ?? c.posto_id;
     const scheduled = plano ? dayStatus(plano, day, data.slice(0, 7)) : null;
-    const auto = statusAutomatico({ scheduled, manual: pres?.status });
+    const onVacation = Boolean(q?.ferias?.some((period) => period.colaborador_id === c.id));
+    const auto = statusAutomatico({ scheduled, manual: pres?.status, onVacation });
     const documento = pres ? q?.docs?.find((d) => d.presenca_id === pres.id) : undefined;
     return { c, plano, pres, posto, scheduled, auto, documento };
   }).filter((l) => postoId === "all" || l.posto === postoId);
@@ -121,6 +126,7 @@ function Presenca() {
     { label: "Alterações manuais", n: linhas.filter((l) => l.auto === "registrado").length },
     { label: "Faltas e atestados", n: linhas.filter((l) => l.pres && ["falta", "falta_justificada", "atestado"].includes(l.pres.status)).length },
     { label: "Folgas pela escala", n: linhas.filter((l) => l.auto === "folga").length },
+    { label: "Férias", n: linhas.filter((l) => l.auto === "ferias").length },
   ];
 
   async function setStatus(colabId: string, pPostoId: string | null, status: string) {
@@ -161,7 +167,7 @@ function Presenca() {
     qc.invalidateQueries({ queryKey: ["presencas"] });
   }
 
-  const naoConfirmados = linhas.filter((l) => l.pres && !(l.auto === "folga" && l.pres.status === "presente") && !l.pres.confirmado && (l.pres.status !== "falta_justificada" || l.documento)).map((l) => l.pres!.id);
+  const naoConfirmados = linhas.filter((l) => l.pres && !(l.auto === "folga" && l.pres.status === "presente") && !(l.auto === "ferias" && ["presente", "folga", "ferias"].includes(l.pres.status)) && !l.pres.confirmado && (l.pres.status !== "falta_justificada" || l.documento)).map((l) => l.pres!.id);
   const justificativaColab = justificativa ? q?.colabs.find((c) => c.id === justificativa.colabId) : undefined;
   const justificativaPres = justificativa ? q?.pres?.find((p) => p.colaborador_id === justificativa.colabId) : undefined;
 
@@ -169,7 +175,7 @@ function Presenca() {
     <div>
       <PageHeader
         title="Presença e faltas"
-        description="Todos os escalados começam presentes. Supervisores e gestores registram só as exceções; Administração e RH confirmam."
+        description="Escalados começam presentes e férias confirmadas aparecem automaticamente. Supervisores e gestores registram exceções; Administração e RH confirmam."
         actions={<span className="flex items-center gap-2 text-xs text-success"><Radio className="h-4 w-4 animate-pulse" />Tempo real</span>}
       />
       <div className="mb-4 flex flex-wrap items-end gap-3">
@@ -185,9 +191,9 @@ function Presenca() {
         </div>
         {canConfirm && naoConfirmados.length > 0 && <Button disabled={busy} onClick={() => confirmar(naoConfirmados)}><CheckCircle2 />Confirmar todos ({naoConfirmados.length})</Button>}
       </div>
-      <div className="mb-4 grid grid-cols-2 divide-x border-y py-3 lg:grid-cols-4">{resumo.map((r) => <div key={r.label} className="px-3"><p className="text-xs text-muted-foreground">{r.label}</p><p className="text-xl font-semibold">{r.n}</p></div>)}</div>
+      <div className="mb-4 grid grid-cols-2 divide-x border-y py-3 md:grid-cols-3 lg:grid-cols-5">{resumo.map((r) => <div key={r.label} className="px-3"><p className="text-xs text-muted-foreground">{r.label}</p><p className="text-xl font-semibold">{r.n}</p></div>)}</div>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3"><FuncaoLegenda /><p className="text-xs text-muted-foreground">Falta justificada exige anexo antes da confirmação.</p></div>
-      {linhas.length === 0 ? <EmptyState text="Nenhum colaborador ativo neste posto." /> : (
+      {linhas.length === 0 ? <EmptyState text="Nenhum colaborador neste posto." /> : (
         <Card><CardContent className="overflow-x-auto p-0">
           <Table>
             <TableHeader><TableRow>
@@ -203,11 +209,11 @@ function Presenca() {
                   <TableCell><Badge variant={TONE[auto]}>{auto === "registrado" && pres ? PRESENCA_LABELS[pres.status as keyof typeof PRESENCA_LABELS] : AUTO_LABELS[auto]}</Badge></TableCell>
                   <TableCell>
                     {canEdit && !(pres?.confirmado && !canConfirm) ? (
-                      <Select value={auto === "folga" && pres?.status === "presente" ? "" : pres?.status ?? ""} onValueChange={(v) => setStatus(c.id, posto, v)}>
+                      <Select value={(auto === "folga" || auto === "ferias") && (!pres || ["presente", "folga", "ferias"].includes(pres.status)) ? "" : pres?.status ?? ""} onValueChange={(v) => setStatus(c.id, posto, v)}>
                         <SelectTrigger className="w-48" aria-label={`Alterar presença de ${c.nome}`}><SelectValue placeholder={auto === "registrado" && pres ? PRESENCA_LABELS[pres.status as keyof typeof PRESENCA_LABELS] : AUTO_LABELS[auto]} /></SelectTrigger>
                         <SelectContent>{STATUS.filter((s) => s !== "presente" || scheduled === "T").map((s) => <SelectItem key={s} value={s}>{PRESENCA_LABELS[s]}</SelectItem>)}</SelectContent>
                       </Select>
-                    ) : pres ? PRESENCA_LABELS[pres.status as keyof typeof PRESENCA_LABELS] : AUTO_LABELS[auto]}
+                    ) : auto === "registrado" && pres ? PRESENCA_LABELS[pres.status as keyof typeof PRESENCA_LABELS] : AUTO_LABELS[auto]}
                   </TableCell>
                   <TableCell>
                     {pres?.status === "falta_justificada" ? (
@@ -216,7 +222,7 @@ function Presenca() {
                           <SelectTrigger className="w-52" aria-label={`Cobertura de ${c.nome}`}><SelectValue /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="nenhuma">Nenhuma cobertura informada</SelectItem>
-                            {(q?.colabs ?? []).filter((x) => x.id !== c.id).map((x) => <SelectItem key={x.id} value={x.id}>{x.nome} · {x.matricula}</SelectItem>)}
+                            {(q?.colabs ?? []).filter((x) => x.situacao === "ativo" && x.id !== c.id).map((x) => <SelectItem key={x.id} value={x.id}>{x.nome} · {x.matricula}</SelectItem>)}
                           </SelectContent>
                         </Select>
                       ) : <span>{q?.colabs.find((x) => x.id === pres.cobertura_colaborador_id)?.nome ?? "Não informada"}</span>

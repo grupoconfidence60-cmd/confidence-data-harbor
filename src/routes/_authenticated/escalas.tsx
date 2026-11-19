@@ -38,15 +38,17 @@ function Escalas() {
   const canEdit = canEditEscalas(me?.roles ?? []);
   const [editing, setEditing] = useState<E | null>(null);
   const [assigning, setAssigning] = useState<string | null>(null);
+  const hoje = new Date().toLocaleDateString("sv-SE");
   const { data } = useQuery({
     queryKey: ["escalas"],
     queryFn: async () => {
-      const [{ data: escalas }, { data: postos }, { data: membros }] = await Promise.all([
+      const [{ data: escalas }, { data: postos }, { data: membros }, { data: ferias }] = await Promise.all([
         supabase.from("escalas").select("*").order("nome"),
         supabase.from("postos").select("id, nome").eq("ativo", true).order("nome"),
         supabase.from("escala_colaboradores").select("id, escala_id, colaborador_id, data_inicio, data_fim, colaboradores:colaborador_id(nome, matricula)").is("data_fim", null),
+        supabase.from("ferias").select("id,colaborador_id,data_inicio,data_fim,status,cobertura").eq("tipo", "ferias").in("status", ["aprovada", "em_gozo"]).lte("data_inicio", hoje).gte("data_fim", hoje),
       ]);
-      return { escalas: escalas ?? [], postos: postos ?? [], membros: (membros ?? []) as unknown as M[] };
+      return { escalas: escalas ?? [], postos: postos ?? [], membros: (membros ?? []) as unknown as M[], ferias: ferias ?? [] };
     },
   });
   const postoNome = (id: string) => data?.postos.find((p) => p.id === id)?.nome ?? "—";
@@ -76,7 +78,7 @@ function Escalas() {
                   </div>
                   <div className="mt-4 flex flex-wrap gap-1.5">
                     {ms.length === 0 && <span className="text-sm text-muted-foreground">Nenhum colaborador alocado.</span>}
-                    {ms.map((m) => <MembroChip key={m.id} m={m} canEdit={canEdit} />)}
+                    {ms.map((m) => <MembroChip key={m.id} m={m} canEdit={canEdit} periodo={data.ferias.find((period) => period.colaborador_id === m.colaborador_id)} />)}
                   </div>
                 </CardContent>
               </Card>
@@ -92,7 +94,7 @@ function Escalas() {
 
 type M = { id: string; escala_id: string; colaborador_id: string; data_inicio: string; data_fim: string | null; colaboradores: { nome: string; matricula: string } | null };
 
-function MembroChip({ m, canEdit }: { m: M; canEdit: boolean }) {
+function MembroChip({ m, canEdit, periodo }: { m: M; canEdit: boolean; periodo?: { data_inicio: string; data_fim: string; cobertura: string | null } | undefined }) {
   const qc = useQueryClient();
   async function remover() {
     const { error } = await supabase.from("escala_colaboradores").update({ data_fim: new Date().toISOString().slice(0, 10) }).eq("id", m.id);
@@ -101,8 +103,9 @@ function MembroChip({ m, canEdit }: { m: M; canEdit: boolean }) {
     qc.invalidateQueries({ queryKey: ["escalas"] });
   }
   return (
-    <Badge variant="secondary" className="gap-1">
+    <Badge variant="secondary" className="h-auto flex-wrap gap-1 py-1 text-left" title={periodo ? `Férias de ${periodo.data_inicio.split("-").reverse().join("/")} a ${periodo.data_fim.split("-").reverse().join("/")} · Cobertura: ${periodo.cobertura || "não informada"}` : undefined}>
       {m.colaboradores?.nome ?? "—"}
+      {periodo && <span className="text-[10px] font-normal text-primary">Férias · Cobertura: {periodo.cobertura || "não informada"}</span>}
       {canEdit && <button onClick={remover} aria-label="Remover"><Trash2 className="h-3 w-3" /></button>}
     </Badge>
   );

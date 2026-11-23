@@ -8,6 +8,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { ShieldCheck, Fingerprint, Activity, Lock } from "lucide-react";
 import logo from "@/assets/logo-confidence-transparente.png";
+import { ChristmasBadge, ChristmasDecorations } from "@/components/christmas-decorations";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -92,7 +93,8 @@ function AuthPage() {
   const setup = initialized === false && mode === "login";
 
   return (
-    <div className="grid min-h-screen md:grid-cols-[1.1fr_1fr]">
+    <div className="relative grid min-h-screen overflow-hidden md:grid-cols-[1.1fr_1fr]">
+      <ChristmasDecorations variant="auth" />
       <div className="auth-panel relative hidden flex-col justify-between overflow-hidden bg-brand p-10 text-primary-foreground md:flex">
         <div className="auth-grid pointer-events-none absolute inset-0" />
         <div className="auth-scan pointer-events-none absolute inset-x-0 h-24" />
@@ -121,7 +123,10 @@ function AuthPage() {
       <div className="flex items-center justify-center bg-background p-6">
         <form onSubmit={submit} className="w-full max-w-sm space-y-5 rounded-xl border bg-card p-8 shadow-lg">
           <div className="flex justify-center md:hidden"><img src={logo} alt="Grupo Confidence" className="h-20 w-auto" /></div>
-          <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-primary"><Lock className="h-3.5 w-3.5" />Área restrita</div>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-primary"><Lock className="h-3.5 w-3.5" />Área restrita</div>
+            <ChristmasBadge />
+          </div>
           <div>
             <h1 className="text-2xl font-semibold">
               {mode === "reset" ? "Redefinir senha" : setup ? "Configuração inicial" : "Entrar"}

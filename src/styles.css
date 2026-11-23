@@ -87,6 +87,10 @@
   --accent-foreground: #1a4a80;
   --brand-accent: #2b5f9e;
   --brand-accent-foreground: #ffffff;
+  --christmas-red: #c0392b;
+  --christmas-red-light: #ef6a5b;
+  --christmas-green: #2f6f5f;
+  --christmas-green-light: #62a58e;
   --success: oklch(0.6 0.14 155);
   --funcao-vigia: oklch(0.55 0.01 260);
   --funcao-intermitente: oklch(0.7 0.17 55);
@@ -419,3 +423,135 @@
 @keyframes tech-text { to { background-position: 300% 0; } }
 .bg-brand .live-dot { background: #a6d5ff; } .bg-brand .live-dot::after { border-color: #a6d5ff; }
 @media (prefers-reduced-motion: reduce) { .tech-orb, .tech-gradient-text { animation: none; } }
+
+/* Enfeites natalinos temporários em vermelho, verde, azul, cinza e branco. */
+.christmas-decorations {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  overflow: hidden;
+  pointer-events: none;
+  color: var(--primary-foreground);
+}
+.christmas-cord {
+  position: absolute;
+  top: 0;
+  left: -1%;
+  width: 102%;
+  height: 70px;
+  overflow: visible;
+}
+.christmas-cord path {
+  fill: none;
+  stroke: color-mix(in oklab, currentColor 52%, transparent);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+.christmas-bulb {
+  position: absolute;
+  width: 7px;
+  height: 10px;
+  border: 1px solid color-mix(in oklab, currentColor 75%, transparent);
+  border-radius: 60% 60% 70% 70%;
+  background: var(--christmas-red-light);
+  box-shadow: 0 0 9px var(--christmas-red-light), 0 0 18px color-mix(in oklab, var(--christmas-red-light) 45%, transparent);
+  animation: christmas-light 2.8s ease-in-out infinite;
+}
+.christmas-bulb::before {
+  content: "";
+  position: absolute;
+  left: 1px;
+  top: -4px;
+  width: 4px;
+  height: 4px;
+  border-radius: 1px;
+  background: var(--muted-foreground);
+}
+.christmas-bulb-1 { background: var(--primary-foreground); box-shadow: 0 0 9px var(--primary-foreground); animation-delay: -.9s; }
+.christmas-bulb-2 { background: var(--christmas-green-light); box-shadow: 0 0 9px var(--christmas-green-light); animation-delay: -1.8s; }
+.christmas-ornaments { position: absolute; top: 0; right: 5%; width: 150px; height: 180px; }
+.christmas-ornament {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  background: color-mix(in oklab, currentColor 48%, transparent);
+  transform-origin: top center;
+  animation: christmas-swing 5s ease-in-out infinite;
+}
+.christmas-ornament i {
+  position: absolute;
+  bottom: -34px;
+  left: -17px;
+  width: 34px;
+  height: 34px;
+  border: 1px solid color-mix(in oklab, var(--primary-foreground) 70%, transparent);
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 25%, var(--primary-foreground), var(--christmas-red-light) 28%, var(--christmas-red) 72%);
+  box-shadow: inset -5px -6px 10px color-mix(in oklab, var(--foreground) 20%, transparent), 0 5px 18px color-mix(in oklab, var(--christmas-red-light) 35%, transparent);
+}
+.christmas-ornament i::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: 11px;
+  width: 10px;
+  height: 7px;
+  border-radius: 2px 2px 0 0;
+  background: var(--muted-foreground);
+}
+.christmas-ornament-one { left: 20px; height: 86px; }
+.christmas-ornament-two { left: 72px; height: 125px; animation-delay: -1.4s; }
+.christmas-ornament-three { left: 124px; height: 70px; animation-delay: -2.7s; }
+.christmas-ornament-two i { width: 42px; height: 42px; left: -21px; bottom: -42px; background: radial-gradient(circle at 32% 25%, var(--primary-foreground), var(--christmas-green-light) 32%, var(--christmas-green) 78%); }
+.christmas-ornament-two i::before { left: 15px; }
+.christmas-ornament-three i { background: radial-gradient(circle at 32% 25%, var(--primary-foreground), var(--muted-foreground) 32%, var(--primary) 78%); }
+.christmas-snowflake {
+  position: absolute;
+  top: -30px;
+  left: var(--flake-left);
+  width: var(--flake-size);
+  height: var(--flake-size);
+  opacity: .48;
+  filter: drop-shadow(0 0 4px color-mix(in oklab, currentColor 45%, transparent));
+  animation: christmas-snowfall var(--flake-duration) linear infinite;
+  animation-delay: var(--flake-delay);
+}
+.christmas-auth { color: var(--primary); }
+.christmas-auth .christmas-cord path { stroke: color-mix(in oklab, var(--primary) 34%, transparent); }
+.christmas-auth .christmas-snowflake { opacity: .22; }
+.christmas-auth .christmas-ornaments { right: 3%; opacity: .78; }
+.christmas-badge {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid color-mix(in oklab, var(--christmas-red) 30%, var(--border));
+  border-radius: 999px;
+  padding: 5px 10px;
+  background: color-mix(in oklab, var(--christmas-red) 7%, var(--card));
+  color: var(--christmas-red);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.bg-brand .christmas-badge {
+  border-color: color-mix(in oklab, var(--primary-foreground) 30%, transparent);
+  background: color-mix(in oklab, var(--primary-foreground) 10%, transparent);
+  color: var(--primary-foreground);
+}
+@keyframes christmas-light { 0%, 100% { opacity: .45; transform: scale(.88); } 50% { opacity: 1; transform: scale(1.08); } }
+@keyframes christmas-swing { 0%, 100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
+@keyframes christmas-snowfall {
+  0% { transform: translate3d(0, -5vh, 0) rotate(0deg); }
+  50% { transform: translate3d(22px, 50vh, 0) rotate(150deg); }
+  100% { transform: translate3d(-12px, 110vh, 0) rotate(300deg); }
+}
+@media (max-width: 767px) {
+  .christmas-ornaments { right: -20px; transform: scale(.72); transform-origin: top right; opacity: .7; }
+  .christmas-snowflake:nth-child(even) { display: none; }
+  .christmas-bulb { width: 5px; height: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .christmas-bulb, .christmas-ornament { animation: none; }
+  .christmas-snowflake { display: none; }
+}

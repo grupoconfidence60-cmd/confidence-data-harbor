@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ShieldCheck, Users, MapPin, ClipboardCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BrandMark } from "@/components/brand";
+import { ChristmasBadge, ChristmasDecorations } from "@/components/christmas-decorations";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -25,6 +26,7 @@ function Index() {
   ];
   return (
     <div className="relative min-h-screen overflow-hidden bg-brand text-primary-foreground">
+      <ChristmasDecorations variant="cover" />
       <div className="auth-grid pointer-events-none absolute inset-0" />
       <div className="auth-scan pointer-events-none absolute inset-x-0 h-32" />
       <div className="tech-orb pointer-events-none absolute -right-40 top-1/4 h-[520px] w-[520px] rounded-full" />
@@ -32,9 +34,12 @@ function Index() {
       <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-8">
         <BrandMark />
         <div className="flex flex-1 flex-col justify-center py-16">
-          <p className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-primary-foreground/30 bg-primary-foreground/10 px-3 py-1 text-xs text-primary-foreground">
-            <span className="live-dot live-ao_vivo" aria-hidden /> <ShieldCheck className="h-3.5 w-3.5" /> Acesso restrito a usuários autorizados
-          </p>
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            <p className="inline-flex w-fit items-center gap-2 rounded-full border border-primary-foreground/30 bg-primary-foreground/10 px-3 py-1 text-xs text-primary-foreground">
+              <span className="live-dot live-ao_vivo" aria-hidden /> <ShieldCheck className="h-3.5 w-3.5" /> Acesso restrito a usuários autorizados
+            </p>
+            <ChristmasBadge />
+          </div>
           <h1 className="max-w-3xl text-4xl font-semibold leading-tight md:text-6xl">
             Sistema Integrado de <span className="tech-gradient-text">Gestão Operacional</span>
           </h1>

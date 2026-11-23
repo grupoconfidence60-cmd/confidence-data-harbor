@@ -1,5 +1,8 @@
 # Planejamento Confidence
 
+## Pedido atual — 23/11
+- [x] Enfeitar a capa e o acesso com cores natalinas, incluindo vermelho, e retirar automaticamente após 25/12 às 23:59.
+
 ## Revisão ampliada — 18/11
 - [x] Revisar listas Par/Ímpar, outras escalas, dias do mês, modelos, visão geral, presença diária e Excel; férias e coberturas agora seguem o período em todas essas visões.
 - [x] Revisar Intermitentes, Reservas, transferência direta pelo cadastro, geração mensal, rotina diária de férias e cobertura; transferências futuras sincronizam a disponibilidade.

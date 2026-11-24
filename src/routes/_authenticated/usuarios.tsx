@@ -180,7 +180,7 @@ function CreateDialog({ onClose }: { onClose: () => void }) {
         <form onSubmit={save} className="space-y-3">
           <div className="space-y-1.5"><Label>Nome completo</Label><Input required value={f.nome} onChange={(e) => setF({ ...f, nome: e.target.value })} /></div>
           <div className="space-y-1.5"><Label>E-mail</Label><Input type="email" required value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} /></div>
-          <div className="space-y-1.5"><Label>Senha inicial</Label><PasswordInput minLength={8} required value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} /></div>
+          <div className="space-y-1.5"><Label htmlFor="initial-user-password">Senha inicial</Label><PasswordInput id="initial-user-password" minLength={8} maxLength={72} autoComplete="new-password" required value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} /></div>
           <div className="space-y-1.5"><Label>Cargo</Label><Input value={f.cargo} onChange={(e) => setF({ ...f, cargo: e.target.value })} /></div>
           <div className="space-y-1.5"><Label>Perfil de acesso</Label>
             <Select value={f.role} onValueChange={(v) => setF({ ...f, role: v as AppRole })}>

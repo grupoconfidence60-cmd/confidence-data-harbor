@@ -1,5 +1,8 @@
 # Planejamento Confidence
 
+## Pedido atual — 24/11
+- [x] Corrigir a redefinição de senhas na tela de usuários e validar o novo acesso com uma conta temporária.
+
 ## Pedido atual — 23/11
 - [x] Enfeitar a capa e o acesso com cores natalinas, incluindo vermelho, e retirar automaticamente após 25/12 às 23:59.
 

@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Plus, KeyRound } from "lucide-react";
+import { Plus, KeyRound, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PageHeader, RequireModule } from "@/components/page";
 import { ROLE_LABELS, STATUS_LABELS, type AppRole } from "@/lib/labels";
@@ -29,11 +29,13 @@ export const Route = createFileRoute("/_authenticated/usuarios")({
   component: () => <RequireModule module="usuarios"><Usuarios /></RequireModule>,
 });
 
+type PasswordUser = { id: string; nome: string; email: string };
+
 function Usuarios() {
   const qc = useQueryClient();
   const update = useServerFn(updateUserAccess);
-  const reset = useServerFn(resetUserPassword);
   const [creating, setCreating] = useState(false);
+  const [passwordUser, setPasswordUser] = useState<PasswordUser | null>(null);
   const { data = [] } = useQuery({
     queryKey: ["usuarios"],
     queryFn: async () => {
@@ -49,13 +51,6 @@ function Usuarios() {
     const res = await update({ data: { userId, ...patch } });
     if (!res.ok) { toast.error(res.error); return; }
     toast.success("Acesso atualizado."); qc.invalidateQueries();
-  }
-  async function resetPw(userId: string) {
-    const pw = prompt("Nova senha (mínimo 8 caracteres):");
-    if (!pw) return;
-    if (pw.length < 8) { toast.error("Senha muito curta."); return; }
-    const res = await reset({ data: { userId, password: pw } });
-    res.ok ? toast.success("Senha redefinida.") : toast.error(res.error);
   }
 
   return (
@@ -83,14 +78,83 @@ function Usuarios() {
               </TableCell>
               <TableCell className="text-sm">{u.last_access ? new Date(u.last_access).toLocaleString("pt-BR") : "—"}</TableCell>
               <TableCell className="text-sm">{new Date(u.created_at).toLocaleDateString("pt-BR")}</TableCell>
-              <TableCell><Button size="sm" variant="ghost" onClick={() => resetPw(u.id)}><KeyRound className="mr-1 h-4 w-4" />Senha</Button></TableCell>
+              <TableCell>
+                <Button size="sm" variant="ghost" aria-label={`Redefinir senha de ${u.nome}`} onClick={() => setPasswordUser({ id: u.id, nome: u.nome, email: u.email })}>
+                  <KeyRound className="mr-1 h-4 w-4" />Senha
+                </Button>
+              </TableCell>
             </TableRow>
           ))}</TableBody>
         </Table>
       </div>
       {creating && <CreateDialog onClose={() => setCreating(false)} />}
-      <p className="mt-3 text-xs text-muted-foreground"><Badge variant="outline">Dica</Badge> Contas inativas ou bloqueadas não conseguem entrar no sistema.</p>
+      {passwordUser && <PasswordDialog key={passwordUser.id} user={passwordUser} onClose={() => setPasswordUser(null)} />}
+      <div className="mt-3 text-xs text-muted-foreground"><Badge variant="outline">Dica</Badge> Contas inativas ou bloqueadas não conseguem entrar no sistema.</div>
     </div>
+  );
+}
+
+function PasswordDialog({ user, onClose }: { user: PasswordUser; onClose: () => void }) {
+  const reset = useServerFn(resetUserPassword);
+  const [password, setPassword] = useState("");
+  const [confirmation, setConfirmation] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState("");
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    setFormError("");
+    if (password.length < 8) {
+      setFormError("A nova senha precisa ter pelo menos 8 caracteres.");
+      return;
+    }
+    if (password !== confirmation) {
+      setFormError("As senhas digitadas não são iguais.");
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await reset({ data: { userId: user.id, password } });
+      if (!res.ok) {
+        setFormError(res.error || "Não foi possível redefinir a senha. Tente novamente.");
+        return;
+      }
+      toast.success(`Senha de ${user.nome} redefinida. A nova senha já pode ser usada.`);
+      onClose();
+    } catch (err) {
+      setFormError((err as Error).message || "Não foi possível redefinir a senha. Tente novamente.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Dialog open onOpenChange={(open) => !open && !saving && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Redefinir senha</DialogTitle>
+          <DialogDescription>Defina a nova senha de acesso de {user.nome} ({user.email}).</DialogDescription>
+        </DialogHeader>
+        <form onSubmit={save} className="space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="new-user-password">Nova senha</Label>
+            <PasswordInput id="new-user-password" required minLength={8} maxLength={72} autoComplete="new-password" autoFocus value={password} onChange={(e) => setPassword(e.target.value)} />
+            <p className="text-xs text-muted-foreground">Use de 8 a 72 caracteres.</p>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="confirm-user-password">Repita a nova senha</Label>
+            <PasswordInput id="confirm-user-password" required minLength={8} maxLength={72} autoComplete="new-password" value={confirmation} onChange={(e) => setConfirmation(e.target.value)} />
+          </div>
+          {formError && <p role="alert" className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{formError}</p>}
+          <DialogFooter>
+            <Button type="button" variant="outline" disabled={saving} onClick={onClose}>Cancelar</Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Salvando...</> : "Salvar nova senha"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 
